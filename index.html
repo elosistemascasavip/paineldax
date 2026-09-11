@@ -37,17 +37,12 @@ header{background:linear-gradient(100deg,var(--nav1) 0%,var(--nav2) 56%,var(--na
 .tagline .t1{font-weight:400;font-size:14px;color:#dbe6fb}
 .tagline .t2{font-weight:700;font-size:14px}
 .header-right{margin-left:auto;display:flex;align-items:center;gap:22px}
-.chip{line-height:1.1}
-.chip .lbl{font-size:10px;letter-spacing:.12em;color:#b8ccf2;font-weight:600}
-.chip .val{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;margin-top:2px}
-.chip .val .caret{opacity:.75;font-size:10px}
-.chip.sep{border-left:1px solid rgba(255,255,255,.22);padding-left:22px}
-.badge-status{font-weight:700}
-.badge-status[data-s="pendente"]{color:#ffd7a6}
-.badge-status[data-s="carregado"]{color:#bff0cf}
-.user{display:flex;align-items:center;gap:12px;border-left:1px solid rgba(255,255,255,.22);padding-left:20px}
+.user{display:flex;align-items:center;gap:12px}
 .avatar{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.16);
   display:grid;place-items:center;font-weight:700;font-size:14px;cursor:pointer;border:1px solid rgba(255,255,255,.2)}
+.who{line-height:1.2;max-width:190px}
+.who b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#b8ccf2;font-weight:600;margin-top:1px}
 .dax{display:flex;align-items:center;gap:8px;font-weight:800;font-size:22px;letter-spacing:-.01em}
 .dax img{height:28px;display:block}
 .dax .wave{font-size:20px}
@@ -92,17 +87,30 @@ h1{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0}
 /* ---------- Import cards ---------- */
 .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
 @media(max-width:860px){.import-grid{grid-template-columns:1fr}}
-.icard{border-radius:16px;padding:20px 20px 18px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.icard{border-radius:16px;padding:15px 20px 15px;position:relative;overflow:hidden;display:flex;flex-direction:column}
 .icard.blue{background:var(--blue-tint);border:1px solid var(--blue-line)}
 .icard.green{background:var(--green-tint);border:1px solid var(--green-line)}
 .icard .num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px}
 .icard.blue .num{background:var(--blue)}
 .icard.green .num{background:var(--green)}
+/* O balão numerado é o semáforo da carga: pulsa enquanto pede atualização. */
+.icard .num.ok{background:#1f9d55;color:#fff;animation:pulseOk 2.4s ease-in-out infinite}
+.icard .num.alerta{background:#e0503c;color:#fff;animation:pulseAlerta 1.5s ease-in-out infinite}
+@keyframes pulseOk{
+  0%,100%{box-shadow:0 0 0 0 rgba(31,157,85,.45)}
+  70%{box-shadow:0 0 0 9px rgba(31,157,85,0)}}
+@keyframes pulseAlerta{
+  0%,100%{box-shadow:0 0 0 0 rgba(224,80,60,.55);transform:scale(1)}
+  70%{box-shadow:0 0 0 10px rgba(224,80,60,0);transform:scale(1.06)}}
+@media(prefers-reduced-motion:reduce){.icard .num.ok,.icard .num.alerta{animation:none}}
+.cstatus{font-size:12px;line-height:1.4;color:var(--ink-soft);margin:-2px 0 6px;min-height:17px}
+.cstatus b{color:var(--ink);font-weight:700}
+.cstatus b.pede{color:#c0392b}
 .icard .art{position:absolute;top:18px;right:18px;opacity:.9}
 .icard .art svg{width:40px;height:40px}
-.icard h3{font-size:18px;font-weight:800;letter-spacing:-.015em;margin:14px 0 8px}
+.icard h3{font-size:18px;font-weight:800;letter-spacing:-.015em;margin:10px 0 6px}
 .icard p{margin:2px 0;color:var(--ink-soft);font-size:13.5px;line-height:1.45}
-.icard .btn{margin-top:auto;width:100%;border:none;border-radius:11px;padding:12px;font-weight:700;font-size:14.5px;
+.icard .btn{margin-top:12px;width:100%;border:none;border-radius:11px;padding:11px;font-weight:700;font-size:14.5px;
   display:flex;align-items:center;justify-content:center;gap:9px;color:#fff;transition:filter .12s,transform .05s}
 .icard .btn svg{width:18px;height:18px}
 .icard .btn:active{transform:translateY(1px)}
@@ -137,6 +145,13 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafbfe}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
+/* Pílula de classe ABC: largura fixa para a coluna alinhar de cima a baixo */
+.pill.cls{min-width:26px;padding:2px 0;text-align:center}
+td.cls{text-align:center}
+th.cls{text-align:center}
+/* "Na rede": número à direita (tabular) + pílula, cada um em faixa própria */
+.semvenda{color:#c0392b;font-weight:700;font-size:12px;white-space:nowrap}
+.delta.zero{color:var(--ink-faint) !important;font-weight:600}
 .pill.A{background:#e7f0ff;color:#1552c9}
 .pill.B{background:#eef7ef;color:#1f7a3f}
 .pill.C{background:#f2f3f6;color:#697588}
@@ -204,6 +219,53 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .statbar{display:flex;gap:22px;flex-wrap:wrap;padding:12px 16px;background:#f7f9fc;border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
 .statbar .s .n{font-size:20px;font-weight:800;letter-spacing:-.02em}
 .statbar .s .l{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+/* ---------- Oportunidades ---------- */
+.empty .resumo{margin-top:10px;max-width:560px;font-size:13px;line-height:1.55;color:var(--ink-soft);text-align:left}
+.empty .resumo b{color:var(--ink)}
+.eixos{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.eixo{padding:7px 14px;border-radius:9px;border:1px solid var(--line);background:#fff;
+  font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer}
+.eixo:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.eixo.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.eixo:disabled{opacity:.4;cursor:not-allowed}
+.trilha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}
+.trilha .tl{color:var(--ink-faint);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.trilha .tag{background:var(--blue-tint);border:1px solid var(--blue-line);color:var(--blue-ink);
+  padding:4px 10px;border-radius:999px;cursor:pointer;font-size:12.5px}
+.trilha .tag:hover{background:#dce9ff}
+.trilha a{font-size:12.5px;color:var(--blue);text-decoration:none;font-weight:600}
+tr.clicavel{cursor:pointer}
+tr.clicavel:hover{background:var(--blue-tint)}
+.barrinha{display:block;height:7px;background:#eef1f6;border-radius:4px;overflow:hidden}
+.barrinha i{display:block;height:100%;border-radius:4px}
+/* ---------- Escopo da curva: rede / minha loja / outro associado ---------- */
+.scope{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;margin-bottom:12px;border:1px solid transparent}
+.scope .mk{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:15px;flex:0 0 auto}
+.scope .tx{line-height:1.28;min-width:0}
+.scope .tx b{display:block;font-size:15.5px;letter-spacing:-.01em}
+.scope .tx span{font-size:12.5px;opacity:.85}
+.scope .fx{margin-left:auto;display:flex;gap:22px;text-align:right;flex-wrap:wrap}
+.scope .fx .n{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.scope .fx .l{font-size:10px;letter-spacing:.07em;text-transform:uppercase;opacity:.82;font-weight:600;margin-top:1px}
+.scope.rede{background:var(--blue-tint);border-color:var(--blue-line);color:var(--blue-ink)}
+.scope.rede .mk{background:#fff;color:var(--blue);border:1px solid var(--blue-line)}
+.scope.minha{background:linear-gradient(100deg,var(--nav1) 0%,var(--nav2) 62%,var(--nav3) 100%);color:#fff;
+  box-shadow:0 7px 20px rgba(21,82,201,.24)}
+.scope.minha .mk{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.26)}
+.scope.outra{background:#fff7ea;border-color:#f0d9ad;color:#8a5a06}
+.scope.outra .mk{background:#fff;color:var(--amber);border:1px solid #f0d9ad}
+.kv2{display:grid;grid-template-columns:118px 1fr;gap:7px 12px;font-size:13.5px;align-items:baseline}
+.kv2>span{font-variant-numeric:tabular-nums}
+td.per{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+  letter-spacing:-.01em;white-space:nowrap;color:var(--ink-soft)}
+.kv2>b{color:var(--ink-soft);font-weight:600;font-size:13px;white-space:nowrap}
+.vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.vc-grid{grid-template-columns:1fr}}
+.vc-list{padding:8px 16px 14px}
+.vc-list h4{margin:8px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.vc-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid #f1f3f8;font-size:13px}
+.vc-row .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vc-row .qt{font-variant-numeric:tabular-nums;color:var(--ink-soft);font-size:12.5px}
 .pareto-wrap{display:grid;gap:14px;margin-bottom:14px}
 .pareto-wrap.two{grid-template-columns:1fr 1fr}
 @media(max-width:900px){.pareto-wrap.two{grid-template-columns:1fr}}
@@ -341,20 +403,9 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
     <div class="tagline"><div class="t1">Dados que conectam</div><div class="t2">melhores decisões</div></div>
   </div>
   <div class="header-right">
-    <div class="chip">
-      <div class="lbl">PERÍODO</div>
-      <div class="val" id="chipPeriodo">—</div>
-    </div>
-    <div class="chip sep">
-      <div class="lbl">VENDA</div>
-      <div class="val" id="chipVenda">—</div>
-    </div>
-    <div class="chip sep">
-      <div class="lbl">ESTOQUE</div>
-      <div class="val" id="chipEstoque">—</div>
-    </div>
     <div class="user">
       <div class="avatar" id="avatar" title="Entrar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg></div>
+      <div class="who" id="who"><b id="whoNome">Visitante</b><span id="whoPapel">sem acesso</span></div>
       <div class="dax">
         <img data-logo="dax" alt="dax">
       </div>
@@ -371,6 +422,10 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/><path d="M12 3v13m0 0l-4-4m4 4l4-4"/></svg>
         Importar planilhas
       </div>
+      <div class="nav-item" data-route="historico">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+        Histórico de cargas
+      </div>
     </div>
     <div class="nav-group">
       <div class="nav-title">ANÁLISE</div>
@@ -378,9 +433,17 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
         Curva ABC
       </div>
+      <div class="nav-item" data-route="oportunidades">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg>
+        Oportunidades
+      </div>
+      <div class="nav-item" data-route="vendas">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-4h16l1 4M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9M3 9h18"/></svg>
+        Vendas por loja
+      </div>
       <div class="nav-item" data-route="ruptura">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
-        Ruptura de estoque
+        Estoque Pulmão
       </div>
       <div class="nav-item" data-route="precomedio">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
@@ -673,6 +736,25 @@ function periodLabel(st){
   return a;
 }
 function aggMap(rows,key){ const m={}; rows.forEach(r=>{const k=r[key]||'—'; m[k]=(m[k]||0)+(+r.quantidade||0);}); return m; }
+/* ---------- Busca e ordenação por associado (relatórios) ---------- */
+function ORD_OPCOES(metrica){
+  return `<option value="valor_desc">Maior ${metrica} primeiro</option>
+    <option value="valor_asc">Menor ${metrica} primeiro</option>
+    <option value="nome_asc">Associado A → Z</option>
+    <option value="nome_desc">Associado Z → A</option>`;
+}
+function filtraNome(rows, campo, termo){
+  const t=normNome(termo||''); if(!t) return rows;
+  return rows.filter(r=>normNome(r[campo]).includes(t));
+}
+function ordenaLista(rows, campoNome, campoValor, ord){
+  const l=[...rows];
+  if(ord==='nome_asc')  return l.sort((a,b)=>String(a[campoNome]).localeCompare(String(b[campoNome]),'pt-BR'));
+  if(ord==='nome_desc') return l.sort((a,b)=>String(b[campoNome]).localeCompare(String(a[campoNome]),'pt-BR'));
+  if(ord==='valor_asc') return l.sort((a,b)=>(+a[campoValor])-(+b[campoValor]));
+  return l.sort((a,b)=>(+b[campoValor])-(+a[campoValor]));
+}
+function valOf(id,pad){ const el=document.getElementById(id); return el? el.value : (pad||''); }
 // ranking comparativo A→B com variação
 function rankCompareHTML(rowsA,rowsB,key,topN){
   const A=aggMap(rowsA,key),B=aggMap(rowsB,key);
@@ -691,6 +773,29 @@ function fmtData(ts){ if(!ts) return '—'; const d=new Date(ts);
 /* ============================================================
    Auth
    ============================================================ */
+/* Quem está logado: nome exibido no header e a loja do associado (para a curva "minha loja"). */
+let CONTA={nome:'Visitante',papel:'sem acesso'};
+let MINHA_LOJA_CAND=[];   // candidatos de nome da loja do usuário logado
+const PAPEL_LABEL={admin:'Administrador', casavip_vendas:'Casa VIP · Vendas',
+  jiwi_estoque:'JIWI · Estoque', associado:'Associado', pendente:'Acesso pendente'};
+function normNome(s){ return String(s||'').toLowerCase().normalize('NFD')
+  .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+// mesma chave usada no login, para casar "M. Nobre" com o usuário "metalnobre"
+function chaveLoja(nome){ const n=normNome(nome); return LOGIN_APELIDOS[n]||n; }
+function resolverMinhaLoja(lojas){
+  if(!MINHA_LOJA_CAND.length || !lojas || !lojas.length) return '';
+  for(const cand of MINHA_LOJA_CAND){
+    const k=chaveLoja(cand); if(!k) continue;
+    const hit=lojas.find(l=>chaveLoja(l)===k);
+    if(hit) return hit;
+  }
+  for(const cand of MINHA_LOJA_CAND){
+    const k=chaveLoja(cand); if(!k) continue;
+    const hit=lojas.find(l=>{const n=chaveLoja(l); return n.includes(k)||k.includes(n);});
+    if(hit) return hit;
+  }
+  return '';
+}
 async function refreshAuth(){
   const {data} = await sb.auth.getSession();
   session = data.session;
@@ -700,11 +805,19 @@ async function refreshAuth(){
     perfil = p;
     av.textContent = (perfil?.nome||session.user.email||'?').trim().charAt(0).toUpperCase();
     av.title = 'Conta';
+    const login=(session.user.email||'').split('@')[0];
+    CONTA = isAdmin()
+      ? {nome:'Administrador', papel:'Acesso total'}
+      : {nome: perfil?.nome || login || 'Conta',
+         papel: PAPEL_LABEL[perfil?.papel] || 'Associado'};
+    MINHA_LOJA_CAND = isGestor() ? [] : [perfil?.nome, login].filter(Boolean);
   } else {
-    perfil = null;
+    perfil = null; CONTA={nome:'Visitante',papel:'sem acesso'}; MINHA_LOJA_CAND=[];
     av.innerHTML = ICON_USER;
     av.title = 'Entrar';
   }
+  document.getElementById('whoNome').textContent = CONTA.nome;
+  document.getElementById('whoPapel').textContent = CONTA.papel;
 }
 document.getElementById('avatar').onclick = async ()=>{
   if(session){ if(confirm('Sair da conta?')){
@@ -756,11 +869,35 @@ async function doLogin(){
 /* ============================================================
    Header status
    ============================================================ */
+let PERIODO_BASE={ini:'',fim:''};
+let STATUS={};
+function fmtDataHora(ts){ if(!ts) return '—'; const d=new Date(ts);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})
+       + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+/* Lê o estado das cargas. Não escreve no cabeçalho: a situação das planilhas
+   aparece na tela de Importar e no Histórico de cargas. */
 async function loadStatus(){
   const {data} = await sb.from('vw_status_sistema').select('*').maybeSingle();
-  document.getElementById('chipPeriodo').textContent = data?.periodo_venda ? fmtComp(data.periodo_venda) : '—';
-  document.getElementById('chipVenda').textContent   = fmtData(data?.venda_atualizado_em);
-  document.getElementById('chipEstoque').textContent = fmtData(data?.estoque_atualizado_em);
+  STATUS = data || {};
+  // Intervalo real da planilha carregada: primeira e última competência com venda.
+  const [pIni,pFim] = await Promise.all([
+    sb.from('vw_vendas_geo').select('competencia').order('competencia',{ascending:true}).limit(1).maybeSingle(),
+    sb.from('vw_vendas_geo').select('competencia').order('competencia',{ascending:false}).limit(1).maybeSingle()
+  ]);
+  PERIODO_BASE={ini:pIni?.data?.competencia||'', fim:pFim?.data?.competencia||''};
+}
+/* Competência de vendas que já deveria estar na base hoje (formato AAAA-MM-DD).
+   O prazo vence NO dia 10: nesse dia o mês fechado já é exigido.
+   10/set cobra agosto, 10/out cobra setembro. Antes do dia 10, cobra o mês anterior a esse. */
+const DIA_LIMITE_VENDAS=10;
+function competenciaEsperadaVendas(hoje=new Date()){
+  const d=new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  d.setMonth(d.getMonth() - (hoje.getDate()>=DIA_LIMITE_VENDAS ? 1 : 2));
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';
+}
+function ehHoje(ts){
+  const d=new Date(ts), h=new Date();
+  return d.getFullYear()===h.getFullYear() && d.getMonth()===h.getMonth() && d.getDate()===h.getDate();
 }
 
 /* ============================================================
@@ -797,6 +934,8 @@ async function route(r){
   if(r==='linhas') return renderRotulos('linha','Linhas','vw_linhas');
   if(r==='cores')  return renderRotulos('cor','Cores','vw_cores');
   if(r==='ruptura') return renderRuptura();
+  if(r==='oportunidades') return renderOportunidades();
+  if(r==='historico') return renderHistorico();
 }
 
 /* ============================================================
@@ -805,23 +944,24 @@ async function route(r){
 const ICO_IMPORT = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/><path d="M12 3v13m0 0l-4-4m4 4l4-4"/></svg>`;
 function renderImportar(){
   view.innerHTML = head(ICO_IMPORT,'Importar planilhas','Duas planilhas, nesta ordem. A leitura é feita no navegador; você confere antes de gravar na base da rede.','Dados')
-  + `<div class="import-grid">
+  + `<div id="impRelato"></div>
+    <div class="import-grid">
       <div class="icard blue">
-        <div class="num">1</div>
+        <div class="num" id="numVendas">1</div>
         <svg class="art" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
         <h3>Vendas da rede</h3>
-        <p>Metais DAX — abas Jan26, Fev26… e Total26</p>
+        <div class="cstatus" id="stVendas"></div>
         <p>Libera curva ABC, vendas por loja e cadastros</p>
         <button class="btn" id="btnVendas">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v13m0-13l-4 4m4-4l4 4M4 21h16"/></svg>
           Selecionar planilha de vendas</button>
       </div>
       <div class="icard green">
-        <div class="num">2</div>
+        <div class="num" id="numEstoque">2</div>
         <svg class="art" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1f9d55" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
         <h3>Estoque e produção</h3>
-        <p>Estoque Atualizado — ESTOQUE DAX e Pedidos em Andamento</p>
-        <p>Libera a análise de ruptura</p>
+        <div class="cstatus" id="stEstoque"></div>
+        <p>Libera o Estoque Pulmão</p>
         <button class="btn" id="btnEstoque">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v13m0-13l-4 4m4-4l4 4M4 21h16"/></svg>
           Selecionar planilha de estoque</button>
@@ -842,6 +982,66 @@ function renderImportar(){
   document.getElementById('btnEstoque').onclick=()=>{
     toast('Importação de estoque entra em breve — estamos finalizando este módulo.');
   };
+  impUltimasCargas();
+}
+// Última carga válida de cada planilha, no topo da tela de importação.
+async function impUltimasCargas(){
+  if(!session) return;
+  const {data,error}=await sb.from('vw_importacoes_log').select('*')
+    .eq('status','aplicado').order('quando',{ascending:false}).limit(20);
+  if(error||!data) return;
+  const u=t=>data.find(d=>d.tipo===t);
+  const vendas=u('vendas'), estoque=u('estoque');
+  // O balão numerado é o semáforo: verde em dia, vermelho pedindo carga.
+  const okVendas = !!vendas && (PERIODO_BASE.fim||'').slice(0,7) >= competenciaEsperadaVendas().slice(0,7);
+  const okEstoque = !!estoque && ehHoje(estoque.quando);
+  const pinta=(id,ok)=>{ const el=document.getElementById(id); if(el) el.className='num '+(ok?'ok':'alerta'); };
+  pinta('numVendas',okVendas); pinta('numEstoque',okEstoque);
+  const sv=document.getElementById('stVendas');
+  if(sv) sv.innerHTML = vendas
+    ? `última carga <b>${fmtDataHora(vendas.quando)}</b> por <b>${vendas.quem}</b>${
+        PERIODO_BASE.fim?` · dados até <b>${fmtComp(PERIODO_BASE.fim)}</b>`:''}${
+        okVendas?'':' · <b class="pede">atualização necessária</b>'}`
+    : '<b class="pede">nenhuma carga aplicada</b>';
+  const se=document.getElementById('stEstoque');
+  if(se) se.innerHTML = estoque
+    ? `última carga <b>${fmtDataHora(estoque.quando)}</b> por <b>${estoque.quem}</b>${
+        okEstoque?'':' · <b class="pede">atualização necessária</b>'}`
+    : '<b class="pede">nenhuma carga aplicada</b>';
+  impRelatoCarga(vendas);
+}
+
+/* Relato curto da última carga de vendas + quem ainda não informou o mês. */
+async function impRelatoCarga(ult){
+  const box=document.getElementById('impRelato'); if(!box) return;
+  const {data:pend} = await sb.from('vw_lojas_sem_ultimo_mes').select('*');
+  const faltando=(pend||[]).filter(d=>d.situacao!=='ok')
+                           .sort((a,b)=>b.media_anterior-a.media_anterior);
+  const mes = pend && pend.length ? fmtComp(pend[0].ultimo_mes) : (PERIODO_BASE.fim?fmtComp(PERIODO_BASE.fim):'—');
+  const rel = ult && ult.relatorio ? ult.relatorio : null;
+  const rej = rel && rel.linhas_rejeitadas!=null ? rel.linhas_rejeitadas : null;
+  box.innerHTML=`<div class="vc-grid" style="margin-bottom:14px">
+    <div class="panel"><div class="panel-head"><h2>Última importação de vendas</h2>
+      <span class="count">${ult?fmtDataHora(ult.quando):'—'}</span></div>
+      <div style="padding:12px 16px">${ult?`<div class="kv2">
+        <b>Arquivo</b><span>${ult.arquivo||'—'}</span>
+        <b>Enviado por</b><span><b>${ult.quem}</b></span>
+        <b>Linhas</b><span>${fmtInt(ult.linhas_gravadas)} gravadas de ${fmtInt(ult.linhas_lidas)} lidas${
+          rej!=null?` · <span style="color:${rej>0?'var(--amber)':'var(--ink-faint)'}">${fmtInt(rej)} rejeitadas</span>`:''}</span>
+        <b>Meses gravados</b><span>${periodosLabel(ult.periodos)}</span>
+      </div>`:'<div style="color:var(--ink-faint);font-size:13px">Nenhuma carga de vendas aplicada.</div>'}</div></div>
+    <div class="panel"><div class="panel-head"><h2>Não enviaram ${mes}</h2>
+      <span class="count">${faltando.length} de ${(pend||[]).length} lojas</span></div>
+      <div class="vc-list">${faltando.length? faltando.map(d=>`<div class="vc-row">
+          <span class="nm"><b>${d.loja}</b></span>
+          <span class="qt">média ${fmtInt(d.media_anterior)} peças/mês</span>
+          <span class="pill D">sem dados</span>
+        </div>`).join('')
+        : `<div style="color:#1f7a3f;font-size:13px;padding:6px 0">Todas as lojas enviaram ${mes}.</div>`}
+        ${faltando.length?`<div style="margin-top:8px;font-size:11.5px;color:var(--ink-faint);line-height:1.45">
+          Os totais de ${mes} ficam menores que a realidade até a carga completa.</div>`:''}
+      </div></div>
+  </div>`;
 }
 
 /* ---------- Parser de vendas (formato Metais DAX) ---------- */
@@ -967,6 +1167,7 @@ document.getElementById('fileVendas').onchange = async (e)=>{
     area.innerHTML=`<div class="notice warn">Nenhum dado reconhecido. Confira se é a planilha Metais DAX (abas mensais + Total26).</div>`; return;
   }
   window._imp=parsed;
+  window._impArquivo=file.name;
   area.innerHTML=`<div class="review">
     <h4>Confira antes de aplicar — <b>${file.name}</b></h4>
     <div class="kv">
@@ -1014,7 +1215,7 @@ async function aplicarVendas(){
     // 2. importação + staging
     logln('Abrindo importação…');
     const {data:imp,error:e1}=await sb.from('importacoes')
-      .insert({tipo:'vendas',arquivo:'vendas',linhas_lidas:p.vendas.length,status:'pendente'})
+      .insert({tipo:'vendas',arquivo:(window._impArquivo||'vendas'),linhas_lidas:p.vendas.length,status:'pendente'})
       .select().single();
     if(e1) throw e1;
     logln('Enviando linhas para staging…');
@@ -1088,6 +1289,122 @@ function renderQuedaAlerta(impId,periodos){
   };
 }
 
+/* Bloco padrão para módulo ainda não implementado. */
+function emConstrucao(resumo){
+  return `<div class="panel"><div class="empty">
+    <div class="big">Em construção...</div>
+    <div class="resumo"><b>Resumo:</b> ${resumo}</div>
+  </div></div>`;
+}
+
+/* ============================================================
+   Tela: Oportunidades — EM CONSTRUÇÃO
+   O cálculo de esperado/aproveitamento foi retirado de propósito.
+   Será retomado com calma: ver as decisões discutidas (base do esperado,
+   piso de amostra, eixos grupo/linha/cor).
+   ============================================================ */
+const ICO_OPO=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg>`;
+function renderOportunidades(){
+  view.innerHTML=head(ICO_OPO,'Oportunidades',
+    'Desempenho de cada associado por SKU, comparado com a média da rede.','Análise')
+  + emConstrucao(`comparação de performance SKU a SKU entre o associado e a rede, com a venda
+    ideal calculada para o porte da loja. A leitura se abre por grupo, linha e cor, mostrando
+    onde ele está acima ou abaixo da média — para agir no impulsionamento do item, da cor,
+    da linha ou do grupo inteiro.`);
+}
+
+/* ============================================================
+   Tela: Histórico de cargas (log de importações)
+   ============================================================ */
+const ICO_LOG=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>`;
+const TIPO_LABEL={vendas:'Vendas da rede', estoque:'Estoque e produção'};
+const STATUS_PILL={aplicado:['B','Aplicado'], pendente:['warn','Não concluída'], abortado:['D','Abortada']};
+const HIST={data:[],tipo:'',limite:50};
+async function renderHistorico(){
+  view.innerHTML=head(ICO_LOG,'Histórico de cargas',
+    'Toda atualização de planilha fica registrada: quem subiu, o arquivo, o dia e a hora.','Dados')
+    +'<div id="hBody"></div>';
+  const body=document.getElementById('hBody');
+  if(!session){ body.innerHTML=loginWall('O histórico é restrito a quem tem acesso ao sistema.'); return; }
+  body.innerHTML='<div class="panel"><div class="empty">Carregando…</div></div>';
+  const {data,error}=await sb.from('vw_importacoes_log').select('*').order('quando',{ascending:false}).limit(200);
+  if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
+  HIST.data=data||[];
+  body.innerHTML=`
+    <div class="tools">
+      <select class="selin" id="hTipo">
+        <option value="">Vendas e estoque</option>
+        <option value="vendas">Só vendas</option>
+        <option value="estoque">Só estoque</option>
+      </select>
+      <input type="search" id="hBusca" class="grow" placeholder="Buscar por quem subiu ou nome do arquivo…">
+      <button class="btn-tool" id="hCSV">Exportar CSV</button>
+      <button class="btn-tool" id="hPrint">Imprimir</button>
+    </div>
+    <div id="hUltimas"></div>
+    <div class="panel"><div class="panel-head"><h2>Todas as cargas</h2><span class="count" id="hCount"></span></div>
+      <div class="tbl-scroll"><table><thead><tr>
+        <th>Quando</th><th>Planilha</th><th>Quem subiu</th><th>Arquivo</th>
+        <th class="num">Linhas lidas</th><th class="num">Gravadas</th><th>Períodos</th><th>Situação</th>
+      </tr></thead><tbody id="hRows"></tbody></table></div></div>
+    <div style="margin-top:10px;font-size:12px;color:var(--ink-faint)">
+      Cargas anteriores à criação deste registro aparecem sem autor. Daqui em diante toda importação é carimbada
+      com o usuário autenticado no momento do envio.</div>`;
+  document.getElementById('hTipo').onchange=histRefresh;
+  document.getElementById('hBusca').oninput=histRefresh;
+  document.getElementById('hCSV').onclick=()=>exportCSV('historico_cargas',histCols(),histFiltrado());
+  document.getElementById('hPrint').onclick=()=>printTabela('Histórico de cargas',
+    histCols().map(c=>({...c,num:/Linhas|Gravadas/.test(c.label)})),histFiltrado());
+  histRefresh();
+}
+function histFiltrado(){
+  const t=document.getElementById('hTipo').value;
+  const q=normNome(document.getElementById('hBusca').value||'');
+  return HIST.data.filter(d=>(!t||d.tipo===t)
+    && (!q || normNome(d.quem).includes(q) || normNome(d.arquivo).includes(q)));
+}
+function histCols(){ return [
+  {label:'Quando',get:d=>fmtDataHora(d.quando)},{label:'Planilha',get:d=>TIPO_LABEL[d.tipo]||d.tipo},
+  {label:'Quem subiu',key:'quem'},{label:'Papel',key:'papel'},{label:'Arquivo',key:'arquivo'},
+  {label:'Linhas lidas',key:'linhas_lidas'},{label:'Gravadas',key:'linhas_gravadas'},
+  {label:'Situacao',key:'status'}]; }
+function periodosLabel(ps){
+  if(!ps||!ps.length) return '—';
+  const f=p=>{const s=String(p); return mesLabel(s.slice(0,4)+'-'+s.slice(4)+'-01');};
+  return ps.length<=3? ps.map(f).join(', ') : f(ps[0])+' … '+f(ps[ps.length-1])+` (${ps.length})`;
+}
+function histRefresh(){
+  const rows=histFiltrado();
+  // cartões da última carga de cada planilha — é o que a JIWI olha primeiro
+  const ult=t=>HIST.data.find(d=>d.tipo===t&&d.status==='aplicado');
+  const card=(t,titulo,cor)=>{ const u=ult(t);
+    return `<div class="panel" style="margin:0"><div class="panel-head"><h2>${titulo}</h2>
+      <span class="count">${u?'última carga válida':'sem carga'}</span></div>
+      <div style="padding:12px 16px">${u? `<div class="kv2">
+        <b>Quando</b><span>${fmtDataHora(u.quando)}</span>
+        <b>Quem subiu</b><span><b>${u.quem}</b> · ${u.papel}</span>
+        <b>Arquivo</b><span>${u.arquivo||'—'}</span>
+        <b>Linhas gravadas</b><span>${fmtInt(u.linhas_gravadas)}</span>
+        <b>Períodos</b><span>${periodosLabel(u.periodos)}</span></div>`
+      : `<div style="color:var(--ink-faint);font-size:13px">Nenhuma carga aplicada até agora.</div>`}</div></div>`;
+  };
+  document.getElementById('hUltimas').innerHTML=
+    `<div class="vc-grid" style="margin-bottom:14px">${card('vendas','Vendas da rede')}${card('estoque','Estoque e produção')}</div>`;
+  document.getElementById('hCount').textContent=rows.length+' cargas';
+  document.getElementById('hRows').innerHTML = rows.length? rows.map(d=>{
+    const [cls,txt]=STATUS_PILL[d.status]||['C',d.status];
+    return `<tr>
+      <td style="white-space:nowrap">${fmtDataHora(d.quando)}</td>
+      <td>${TIPO_LABEL[d.tipo]||d.tipo}</td>
+      <td><b>${d.quem}</b>${d.papel&&d.papel!=='—'?` <span style="color:var(--ink-faint);font-size:12px">· ${d.papel}</span>`:''}</td>
+      <td class="desc" title="${(d.arquivo||'').replace(/"/g,'&quot;')}">${d.arquivo||'—'}</td>
+      <td class="num">${fmtInt(d.linhas_lidas)}</td>
+      <td class="num">${fmtInt(d.linhas_gravadas)}</td>
+      <td class="per">${periodosLabel(d.periodos)}</td>
+      <td><span class="pill ${cls}">${txt}</span></td></tr>`;}).join('')
+    : '<tr><td colspan="8" style="color:var(--ink-faint);padding:14px">Nenhuma carga no filtro.</td></tr>';
+}
+
 /* ============================================================
    Tela: Curva ABC
    ============================================================ */
@@ -1119,13 +1436,17 @@ async function renderABC(){
       <div style="font-size:12px;color:var(--ink-soft);align-self:center">A curva usa o período escolhido abaixo.</div>
     </div>` : '';
   const lojasList=uniq(ABC.vendas.map(r=>r.loja));
+  ABC.minhaLoja=resolverMinhaLoja(lojasList);
+  const opLojas = lojasList.map(l=>
+    `<option value="${l}"${l===ABC.minhaLoja?' selected':''}>${l===ABC.minhaLoja?'★ Minha loja — '+l:l}</option>`).join('');
   body.innerHTML = cfg + `
+    <div id="abcScope"></div>
     <div class="tools">
       <div id="abcPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
     </div>
     <div class="tools">
       <input type="search" id="fSearch" class="grow" placeholder="Buscar SKU, descrição…">
-      <select class="selin" id="fLojaAbc"><option value="">Rede inteira</option>${lojasList.map(l=>`<option>${l}</option>`).join('')}</select>
+      <select class="selin" id="fLojaAbc"><option value=""${ABC.minhaLoja?'':' selected'}>Rede inteira (todos os associados)</option>${opLojas}</select>
       <select class="selin" id="fGrupo"><option value="">Grupo: todos</option>${uniq(ABC.catalogo.map(d=>d.grupo)).map(g=>`<option>${g}</option>`).join('')}</select>
       <select class="selin" id="fLinha"><option value="">Linha: todas</option>${uniq(ABC.catalogo.map(d=>d.linha)).map(g=>`<option>${g}</option>`).join('')}</select>
       <select class="selin" id="fCor"><option value="">Cor: todas</option>${uniq(ABC.catalogo.map(d=>d.cor)).map(g=>`<option>${g}</option>`).join('')}</select>
@@ -1134,9 +1455,11 @@ async function renderABC(){
       <button class="btn-tool" id="btnPrint">Imprimir</button>
     </div>
     <div id="abcStats"></div>
+    <div id="abcVoce"></div>
     <div id="abcPareto"></div>
     <div class="panel"><div class="panel-head"><h2 id="abcTit">Produtos classificados</h2><span class="count" id="abcCount"></span></div>
-      <div class="tbl-scroll"><table><thead><tr id="abcHead"></tr></thead><tbody id="abcRows"></tbody></table></div></div>`;
+      <div class="tbl-scroll"><table><thead><tr id="abcHead"></tr></thead><tbody id="abcRows"></tbody></table></div></div>
+    <div id="abcLegenda"></div>`;
   wirePeriod(document.getElementById('abcPeriod'), ABC.meses, (st)=>{ABC.period=st; abcRefresh();});
   ['fSearch','fLojaAbc','fGrupo','fLinha','fCor','fClasse'].forEach(id=>{
     const el=document.getElementById(id); el.oninput=el.onchange=abcRefresh;
@@ -1146,12 +1469,9 @@ async function renderABC(){
   if(isAdmin()) document.getElementById('cfgSave').onclick=abcSalvarConfig;
   abcRefresh();
 }
-const ABC={vendas:[],catalogo:[],meses:[],par:{},filtered:[],data:[],period:{}};
-// calcula a curva (geral + por grupo) sobre o período e a loja escolhidos
-function abcCalcular(){
-  const st=ABC.period||{}, loja=document.getElementById('fLojaAbc')?document.getElementById('fLojaAbc').value:'';
-  let v=ABC.vendas;
-  if(loja) v=v.filter(r=>r.loja===loja);
+const ABC={vendas:[],catalogo:[],meses:[],par:{},filtered:[],data:[],rede:[],redeIdx:{},period:{},escopo:{}};
+// monta a curva (geral + por grupo) de um conjunto de vendas já recortado
+function abcCurva(v, st){
   const soma=(rows)=>{ const q={}; rows.forEach(r=>{ q[r.sku]=(q[r.sku]||0)+(+r.quantidade||0); }); return q; };
   const cmp = st.mode==='compare';
   const qA=soma(v.filter(r=>inPeriod(r.competencia,st.aIni,st.aFim)));
@@ -1164,24 +1484,42 @@ function abcCalcular(){
       var_pct: cmp ? (a? 100*(b-a)/a : (b?100:0)) : null};
   });
   const A=+ABC.par.corte_a||80, B=+ABC.par.corte_b||90;
-  const classifica=(arr,campoPos,campoAcum,campoClasse)=>{
+  const classifica=(arr,campoPos,campoAcum,campoClasse,campoShare)=>{
     const tot=arr.reduce((s,x)=>s+x.metrica,0);
     const ord=[...arr].sort((x,y)=> y.metrica-x.metrica || String(x.sku).localeCompare(String(y.sku)));
     let ac=0;
     ord.forEach((x,i)=>{ ac+=x.metrica;
       x[campoPos]=i+1;
       x[campoAcum]= tot? 100*ac/tot : 0;
+      if(campoShare) x[campoShare]= tot? 100*x.metrica/tot : 0;
       x[campoClasse]= (!x.metrica||!tot) ? 'D' : (x[campoAcum]<=A ? 'A' : x[campoAcum]<=B ? 'B' : 'C');
     });
     return ord;
   };
-  const geral=classifica(base,'posicao','pct_acumulado','classe');
+  const geral=classifica(base,'posicao','pct_acumulado','classe','share');
   const porGrupo={}; base.forEach(x=>{(porGrupo[x.grupo||'—']=porGrupo[x.grupo||'—']||[]).push(x);});
   Object.values(porGrupo).forEach(arr=>classifica(arr,'posicao_grupo','pct_acum_grupo','classe_grupo'));
-  ABC.comparando=cmp;
-  ABC.data=geral;
   return geral;
 }
+// calcula a curva do escopo escolhido e, sempre, a da rede — para o comparativo do associado
+function abcCalcular(){
+  const st=ABC.period||{}, loja=document.getElementById('fLojaAbc')?document.getElementById('fLojaAbc').value:'';
+  ABC.comparando = st.mode==='compare';
+  const rede=abcCurva(ABC.vendas, st);
+  ABC.rede=rede;
+  ABC.redeIdx={}; rede.forEach(x=>{ ABC.redeIdx[x.sku]=x; });
+  if(!loja){ ABC.data=rede; return rede; }
+  const curva=abcCurva(ABC.vendas.filter(r=>r.loja===loja), st);
+  curva.forEach(x=>{
+    const r=ABC.redeIdx[x.sku]||{};
+    x.qtd_rede=r.qtd_janela||0; x.pos_rede=r.posicao||null; x.classe_rede=r.classe||'D';
+    x.share_rede=r.share||0; x.gap_pp=(x.share||0)-(r.share||0);
+  });
+  ABC.data=curva;
+  return curva;
+}
+
+
 function abcFiltros(){
   return {q:(document.getElementById('fSearch').value||'').toLowerCase().trim(),
     g:document.getElementById('fGrupo').value, l:document.getElementById('fLinha').value,
@@ -1199,6 +1537,8 @@ function abcRefresh(){
   ABC.filtered=rows;
   const tit=document.getElementById('abcTit');
   if(tit) tit.textContent='Produtos classificados — '+(lojaSel||'rede')+' · '+periodLabel(ABC.period);
+  abcEscopo(lojaSel);
+  abcVoceEstaAqui(lojaSel);
 
   // stats
   const cont={A:0,B:0,C:0,D:0}; rows.forEach(d=>{ const k=grupoSel?d.classe_grupo:d.classe; cont[k]=(cont[k]||0)+1; });
@@ -1220,21 +1560,34 @@ function abcRefresh(){
 
   // pareto(s): geral sempre; se grupo selecionado, mostra os dois
   const A=+ABC.par.corte_a, B=+ABC.par.corte_b;
-  const geralItens=[...ABC.data].sort((a,b)=>a.posicao-b.posicao);
-  if(grupoSel){
-    const grupoItens=rows;
-    document.getElementById('abcPareto').innerHTML=`<div class="pareto-wrap two">
+  const escopoNome = lojaSel || 'rede';
+  const chaveCls = grupoSel? 'classe_grupo' : 'classe';
+  const filtraGrupo = arr => grupoSel? arr.filter(d=>d.grupo===grupoSel) : arr;
+  const itensEscopo = filtraGrupo([...ABC.data]).sort((a,b)=> grupoSel? (a.posicao_grupo-b.posicao_grupo) : (a.posicao-b.posicao));
+  const itensRede   = filtraGrupo([...ABC.rede]).sort((a,b)=> grupoSel? (a.posicao_grupo-b.posicao_grupo) : (a.posicao-b.posicao));
+  const sufGrupo = grupoSel? ' · '+grupoSel : '';
+  const pareto=document.getElementById('abcPareto');
+  if(lojaSel){
+    // loja contra rede: é a leitura que o associado precisa
+    pareto.innerHTML=`<div class="pareto-wrap two">
+      <div class="pareto"><h4>Pareto — ${escopoNome}${sufGrupo}</h4>${paretoSVG(itensEscopo,A,B,chaveCls)}${PARETO_LEG}</div>
+      <div class="pareto"><h4>Pareto — rede inteira${sufGrupo}</h4>${paretoSVG(itensRede,A,B,chaveCls)}${PARETO_LEG}</div></div>`;
+  } else if(grupoSel){
+    const geralItens=[...ABC.data].sort((a,b)=>a.posicao-b.posicao);
+    pareto.innerHTML=`<div class="pareto-wrap two">
       <div class="pareto"><h4>Pareto geral (rede)</h4>${paretoSVG(geralItens,A,B,'classe')}${PARETO_LEG}</div>
-      <div class="pareto"><h4>Pareto — ${grupoSel}</h4>${paretoSVG(grupoItens,A,B,'classe_grupo')}${PARETO_LEG}</div></div>`;
+      <div class="pareto"><h4>Pareto — ${grupoSel} (rede)</h4>${paretoSVG(itensEscopo,A,B,'classe_grupo')}${PARETO_LEG}</div></div>`;
   } else {
-    document.getElementById('abcPareto').innerHTML=`<div class="pareto-wrap"><div class="pareto"><h4>Pareto geral (rede)</h4>${paretoSVG(geralItens,A,B,'classe')}${PARETO_LEG}</div></div>`;
+    const geralItens=[...ABC.data].sort((a,b)=>a.posicao-b.posicao);
+    pareto.innerHTML=`<div class="pareto-wrap"><div class="pareto"><h4>Pareto geral (rede)</h4>${paretoSVG(geralItens,A,B,'classe')}${PARETO_LEG}</div></div>`;
   }
 
   document.getElementById('abcCount').textContent=fmtInt(rows.length)+' SKUs';
   const cmp=ABC.comparando;
   document.getElementById('abcHead').innerHTML = `<th class="num">#</th><th>SKU</th><th>Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>`
     + (cmp? `<th class="num">Período A</th><th class="num">Período B</th><th class="num">Variação</th>` : `<th class="num">Qtd</th>`)
-    + `<th class="num">% acum.</th><th>Classe</th><th>No grupo</th>`;
+    + `<th class="num">% acum.</th><th class="cls">Classe</th><th class="cls">No grupo</th>`
+    + (lojaSel? `<th class="cls">Na rede</th>` : '');
   document.getElementById('abcRows').innerHTML = rows.slice(0,800).map(d=>{
     const pos=grupoSel?d.posicao_grupo:d.posicao;
     const pac=grupoSel?d.pct_acum_grupo:d.pct_acumulado;
@@ -1243,23 +1596,103 @@ function abcRefresh(){
       <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
       ${cmp? `<td class="num">${fmtInt(d.qtd_a)}</td><td class="num">${fmtInt(d.qtd_b)}</td><td class="num">${deltaHTML(d.var_pct)}</td>`
             : `<td class="num">${fmtInt(d.qtd_janela)}</td>`}
-      <td class="num">${pac!=null?fmtPct(pac):'—'}</td>
-      <td><span class="pill ${d.classe}">${d.classe}</span></td>
-      <td><span class="pill ${d.classe_grupo||'D'}">${d.classe_grupo||'—'}</span></td>
+      <td class="num">${(d.qtd_janela>0 && pac!=null)?fmtPct(pac):'—'}</td>
+      <td class="cls"><span class="pill cls ${d.classe}">${d.classe}</span></td>
+      <td class="cls"><span class="pill cls ${d.classe_grupo||'D'}">${d.classe_grupo||'—'}</span></td>
+      ${lojaSel? `<td class="cls"><span class="pill cls ${d.classe_rede||'D'}">${d.classe_rede||'—'}</span></td>` : ''}
     </tr>`;}).join('');
+  const leg=document.getElementById('abcLegenda');
+  if(leg) leg.innerHTML = lojaSel
+    ? `<div style="margin-top:10px;font-size:12px;color:var(--ink-faint);line-height:1.5">
+        <b>Na rede</b>: a classe do mesmo item considerando as ${uniq(ABC.vendas.map(r=>r.loja)).length} lojas juntas —
+        serve para ver onde ${lojaSel} diverge do conjunto.
+        Item sem giro no período fica sem % acumulado e entra como classe D.</div>`
+    : '';
+}
+/* Faixa de identificação: de quem é a curva na tela. */
+function abcEscopo(lojaSel){
+  const box=document.getElementById('abcScope'); if(!box) return;
+  const nLojas=uniq(ABC.vendas.map(r=>r.loja)).length;
+  const totRede=ABC.rede.reduce((s,d)=>s+(+d.qtd_janela||0),0);
+  const totEsc =ABC.data.reduce((s,d)=>s+(+d.qtd_janela||0),0);
+  const share = totRede? 100*totEsc/totRede : 0;
+  // ranking da loja entre os associados, no mesmo período
+  let posLoja=null;
+  if(lojaSel){
+    const st=ABC.period||{};
+    const porLoja={};
+    ABC.vendas.forEach(r=>{
+      const dentro = st.mode==='compare' ? inPeriod(r.competencia,st.bIni,st.bFim) : inPeriod(r.competencia,st.aIni,st.aFim);
+      if(dentro) porLoja[r.loja]=(porLoja[r.loja]||0)+(+r.quantidade||0);
+    });
+    const ord=Object.entries(porLoja).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+    posLoja = ord.indexOf(lojaSel)+1 || null;
+  }
+  let tipo,marca,titulo,sub;
+  if(!lojaSel){
+    tipo='rede'; marca='◉'; titulo='Curva da REDE INTEIRA';
+    sub=`Somatório dos ${nLojas} associados · ${periodLabel(ABC.period)}`;
+  } else if(lojaSel===ABC.minhaLoja){
+    tipo='minha'; marca='★'; titulo='Sua curva — '+lojaSel;
+    sub=`Esta é a curva da sua loja, não a da rede · ${periodLabel(ABC.period)}`;
+  } else {
+    tipo='outra'; marca='◍'; titulo='Curva de outro associado — '+lojaSel;
+    sub=`Você está vendo os números de ${lojaSel}, não os seus · ${periodLabel(ABC.period)}`;
+  }
+  box.innerHTML=`<div class="scope ${tipo}">
+    <div class="mk">${marca}</div>
+    <div class="tx"><b>${titulo}</b><span>${sub}</span></div>
+    <div class="fx">
+      <div><div class="n">${fmtInt(totEsc)}</div><div class="l">Peças no período</div></div>
+      ${lojaSel?`<div><div class="n">${fmtPct(share)}</div><div class="l">Da rede</div></div>
+        <div><div class="n">${posLoja?('#'+posLoja+' de '+nLojas):'—'}</div><div class="l">Ranking de volume</div></div>`
+       :`<div><div class="n">${nLojas}</div><div class="l">Associados</div></div>`}
+    </div></div>`;
+}
+/* "Você está aqui": onde a loja diverge da rede — oportunidades e destaques. */
+function abcVoceEstaAqui(lojaSel){
+  const box=document.getElementById('abcVoce'); if(!box) return;
+  if(!lojaSel){ box.innerHTML=''; return; }
+  const itens=ABC.data;
+  const aRede=ABC.rede.filter(d=>d.classe==='A');
+  const aRedeSkus=new Set(aRede.map(d=>d.sku));
+  const idx={}; itens.forEach(d=>{ idx[d.sku]=d; });
+  const aAqui=itens.filter(d=>d.classe==='A');
+  const aderentes=aAqui.filter(d=>aRedeSkus.has(d.sku)).length;
+  const aderencia = aRede.length? 100*aderentes/aRede.length : 0;
+  const semVenda = aRede.filter(d=>!(idx[d.sku]&&idx[d.sku].qtd_janela>0));
+  const forcaLocal = aAqui.filter(d=>d.classe_rede==='C'||d.classe_rede==='D');
+  const skusAqui = itens.filter(d=>d.qtd_janela>0).length;
+  const skusRede = ABC.rede.filter(d=>d.qtd_janela>0).length;
+  box.innerHTML=`<div class="statbar">
+      <div class="s"><div class="n">${fmtPct(aderencia)}</div><div class="l">Aderência à classe A da rede</div></div>
+      <div class="s"><div class="n" style="color:#c0392b">${fmtInt(semVenda.length)}</div><div class="l">Itens A da rede sem venda aqui</div></div>
+      <div class="s"><div class="n" style="color:#1f9d55">${fmtInt(forcaLocal.length)}</div><div class="l">Força local (A aqui, C/D na rede)</div></div>
+      <div class="s"><div class="n">${fmtInt(skusAqui)} <span style="font-size:13px;font-weight:600;color:var(--ink-faint)">de ${fmtInt(skusRede)}</span></div><div class="l">SKUs com giro</div></div>
+    </div>`;
 }
 function abcColsExport(){
   const g=document.getElementById('fGrupo').value;
-  return [
+  const loja=document.getElementById('fLojaAbc')?document.getElementById('fLojaAbc').value:'';
+  const cols=[
     {label:'Posicao',get:d=>g?d.posicao_grupo:d.posicao},{label:'SKU',key:'sku'},
     {label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},
     {label:'Grupo',key:'grupo'},{label:'Qtd',key:'qtd_janela'},
     {label:'% acumulado',get:d=>(g?d.pct_acum_grupo:d.pct_acumulado)},
     {label:'Classe geral',key:'classe'},{label:'Classe no grupo',key:'classe_grupo'}
   ];
+  if(loja) cols.push(
+    {label:'Qtd rede',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
+    {label:'Classe rede',key:'classe_rede'},
+    {label:'Delta participacao pp',get:d=>(d.gap_pp!=null?Number(d.gap_pp).toFixed(2):'')});
+  return cols;
 }
 function abcExport(){ exportCSV('curva_abc', abcColsExport(), ABC.filtered); }
-function abcPrint(){ printTabela('Curva ABC', abcColsExport().map(c=>({...c,num:/Posicao|Qtd|%/.test(c.label)})), ABC.filtered); }
+function abcPrint(){
+  const loja=document.getElementById('fLojaAbc')?document.getElementById('fLojaAbc').value:'';
+  const tit='Curva ABC — '+(loja||'rede inteira')+' · '+periodLabel(ABC.period);
+  printTabela(tit, abcColsExport().map(c=>({...c,num:/Posicao|Qtd|%|Delta/.test(c.label)})), ABC.filtered);
+}
 async function abcSalvarConfig(){
   const a=+document.getElementById('cfgA').value, b=+document.getElementById('cfgB').value;
   const crit=document.getElementById('cfgCrit').value;
@@ -1288,6 +1721,8 @@ async function renderVendas(){
     <div class="tools">
       <div id="vPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
       <select class="selin" id="vLoja"><option value="">Rede (sobrepor loja…)</option>${VEN.lojas.map(l=>`<option>${l}</option>`).join('')}</select>
+      <input type="search" id="vBusca" class="selin" placeholder="Buscar associado…" style="min-width:190px">
+      <select class="selin" id="vOrd">${ORD_OPCOES('volume')}</select>
       <div class="grow"></div>
       <button class="btn-tool" id="vCSV">Exportar CSV</button>
       <button class="btn-tool" id="vPrint">Imprimir</button>
@@ -1298,6 +1733,8 @@ async function renderVendas(){
     <div id="vRankPanel"></div>`;
   wirePeriod(document.getElementById('vPeriod'), VEN.meses, (st)=>{VEN.period=st; vendasRefresh();});
   document.getElementById('vLoja').onchange=vendasChart;
+  document.getElementById('vBusca').oninput=vendasRefresh;
+  document.getElementById('vOrd').onchange=vendasRefresh;
   document.getElementById('vCSV').onclick=vendasExport;
   document.getElementById('vPrint').onclick=vendasPrint;
   vendasChart(); vendasRefresh();
@@ -1316,22 +1753,24 @@ function vendasRefresh(){
   if(st.mode==='compare') return vendasCompare(st);
   const rows = st.mode==='single' ? VEN.raw.filter(d=>inPeriod(d.competencia,st.aIni,st.aFim)) : VEN.raw;
   const by={}; rows.forEach(d=>{(by[d.loja]=by[d.loja]||{loja:d.loja,qtd:0});by[d.loja].qtd+=+d.quantidade||0;});
-  const rank=Object.values(by).sort((a,b)=>b.qtd-a.qtd);
-  const tot=rank.reduce((s,r)=>s+r.qtd,0)||1; rank.forEach(r=>r.pct=100*r.qtd/tot);
-  VEN.rank=rank; const media=tot/(rank.length||1);
+  const rankFull=Object.values(by).sort((a,b)=>b.qtd-a.qtd);
+  const tot=rankFull.reduce((s,r)=>s+r.qtd,0)||1;
+  rankFull.forEach((r,i)=>{ r.pct=100*r.qtd/tot; r.pos=i+1; });   // posição sempre pelo volume
+  const rank=ordenaLista(filtraNome(rankFull,'loja',valOf('vBusca')),'loja','qtd',valOf('vOrd','valor_desc'));
+  VEN.rank=rank; const media=tot/(rankFull.length||1);
   document.getElementById('vStats').innerHTML=`<div class="statbar">
     <div class="s"><div class="n">${fmtInt(tot)}</div><div class="l">Total de peças</div></div>
     <div class="s"><div class="n">${rank.length}</div><div class="l">Lojas</div></div>
     <div class="s"><div class="n">${fmtInt(Math.round(media))}</div><div class="l">Média por loja</div></div>
     <div class="s"><div class="n">${rank[0]?rank[0].loja:'—'}</div><div class="l">Maior volume</div></div></div>`;
-  const maxpct=rank[0]?rank[0].pct:1;
+  const maxpct=rankFull[0]?rankFull[0].pct:1;
   document.getElementById('vRankPanel').innerHTML=`<div class="panel"><div class="panel-head">
-    <h2>Ranking por loja — ${periodLabel(st)}</h2><span class="count">${rank.length} lojas</span></div>
+    <h2>Ranking por loja — ${periodLabel(st)}</h2><span class="count">${rank.length} de ${rankFull.length} lojas</span></div>
     <div class="tbl-scroll"><table><thead><tr><th class="num">#</th><th>Loja</th><th class="num">Peças</th><th class="num">Participação</th><th></th></tr></thead><tbody>
-    ${rank.map((r,i)=>`<tr><td class="num">${i+1}</td><td>${r.loja}</td><td class="num">${fmtInt(r.qtd)}</td>
+    ${rank.map(r=>`<tr><td class="num">${r.pos}</td><td>${r.loja}</td><td class="num">${fmtInt(r.qtd)}</td>
       <td class="num">${fmtPct(r.pct)}</td>
       <td style="width:130px"><span style="display:inline-block;height:8px;border-radius:4px;background:${r.qtd>=media?'#1f6fe0':'#c9d4e6'};width:${Math.max(3,r.pct/maxpct*100).toFixed(0)}%"></span></td></tr>`).join('')}
-    <tr style="font-weight:700;background:#f7f9fc"><td></td><td>TOTAL</td><td class="num">${fmtInt(tot)}</td><td class="num">100%</td><td></td></tr>
+    <tr style="font-weight:700;background:#f7f9fc"><td></td><td>TOTAL DA REDE</td><td class="num">${fmtInt(tot)}</td><td class="num">100%</td><td></td></tr>
     </tbody></table></div></div>`;
 }
 function vendasCompare(st){
@@ -1339,9 +1778,11 @@ function vendasCompare(st){
   const B=VEN.raw.filter(d=>inPeriod(d.competencia,st.bIni,st.bFim));
   const ma=aggMap(A,'loja'),mb=aggMap(B,'loja');
   const ks=[...new Set([...Object.keys(ma),...Object.keys(mb)])];
-  const list=ks.map(k=>{const a=ma[k]||0,b=mb[k]||0;return{loja:k,a,b,d:a?100*(b-a)/a:(b?100:0)};}).sort((x,y)=>y.b-x.b);
+  const listFull=ks.map(k=>{const a=ma[k]||0,b=mb[k]||0;return{loja:k,a,b,d:a?100*(b-a)/a:(b?100:0)};}).sort((x,y)=>y.b-x.b);
+  listFull.forEach((r,i)=>r.pos=i+1);
+  const list=ordenaLista(filtraNome(listFull,'loja',valOf('vBusca')),'loja','b',valOf('vOrd','valor_desc'));
   VEN.rank=list;
-  const totA=list.reduce((s,r)=>s+r.a,0),totB=list.reduce((s,r)=>s+r.b,0);
+  const totA=listFull.reduce((s,r)=>s+r.a,0),totB=listFull.reduce((s,r)=>s+r.b,0);
   const dTot=totA?100*(totB-totA)/totA:0, up=totB>=totA;
   document.getElementById('vStats').innerHTML=`<div class="statbar">
     <div class="s"><div class="n">${fmtInt(totA)}</div><div class="l">Período A · ${mesLabel(st.aIni)}–${mesLabel(st.aFim)}</div></div>
@@ -1350,7 +1791,7 @@ function vendasCompare(st){
   document.getElementById('vRankPanel').innerHTML=`<div class="panel"><div class="panel-head">
     <h2>Comparativo por loja</h2><span class="count">${list.length} lojas</span></div>
     <div class="tbl-scroll"><table><thead><tr><th class="num">#</th><th>Loja</th><th class="num">Período A</th><th class="num">Período B</th><th class="num">Variação</th></tr></thead><tbody>
-    ${list.map((r,i)=>{const u=r.b>=r.a;return `<tr><td class="num">${i+1}</td><td>${r.loja}</td>
+    ${list.map(r=>{const u=r.b>=r.a;return `<tr><td class="num">${r.pos}</td><td>${r.loja}</td>
       <td class="num">${fmtInt(r.a)}</td><td class="num">${fmtInt(r.b)}</td>
       <td class="num" style="color:${u?'#1f9d55':'#c0392b'};font-weight:700">${u?'▲':'▼'} ${fmtPct(Math.abs(r.d))}</td></tr>`;}).join('')}
     <tr style="font-weight:700;background:#f7f9fc"><td></td><td>TOTAL</td><td class="num">${fmtInt(totA)}</td><td class="num">${fmtInt(totB)}</td><td class="num" style="color:${up?'#1f9d55':'#c0392b'}">${up?'▲':'▼'} ${Math.abs(dTot).toFixed(0)}%</td></tr>
@@ -1913,6 +2354,8 @@ async function renderPrecoMedio(){
   body.innerHTML=`
     <div class="tools">
       <select class="selin" id="pmReg"><option value="">Todas as regiões</option>${uniq(data.map(d=>d.regiao)).map(r=>`<option>${r}</option>`).join('')}</select>
+      <input type="search" id="pmBusca" class="selin" placeholder="Buscar associado…" style="min-width:190px">
+      <select class="selin" id="pmOrd">${ORD_OPCOES('preço médio')}</select>
       <div class="grow"></div>
       <button class="btn-tool" id="pmCSV">Exportar CSV</button>
       <button class="btn-tool" id="pmPrint">Imprimir</button>
@@ -1929,12 +2372,16 @@ async function renderPrecoMedio(){
       Período agregado da planilha (jan–jul/2026). Como o faturamento vem totalizado por loja, o preço médio
       não se divide por mês nem por produto — isso virá com a tabela de preço por SKU.</div>`;
   document.getElementById('pmReg').onchange=e=>{PM.regiao=e.target.value; pmRefresh();};
+  document.getElementById('pmBusca').oninput=pmRefresh;
+  document.getElementById('pmOrd').onchange=pmRefresh;
   document.getElementById('pmCSV').onclick=()=>exportCSV('preco_medio',pmCols(),pmRows());
   document.getElementById('pmPrint').onclick=()=>printTabela('Preço médio por loja',pmCols().map(c=>({...c,num:/Fatur|Unid|Preço|vs/.test(c.label)})),pmRows());
   pmRefresh();
 }
-function pmRows(){ return PM.data.filter(d=>(!PM.regiao||d.regiao===PM.regiao)&&+d.unidades>0)
-  .sort((a,b)=>(+b.preco_medio)-(+a.preco_medio)); }
+function pmRows(){
+  const base=PM.data.filter(d=>(!PM.regiao||d.regiao===PM.regiao)&&+d.unidades>0);
+  return ordenaLista(filtraNome(base,'loja',valOf('pmBusca')),'loja','preco_medio',valOf('pmOrd','valor_desc'));
+}
 function pmCols(){ return [
   {label:'Loja',key:'loja'},{label:'UF',key:'uf'},{label:'Regiao',key:'regiao'},
   {label:'Faturamento',get:d=>Number(d.valor).toFixed(2)},{label:'Unidades',key:'unidades'},
@@ -1978,9 +2425,11 @@ function pmRefresh(){
           <b>${moneyHTML(pm,'110px')}</b>${deltaHTML(dif)}</span>
       </div>`;}).join('')}
     <div style="margin-top:8px;font-size:12px;color:var(--ink-faint)">Verde = acima da média da rede · vermelho = abaixo. A barra vai do menor (${fmtBRL(pmMin)}) ao maior (${fmtBRL(pmMax)}) preço médio.</div>`;
-  document.getElementById('pmRows').innerHTML=rows.map((d,i)=>{
+  const posPM={}; PM.data.filter(d=>(!PM.regiao||d.regiao===PM.regiao)&&+d.unidades>0)
+    .sort((a,b)=>(+b.preco_medio)-(+a.preco_medio)).forEach((d,i)=>{ posPM[d.loja]=i+1; });
+  document.getElementById('pmRows').innerHTML=rows.map(d=>{
     const up=+d.vs_rede_pct>=0;
-    return `<tr><td class="num">${i+1}</td><td>${d.loja}</td><td>${d.uf||'—'}</td>
+    return `<tr><td class="num">${posPM[d.loja]||'—'}</td><td>${d.loja}</td><td>${d.uf||'—'}</td>
       <td class="num">${moneyHTML(d.valor,'132px')}</td><td class="num">${fmtInt(d.unidades)}</td>
       <td class="num"><b>${moneyHTML(d.preco_medio,'104px')}</b></td>
       <td class="num">${deltaHTML(d.vs_rede_pct)}</td>
@@ -2187,7 +2636,7 @@ async function renderSobre(){
         ${linha('Presença Casa VIP','mapa por região e estado')}
         ${linha('Preço médio','posição de cada loja')}
         ${linha('Cadastros','produtos, lojas, grupos, linhas e cores')}
-        ${linha('Estoque e ruptura','<span style="color:var(--ink-faint)">em desenvolvimento</span>')}
+        ${linha('Estoque Pulmão','<span style="color:var(--ink-faint)">em desenvolvimento</span>')}
       </div></div>
     </div>
     ${blocoContas}
@@ -2198,13 +2647,14 @@ async function renderSobre(){
 }
 
 /* ============================================================
-   Tela: Ruptura (aguardando módulo de estoque)
+   Tela: Estoque Pulmão (aguardando módulo de estoque)
    ============================================================ */
 function renderRuptura(){
-  const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>`;
-  view.innerHTML=head(ico,'Ruptura de estoque','Risco de ruptura atual e futuro, cruzando demanda, estoque SP e pipeline China.','Análise')
-   +`<div class="panel"><div class="empty"><div class="big">Depende do estoque</div>
-     Esta análise abre depois que a planilha de Estoque e produção for importada.</div></div>`;
+  const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
+  view.innerHTML=head(ico,'Estoque Pulmão','Estoque DAX em São Paulo, itens rompidos e produção a caminho da China.','Análise')
+  + emConstrucao(`o associado enxerga o estoque DAX disponível na JIWI São Paulo, os itens
+    rompidos e o que está em produção na China com a previsão de chegada. O estoque de São Paulo
+    é atualizado diariamente; a previsão de chegada, a cada quinze dias.`);
 }
 
 /* ============================================================
