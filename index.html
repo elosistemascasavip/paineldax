@@ -622,11 +622,15 @@ function printTabela(titulo, cols, rows){
     th{background:#eef2f8} .r{text-align:right}
 /* --- Matriz de cobertura --- */
 .cob-tbl{table-layout:auto}
-.cob-tbl th{text-align:center;font-size:11.5px}
+.cob-tbl th{font-size:11.5px}
 .cob-tbl th.lj,.cob-tbl td.lj{text-align:left;white-space:nowrap;font-weight:600;position:sticky;left:0;background:#fff;z-index:1}
 .cob-tbl thead th.lj{background:#fbfcfe}
-.cob-tbl td.cb{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
-  padding:6px 4px;border-radius:5px;min-width:48px}
+.cob-tbl td.cb{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  padding:6px 9px;border-radius:5px;min-width:54px}
+.cob-tbl th{text-align:right}
+.cob-tbl tfoot td{background:#f7f9fc;font-weight:700;border-top:2px solid var(--line);
+  text-align:right;font-family:'IBM Plex Mono',monospace}
+.cob-tbl tfoot td.lj{text-align:left;background:#f7f9fc}
 .cob-tbl td.cb.cli{cursor:pointer;outline:1px dashed rgba(0,0,0,.18);outline-offset:-3px}
 .cob-tbl td.cb.cli:hover{filter:brightness(.94)}
 .cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap}
@@ -634,7 +638,7 @@ function printTabela(titulo, cols, rows){
 .c-ver{background:#fff2df;color:#9a6100}
 .c-conf{background:#f2f3f6;color:#697588}
 .c-pend,.c-aguard{background:#fdeaea;color:#c0392b}
-.c-fora{background:repeating-linear-gradient(45deg,#f7f8fa,#f7f8fa 4px,#eef0f4 4px,#eef0f4 8px);color:transparent}
+.c-fora{background:#f7f8fa;color:#aab3c0}
 .cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
 .cob-leg i{width:13px;height:13px;border-radius:4px;display:inline-block}
 .cob-leg i.c-aguard{background:#fdeaea}
@@ -694,19 +698,40 @@ function abcItemDetail(sku){
 }
 function mesLabel(comp){ const m=String(comp).split('-'); const M=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   return m.length>=2? (M[+m[1]]||m[1])+'/'+m[0].slice(2) : comp; }
-function lineChart(labels, series){
-  const H=230,W=680,padL=46,padR=14,padT=12,padB=28, iw=W-padL-padR, ih=H-padT-padB, N=labels.length;
+function lineChart(labels, series, opts){
+  // Proporcao bem larga: com width 100% a altura acompanha a razao do viewBox,
+  // entao um viewBox quadrado vira um grafico gigante em tela larga.
+  const H=250,W=1400,padL=70,padR=26,padT=34,padB=36, iw=W-padL-padR, ih=H-padT-padB, N=labels.length;
   const max=Math.max(...series.flatMap(s=>s.values),1);
   const x=i=> padL+(N<=1?iw/2:iw*i/(N-1)), y=v=> padT+ih*(1-v/max);
   const grid=[0,.25,.5,.75,1].map(f=>{const yy=padT+ih*(1-f);
     return `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${W-padR}" y2="${yy.toFixed(1)}" stroke="#eef1f6"/>
-    <text x="${padL-6}" y="${(yy+3).toFixed(1)}" font-size="9" fill="#8794a7" text-anchor="end">${fmtInt(Math.round(max*f))}</text>`;}).join('');
-  const xlab=labels.map((l,i)=>`<text x="${x(i).toFixed(1)}" y="${H-9}" font-size="10" fill="#8794a7" text-anchor="middle">${l}</text>`).join('');
-  const lines=series.map(s=>{ const d='M'+s.values.map((v,i)=>x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' L');
-    const dots=s.values.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="${s.color}"/>`).join('');
-    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>${dots}`;}).join('');
+    <text x="${padL-10}" y="${(yy+5).toFixed(1)}" font-size="13" fill="#8794a7" text-anchor="end">${fmtInt(Math.round(max*f))}</text>`;}).join('');
+  const xlab=labels.map((l,i)=>{const ax=i===0?'start':(i===N-1?'end':'middle');
+    return `<text x="${x(i).toFixed(1)}" y="${H-10}" font-size="14" fill="#8794a7" text-anchor="${ax}">${l}</text>`;}).join('');
+  // Linha de media da primeira serie: mostra num relance quais meses ficaram
+  // acima ou abaixo do patamar normal da rede.
+  let mediaSVG='';
+  if(opts&&opts.media&&series[0]&&series[0].values.length){
+    const vs=series[0].values, md=vs.reduce((a,b)=>a+b,0)/vs.length, ym=y(md);
+    mediaSVG=`<line x1="${padL}" y1="${ym.toFixed(1)}" x2="${W-padR}" y2="${ym.toFixed(1)}"
+      stroke="#98a4b8" stroke-width="1.4" stroke-dasharray="7 5"/>
+      <rect x="${(W-padR-138).toFixed(1)}" y="${(ym-17).toFixed(1)}" width="134" height="16" rx="8" fill="#f2f4f8"/>
+      <text x="${(W-padR-6).toFixed(1)}" y="${(ym-5).toFixed(1)}" font-size="12" font-weight="700"
+        fill="#5b6b82" text-anchor="end">média ${fmtInt(Math.round(md))}</text>`;
+  }
+  const lines=series.map((s,si)=>{ const d='M'+s.values.map((v,i)=>x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' L');
+    const dots=s.values.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.4" fill="${s.color}"/>`).join('');
+    // 1a serie rotula acima do ponto, 2a abaixo: evita colisao quando ha sobreposicao
+    const rot=s.values.map((v,i)=>{
+      const abaixo = si>0 && (y(v)+18) < (padT+ih);   // se nao couber embaixo, volta pra cima
+      const yy=abaixo ? y(v)+18 : y(v)-11;
+      const ax=i===0?'start':(i===N-1?'end':'middle');
+      const dx=i===0?-4:(i===N-1?4:0);
+      return `<text x="${(x(i)+dx).toFixed(1)}" y="${yy.toFixed(1)}" font-size="13.5" font-weight="700" fill="${s.color}" text-anchor="${ax}">${fmtInt(v)}</text>`;}).join('');
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.4"/>${dots}${rot}`;}).join('');
   const leg=series.map(s=>`<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px;font-size:12.5px;color:var(--ink-soft)"><span style="width:14px;height:3px;background:${s.color};display:inline-block;border-radius:2px"></span>${s.name}</span>`).join('');
-  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:560px">${grid}${lines}${xlab}</svg></div><div style="margin-top:8px">${leg}</div>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:300px;display:block">${grid}${mediaSVG}${lines}${xlab}</svg><div style="margin-top:6px">${leg}</div>`;
 }
 
 /* ---------- Controle de período compartilhado ----------
@@ -1006,7 +1031,7 @@ function renderImportar(){
     document.getElementById('fileVendas').click();
   };
   document.getElementById('btnEstoque').onclick=()=>{
-    toast('Importação de estoque entra em breve — estamos finalizando este módulo.');
+    document.getElementById('fileEstoque').click();
   };
   impUltimasCargas();
 }
@@ -1250,6 +1275,115 @@ document.getElementById('fileVendas').onchange = async (e)=>{
   </div>`;
   document.getElementById('btnAplicar').onclick=aplicarVendas;
 };
+
+// ---- Estoque JIWI: so REF + saldo. Descricao, linha, cor e grupo vem do cadastro.
+function parseEstoque(wb){
+  const itens=[], detalhe={aba:null,semCodigo:0,semNumero:0,zerados:0};
+  // A aba de saldo tem "estoque" no nome; a de movimentacao ("entrada i saida") nao serve aqui.
+  const nomeAba = wb.SheetNames.find(n=>{const d=deacc(n);
+    return d.includes('estoque') && !d.includes('entrada') && !d.includes('saida');});
+  if(!nomeAba) throw new Error('Não encontrei a aba de estoque na planilha.');
+  detalhe.aba=nomeAba;
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[nomeAba],{header:1,raw:true,defval:''});
+
+  // Cabecalho pode estar em qualquer linha (a planilha comeca com linhas vazias).
+  let hr=-1,cCod=-1,cSaldo=-1;
+  for(let r=0;r<Math.min(rows.length,20);r++){
+    const d=(rows[r]||[]).map(deacc);
+    const ic=d.findIndex(c=>c.includes('codigo'));
+    // "estoque" exato: nao confundir com ENTRADA nem SAIDA, que ficam ao lado
+    const is=d.findIndex(c=>c==='estoque'||c==='saldo'||c==='quantidade'||c==='qtde'||c==='qtd');
+    if(ic>=0&&is>=0){ hr=r; cCod=ic; cSaldo=is; break; }
+  }
+  if(hr<0) throw new Error('Não achei as colunas CÓDIGO PRODUTO e ESTOQUE na aba "'+nomeAba+'".');
+
+  for(let r=hr+1;r<rows.length;r++){
+    const row=rows[r]||[];
+    const cod=limpaTxt(row[cCod]);
+    if(!cod){ if(row.some(c=>c!==''&&c!=null)) detalhe.semCodigo++; continue; }
+    const bruto=row[cSaldo];
+    if(bruto===''||bruto==null||isNaN(parseFloat(String(bruto).replace(',','.')))){ detalhe.semNumero++; continue; }
+    const q=toNum(bruto);
+    if(q===0) detalhe.zerados++;
+    itens.push({sku_origem:cod,quantidade:q});
+  }
+  return {itens,detalhe};
+}
+
+document.getElementById('fileEstoque').onchange = async (e)=>{
+  const file=e.target.files[0]; e.target.value=''; if(!file) return;
+  const area=document.getElementById('reviewArea');
+  area.innerHTML=`<div class="review"><h4>Lendo planilha de estoque…</h4></div>`;
+  let parsed;
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array',cellDates:false});
+    parsed=parseEstoque(wb);
+  }catch(err){ area.innerHTML=`<div class="notice warn">Não consegui ler o arquivo: ${err.message}</div>`; return; }
+
+  if(!parsed.itens.length){
+    area.innerHTML=`<div class="notice warn">Nenhum item reconhecido na aba "${parsed.detalhe.aba}".</div>`; return; }
+
+  window._impEstq=parsed; window._impEstqArquivo=file.name;
+  const total=parsed.itens.reduce((a,i)=>a+i.quantidade,0);
+  area.innerHTML=`<div class="review">
+    <h4>Confira antes de aplicar — <b>${file.name}</b></h4>
+    <div class="kv">
+      <b>Aba lida</b><span>${parsed.detalhe.aba}</span>
+      <b>Itens</b><span>${fmtInt(parsed.itens.length)}</span>
+      <b>Saldo total</b><span>${fmtInt(total)} peças</span>
+      <b>Itens zerados</b><span>${fmtInt(parsed.detalhe.zerados)}</span>
+      ${parsed.detalhe.semNumero?`<b>Linhas sem número</b><span style="color:#c0392b">${fmtInt(parsed.detalhe.semNumero)} ignoradas</span>`:''}
+    </div>
+    <div class="notice">A carga substitui o saldo inteiro. Item que não vier nesta planilha deixa de constar no estoque.</div>
+    <div class="actions">
+      <button class="go" id="btnAplicarEstq">Aplicar importação</button>
+      <button class="cancel" onclick="document.getElementById('reviewArea').innerHTML=''">Cancelar</button>
+    </div>
+    <div class="log hidden" id="impLog"></div>
+  </div>`;
+  document.getElementById('btnAplicarEstq').onclick=()=>aplicarEstoque(false);
+};
+
+async function aplicarEstoque(forcar){
+  const p=window._impEstq; if(!p) return;
+  const btn=document.getElementById('btnAplicarEstq');
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Aplicando…'; }
+  try{
+    logln('Abrindo importação…');
+    const {data:imp,error:e1}=await sb.from('importacoes')
+      .insert({tipo:'estoque',arquivo:(window._impEstqArquivo||'estoque'),
+               linhas_lidas:p.itens.length,status:'pendente'}).select().single();
+    if(e1) throw e1;
+    logln('Enviando itens para staging…');
+    await chunkInsert('estoque_staging',p.itens,2000,i=>({
+      importacao_id:imp.id,sku_origem:i.sku_origem,quantidade:i.quantidade}));
+    logln('Consolidando saldo…');
+    const {data:res,error:e2}=await sb.rpc('aplicar_import_estoque',
+      {p_importacao_id:imp.id,p_forcar:!!forcar});
+    if(e2) throw e2;
+    if(res.status==='abortado'&&res.motivo==='queda_maior_que_50pct'){
+      logln('⚠ Abortado: o saldo novo é menos da metade do atual.');
+      document.getElementById('reviewArea').insertAdjacentHTML('beforeend',
+        `<div class="notice warn" style="margin-top:10px">
+           Saldo atual <b>${fmtInt(res.saldo_atual)}</b> → novo <b>${fmtInt(res.saldo_novo)}</b>.
+           Costuma ser planilha incompleta. Se a queda for real, confirme.
+           <div class="actions" style="margin-top:8px">
+             <button class="go" id="btnForcarEstq">Confirmar mesmo assim</button></div></div>`);
+      document.getElementById('btnForcarEstq').onclick=()=>aplicarEstoque(true);
+      if(btn){ btn.disabled=false; btn.textContent='Aplicar importação'; }
+      return;
+    }
+    logln(`✓ ${fmtInt(res.linhas_gravadas)} itens · saldo ${fmtInt(res.saldo_novo)} peças`);
+    if(res.linhas_rejeitadas>0)
+      logln(`⚠ ${res.linhas_rejeitadas} item(ns) sem cadastro — veja em Histórico de cargas.`);
+    toast('Estoque atualizado.');
+    if(typeof carregarStatusImport==='function') carregarStatusImport();
+  }catch(err){
+    logln('✗ '+(err.message||err));
+    if(btn){ btn.disabled=false; btn.textContent='Aplicar importação'; }
+  }
+}
 
 function logln(t){ const el=document.getElementById('impLog'); el.classList.remove('hidden'); el.textContent+=t+'\n'; el.scrollTop=el.scrollHeight; }
 async function chunkInsert(table,rows,size,mapper){
@@ -1779,8 +1913,12 @@ async function renderVendas(){
   view.innerHTML=head(ICO_STORE,'Vendas por loja','Evolução mês a mês e ranking por volume, com participação.','Análise')+'<div id="vBody"></div>';
   const body=document.getElementById('vBody');
   if(!session){ body.innerHTML=loginWall('As vendas por loja são restritas à equipe.'); return; }
-  const {data,error}=await fetchAll('vw_vendas_por_loja');
+  const [{data,error},cad]=await Promise.all([
+    fetchAll('vw_vendas_por_loja'),
+    fetchAll('lojas','id,nome,ativa,trabalha_dax',['nome'])
+  ]);
   if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
+  VEN.cad=(cad.data||[]).filter(l=>l.ativa);
   if(!data.length){ body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Sem vendas carregadas</div>Importe a planilha de vendas.</div></div>`; return; }
   VEN.raw=data;
   VEN.meses=uniq(data.map(d=>d.competencia));
@@ -1807,38 +1945,47 @@ async function renderVendas(){
   document.getElementById('vPrint').onclick=vendasPrint;
   vendasChart(); vendasRefresh();
 }
-const VEN={raw:[],meses:[],lojas:[],rank:[],period:{mode:'all'}};
+const VEN={raw:[],meses:[],lojas:[],cad:[],rank:[],period:{mode:'all'}};
 function vendasChart(){
   const lojaSel=document.getElementById('vLoja').value;
   const rede=VEN.meses.map(m=>VEN.raw.filter(d=>d.competencia===m).reduce((s,d)=>s+(+d.quantidade||0),0));
   const series=[{name:'Rede',color:'#1f6fe0',values:rede}];
   if(lojaSel){ series.push({name:lojaSel,color:'#e0793b',
     values:VEN.meses.map(m=>VEN.raw.filter(d=>d.competencia===m&&d.loja===lojaSel).reduce((s,d)=>s+(+d.quantidade||0),0))}); }
-  document.getElementById('vChart').innerHTML=lineChart(VEN.meses.map(mesLabel),series);
+  document.getElementById('vChart').innerHTML=lineChart(VEN.meses.map(mesLabel),series,{media:true});
 }
 function vendasRefresh(){
   const st=VEN.period||{mode:'all'};
   if(st.mode==='compare') return vendasCompare(st);
   const rows = st.mode==='single' ? VEN.raw.filter(d=>inPeriod(d.competencia,st.aIni,st.aFim)) : VEN.raw;
   const by={}; rows.forEach(d=>{(by[d.loja]=by[d.loja]||{loja:d.loja,qtd:0});by[d.loja].qtd+=+d.quantidade||0;});
+  // Toda loja associada entra na lista, inclusive quem nunca comprou:
+  // ausencia com zero explicito informa mais do que a linha simplesmente sumir.
+  VEN.cad.forEach(l=>{ if(!by[l.nome]) by[l.nome]={loja:l.nome,qtd:0}; });
+  const escopo={}; VEN.cad.forEach(l=>escopo[l.nome]=l.trabalha_dax!==false);
   const rankFull=Object.values(by).sort((a,b)=>b.qtd-a.qtd);
   const tot=rankFull.reduce((s,r)=>s+r.qtd,0)||1;
-  rankFull.forEach((r,i)=>{ r.pct=100*r.qtd/tot; r.pos=i+1; });   // posição sempre pelo volume
+  let acum=0;
+  rankFull.forEach((r,i)=>{ r.pct=100*r.qtd/tot; acum+=r.pct; r.acum=acum; r.pos=i+1;
+                            r.fora=escopo[r.loja]===false; });   // posição sempre pelo volume
+  const nEscopo=rankFull.filter(r=>!r.fora).length;
   const rank=ordenaLista(filtraNome(rankFull,'loja',valOf('vBusca')),'loja','qtd',valOf('vOrd','valor_desc'));
-  VEN.rank=rank; const media=tot/(rankFull.length||1);
+  VEN.rank=rank; const media=tot/(nEscopo||1);
   document.getElementById('vStats').innerHTML=`<div class="statbar">
     <div class="s"><div class="n">${fmtInt(tot)}</div><div class="l">Total de peças</div></div>
-    <div class="s"><div class="n">${rank.length}</div><div class="l">Lojas</div></div>
-    <div class="s"><div class="n">${fmtInt(Math.round(media))}</div><div class="l">Média por loja</div></div>
+    <div class="s"><div class="n">${nEscopo} de ${rankFull.length}</div><div class="l">Lojas no escopo DAX</div></div>
+    <div class="s"><div class="n">${fmtInt(Math.round(media))}</div><div class="l">Média por loja no escopo</div></div>
     <div class="s"><div class="n">${rank[0]?rank[0].loja:'—'}</div><div class="l">Maior volume</div></div></div>`;
   const maxpct=rankFull[0]?rankFull[0].pct:1;
   document.getElementById('vRankPanel').innerHTML=`<div class="panel"><div class="panel-head">
     <h2>Ranking por loja — ${periodLabel(st)}</h2><span class="count">${rank.length} de ${rankFull.length} lojas</span></div>
-    <div class="tbl-scroll"><table><thead><tr><th class="num">#</th><th>Loja</th><th class="num">Peças</th><th class="num">Participação</th><th></th></tr></thead><tbody>
-    ${rank.map(r=>`<tr><td class="num">${r.pos}</td><td>${r.loja}</td><td class="num">${fmtInt(r.qtd)}</td>
+    <div class="tbl-scroll"><table><thead><tr><th class="num">#</th><th>Loja</th><th class="num">Peças</th><th class="num">Participação</th><th class="num">Acumulado</th><th></th></tr></thead><tbody>
+    ${rank.map(r=>`<tr${r.fora?' style="color:var(--ink-faint)"':''}><td class="num">${r.pos}</td>
+      <td>${r.loja}${r.fora?' <span class="pill C">fora do escopo</span>':''}</td><td class="num">${fmtInt(r.qtd)}</td>
       <td class="num">${fmtPct(r.pct)}</td>
+      <td class="num" style="font-weight:600">${fmtPct(r.acum)}</td>
       <td style="width:130px"><span style="display:inline-block;height:8px;border-radius:4px;background:${r.qtd>=media?'#1f6fe0':'#c9d4e6'};width:${Math.max(3,r.pct/maxpct*100).toFixed(0)}%"></span></td></tr>`).join('')}
-    <tr style="font-weight:700;background:#f7f9fc"><td></td><td>TOTAL DA REDE</td><td class="num">${fmtInt(tot)}</td><td class="num">100%</td><td></td></tr>
+    <tr style="font-weight:700;background:#f7f9fc"><td></td><td>TOTAL DA REDE</td><td class="num">${fmtInt(tot)}</td><td class="num">100%</td><td class="num">100%</td><td></td></tr>
     </tbody></table></div></div>`;
 }
 function vendasCompare(st){
@@ -2726,15 +2873,22 @@ function cobDesenhar(){
           ${meses.map(x=>{const d=cel[l+'|'+x]; if(!d) return '<td class="cb c-fora"></td>';
             const cls=COB_CLS[d.status]||'c-ver';
             const txt=d.status==='com_venda'?fmtInt(d.unidades)
-                     :d.status==='aguardando_loja'?'?'
-                     :d.status==='fora_escopo'?'':'0';
+                     :d.status==='aguardando_loja'?'?':'0';
             const clicavel=isAdmin()&&d.status!=='com_venda'&&d.status!=='fora_escopo';
             const resp=d.confirmado_em?' · respondido em '+new Date(d.confirmado_em).toLocaleDateString('pt-BR'):'';
             return `<td class="cb ${cls}${clicavel?' cli':''}" title="${l} — ${MES_NOME[x]}: ${COB_ROTULO[d.status]}${d.observacao?' — '+d.observacao:''}${resp}"
               ${clicavel?`data-lj="${d.loja_id}" data-mes="${x}" data-st="${d.status}" data-nome="${l.replace(/"/g,'&quot;')}"`:''}>${txt}</td>`;
           }).join('')}
           <td class="tot">${fmtInt(tot)}</td></tr>`;
-      }).join('')}</tbody></table></div>
+      }).join('')}</tbody>
+      <tfoot><tr><td class="lj">TOTAL DA REDE</td>
+        ${meses.map(x=>`<td>${fmtInt(linhas.filter(d=>d.mes===x)
+            .reduce((a,d)=>a+Number(d.unidades||0),0))}</td>`).join('')}
+        <td>${fmtInt(linhas.reduce((a,d)=>a+Number(d.unidades||0),0))}</td></tr>
+      <tr><td class="lj" style="font-weight:600;color:var(--ink-soft)">Lojas que informaram</td>
+        ${meses.map(x=>{const e=linhas.filter(d=>d.mes===x&&d.status!=='fora_escopo');
+          return `<td style="font-weight:600;color:var(--ink-soft)">${e.filter(d=>d.status==='com_venda').length}/${e.length}</td>`;}).join('')}
+        <td></td></tr></tfoot></table></div>
     ${cobBlocoSemVenda()}`;
 
   const prev=document.getElementById('cbPrev'), next=document.getElementById('cbNext');
