@@ -1124,6 +1124,17 @@ function extractCor(cod){
 }
 // linha = nome de coleção presente na descrição
 const LINHAS_CONHECIDAS=["Del Toro","Havel","Mendoza","Iguaçu","Tâmisa","Ipanema","Navagio","Aira","Bayoz","Thelon","Tera","Ghazal","Ada"];
+// Complementos (sifao, valvula, tubo de ligacao, ralo) sao acessorios universais:
+// nao pertencem a colecao nenhuma. Rotula como tal em vez de exibir vazio,
+// que parece falha de leitura.
+function rotuloLinha(d){
+  if(!d) return '—';
+  if(d.linha) return d.linha;
+  // categoria pode vir em 'categoria' ou 'grupo', com acento e caixa variados
+  const c=deacc((d.categoria||'')+' '+(d.grupo||''));
+  if(c.includes('complemento')) return 'Complementos';
+  return 'Sem coleção';
+}
 function extractLinha(desc){
   const d=deacc(desc);
   for(const L of LINHAS_CONHECIDAS){
@@ -1136,7 +1147,7 @@ function extractLinha(desc){
 function parseVendas(wb){
   const catalogo=[], vendas=[], faturamento=[], lojasSet=new Set(), mesesSet=new Set();
   const corSet=new Set(), linhaSet=new Set();
-  const detalhe={meses:[],catalogoLinhas:0,amostraVendas:[],cores:0,linhas:0,semLinha:0};
+  const detalhe={meses:[],catalogoLinhas:0,amostraVendas:[],cores:0,linhas:0,semLinha:0,semLinhaComplemento:0};
 
   function cols(rows){
     const hr=detectHeaderRow(rows); const H=rows[hr]||[]; const D=H.map(deacc);
@@ -1165,7 +1176,8 @@ function parseVendas(wb){
       const cor=extractCor(skuRaw);
       const linha=extractLinha(desc);
       if(cor) corSet.add(cor);
-      if(linha) linhaSet.add(linha); else detalhe.semLinha++;
+      if(linha) linhaSet.add(linha);
+      else { detalhe.semLinha++; if(/complemento/i.test(cat||'')) detalhe.semLinhaComplemento++; }
       catalogo.push({
         sku, sku_origem:limpaTxt(skuRaw),
         descricao:desc,
@@ -1265,7 +1277,11 @@ document.getElementById('fileVendas').onchange = async (e)=>{
         ? fmtInt(parsed.faturamento.length)+' linhas · '+moneyHTML(parsed.faturamento.reduce((a,f)=>a+(+f.valor||0),0))
         : '<span style="color:#c0392b">nenhum — confira as linhas TOTAL e VENDA (R$)</span>'}</span>
       <b>Cores identificadas</b><span>${parsed.detalhe.cores}</span>
-      <b>Linhas (coleção)</b><span>${parsed.detalhe.linhas} · ${parsed.detalhe.semLinha} sem linha p/ associar</span>
+      <b>Linhas (coleção)</b><span>${parsed.detalhe.linhas} identificadas${
+        parsed.detalhe.semLinha?` · ${parsed.detalhe.semLinha} sem coleção`:''}${
+        parsed.detalhe.semLinhaComplemento===parsed.detalhe.semLinha&&parsed.detalhe.semLinha
+          ?' <span style="color:var(--ink-faint)">(todos Complementos — esperado)</span>'
+          :(parsed.detalhe.semLinha?' <span style="color:var(--amber)">— confira</span>':'')}</span>
     </div>
     <div class="chips">${parsed.lojas.slice(0,20).map(l=>`<span class="tag">${l}</span>`).join('')}${parsed.lojas.length>20?`<span class="tag">+${parsed.lojas.length-20}</span>`:''}</div>
     <label class="chk"><input type="checkbox" id="primeiraCarga"> Primeira carga — criar as lojas a partir desta planilha</label>
@@ -3075,7 +3091,7 @@ async function renderRuptura(){
      {label:'Meses cobertura',get:d=>d.meses_cobertura==null?'':(+d.meses_cobertura).toFixed(1)}], PUL.vis);
   pulmaoRefresh();
 }
-const PUL={raw:[],vis:[],pag:0};
+const PUL={raw:[],vis:[]};
 function pulmaoRefresh(){
   const q=(valOf('pmBusca')||'').trim().toLowerCase(), f=valOf('pmFiltro','');
   let l=PUL.raw.filter(d=>!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q));
@@ -3083,13 +3099,11 @@ function pulmaoRefresh(){
   if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && +d.meses_cobertura<1);
   if(f==='parado')  l=l.filter(d=>Number(d.estoque)>0 && Number(d.vendido_total)===0);
   l.sort((a,b)=>Number(b.estoque)-Number(a.estoque));
-  PUL.vis=l; PUL.pag=0; pulmaoPinta();
+  PUL.vis=l; pulmaoPinta();
 }
 function pulmaoPinta(){
-  const POR=14, l=PUL.vis, tot=l.reduce((a,d)=>a+Number(d.estoque||0),0);
-  const pags=Math.max(1,Math.ceil(l.length/POR));
-  if(PUL.pag>=pags) PUL.pag=pags-1;
-  const pag=l.slice(PUL.pag*POR,(PUL.pag+1)*POR);
+  const l=PUL.vis, tot=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+  const pag=l;
   const zer=PUL.raw.filter(d=>Number(d.estoque)===0).length;
   const crit=PUL.raw.filter(d=>d.meses_cobertura!=null&&+d.meses_cobertura<1&&Number(d.estoque)>0).length;
   const par=PUL.raw.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
@@ -3104,25 +3118,19 @@ function pulmaoPinta(){
   </div>`;
   document.getElementById('pmTab').innerHTML=`<div class="panel"><div class="panel-head">
     <h2>Itens</h2><span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
-    <table><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
+    <div class="tbl-scroll"><table><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
       <th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
       const c=d.meses_cobertura==null?null:+d.meses_cobertura;
       const cor=c==null?'var(--ink-faint)':(c<1?'#c0392b':(c<3?'var(--amber)':'#1f9d55'));
       return `<tr><td style="font-family:'IBM Plex Mono',monospace">${d.sku}</td>
-        <td>${d.descricao||'—'}</td><td>${d.linha||'—'}</td><td>${d.cor||'—'}</td>
+        <td>${d.descricao||'—'}</td><td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
         <td class="num">${fmtInt(d.estoque)}</td>
         <td class="num">${(+d.venda_media_mes||0).toFixed(1)}</td>
         <td class="num" style="color:${cor};font-weight:700">${
           c==null?(Number(d.estoque)>0?'sem venda':'—'):c.toFixed(1)+' m'}</td></tr>`;}).join('')}
-    </tbody></table>
-    ${pags>1?`<div class="pager"><button class="btn-tool" id="pmPrev" ${PUL.pag===0?'disabled':''}>◀</button>
-      <span>página ${PUL.pag+1} de ${pags}</span>
-      <button class="btn-tool" id="pmNext" ${PUL.pag>=pags-1?'disabled':''}>▶</button></div>`:''}
+    </tbody></table></div>
   </div>`;
-  const pv=document.getElementById('pmPrev'), nx=document.getElementById('pmNext');
-  if(pv) pv.onclick=()=>{ PUL.pag--; pulmaoPinta(); };
-  if(nx) nx.onclick=()=>{ PUL.pag++; pulmaoPinta(); };
 }
 
 /* ============================================================
