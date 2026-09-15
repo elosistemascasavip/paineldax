@@ -641,6 +641,8 @@ function printTabela(titulo, cols, rows){
 .c-fora{background:#f7f8fa;color:#aab3c0}
 .cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
 .cob-leg i{width:13px;height:13px;border-radius:4px;display:inline-block}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:11px;
+  border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);font-weight:600}
 .cob-leg i.c-aguard{background:#fdeaea}
 .cob-nota{padding:10px 16px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line)}
 </style></head>
@@ -1345,11 +1347,31 @@ document.getElementById('fileEstoque').onchange = async (e)=>{
   document.getElementById('btnAplicarEstq').onclick=()=>aplicarEstoque(false);
 };
 
+// Token vencido faz o Supabase tratar a chamada como anonima, e o erro que volta
+// e de RLS — confuso. Checa antes e diz o que realmente aconteceu.
+async function sessaoValida(){
+  const {data,error}=await sb.auth.getUser();
+  return !error && data && data.user;
+}
+function ehErroSessao(err){
+  const m=(err&&(err.message||err.msg)||'').toLowerCase();
+  return m.includes('row-level security') || m.includes('jwt') ||
+         m.includes('401') || m.includes('not authenticated');
+}
+function avisoSessao(){
+  return `<div class="notice warn">Sua sessão expirou. Entre novamente para continuar —
+    os dados lidos da planilha não foram perdidos, basta reenviar o arquivo depois do login.</div>`;
+}
 async function aplicarEstoque(forcar){
   const p=window._impEstq; if(!p) return;
   const btn=document.getElementById('btnAplicarEstq');
   if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Aplicando…'; }
   try{
+    if(!await sessaoValida()){
+      document.getElementById('reviewArea').insertAdjacentHTML('beforeend',avisoSessao());
+      if(btn){ btn.disabled=false; btn.textContent='Aplicar importação'; }
+      return;
+    }
     logln('Abrindo importação…');
     const {data:imp,error:e1}=await sb.from('importacoes')
       .insert({tipo:'estoque',arquivo:(window._impEstqArquivo||'estoque'),
@@ -1380,7 +1402,10 @@ async function aplicarEstoque(forcar){
     toast('Estoque atualizado.');
     if(typeof carregarStatusImport==='function') carregarStatusImport();
   }catch(err){
-    logln('✗ '+(err.message||err));
+    if(ehErroSessao(err)){
+      logln('✗ Sessão expirada.');
+      document.getElementById('reviewArea').insertAdjacentHTML('beforeend',avisoSessao());
+    } else logln('✗ '+(err.message||err));
     if(btn){ btn.disabled=false; btn.textContent='Aplicar importação'; }
   }
 }
@@ -2998,7 +3023,7 @@ async function renderSobre(){
         ${linha('Presença Casa VIP','mapa por região e estado')}
         ${linha('Preço médio','posição de cada loja')}
         ${linha('Cadastros','produtos, lojas, grupos, linhas e cores')}
-        ${linha('Estoque Pulmão','<span style="color:var(--ink-faint)">em desenvolvimento</span>')}
+        ${linha('Estoque Pulmão','saldo do CD x venda da rede')}
       </div></div>
     </div>
     ${blocoContas}
@@ -3009,14 +3034,95 @@ async function renderSobre(){
 }
 
 /* ============================================================
-   Tela: Estoque Pulmão (aguardando módulo de estoque)
+   Tela: Estoque Pulmão — saldo do CD x venda da rede
    ============================================================ */
-function renderRuptura(){
+async function renderRuptura(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
-  view.innerHTML=head(ico,'Estoque Pulmão','Estoque DAX em São Paulo, itens rompidos e produção a caminho da China.','Análise')
-  + emConstrucao(`o associado enxerga o estoque DAX disponível na JIWI São Paulo, os itens
-    rompidos e o que está em produção na China com a previsão de chegada. O estoque de São Paulo
-    é atualizado diariamente; a previsão de chegada, a cada quinze dias.`);
+  view.innerHTML=head(ico,'Estoque Pulmão',
+    'Saldo do estoque JIWI confrontado com a venda da rede.','Análise')
+    +'<div id="pmBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('pmBody');
+  if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+  const {data,error}=await fetchAll('vw_estoque_pulmao',
+    'sku,descricao,categoria,linha,cor,grupo,estoque,vendido_total,venda_media_mes,meses_cobertura,atualizado_em',
+    ['sku']);
+  if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
+  PUL.raw=data||[];
+  if(!PUL.raw.some(d=>Number(d.estoque)>0)){
+    body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Estoque não carregado</div>
+      Importe a planilha de estoque JIWI em Dados › Importar planilhas.</div></div>`;
+    return;
+  }
+  body.innerHTML=`
+    <div class="tools">
+      <input type="search" id="pmBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:220px">
+      <select class="selin" id="pmFiltro">
+        <option value="">Todos os itens</option>
+        <option value="zerado">Sem estoque</option>
+        <option value="critico">Cobertura abaixo de 1 mês</option>
+        <option value="parado">Com estoque e sem venda</option>
+      </select>
+      <div class="grow"></div>
+      <button class="btn-tool" id="pmCSV">Exportar CSV</button>
+    </div>
+    <div id="pmStats"></div><div id="pmTab"></div>`;
+  document.getElementById('pmBusca').oninput=pulmaoRefresh;
+  document.getElementById('pmFiltro').onchange=pulmaoRefresh;
+  document.getElementById('pmCSV').onclick=()=>exportCSV('estoque_pulmao',
+    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+     {label:'Cor',key:'cor'},{label:'Estoque',key:'estoque'},
+     {label:'Venda media mes',get:d=>(+d.venda_media_mes||0).toFixed(1)},
+     {label:'Meses cobertura',get:d=>d.meses_cobertura==null?'':(+d.meses_cobertura).toFixed(1)}], PUL.vis);
+  pulmaoRefresh();
+}
+const PUL={raw:[],vis:[],pag:0};
+function pulmaoRefresh(){
+  const q=(valOf('pmBusca')||'').trim().toLowerCase(), f=valOf('pmFiltro','');
+  let l=PUL.raw.filter(d=>!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q));
+  if(f==='zerado')  l=l.filter(d=>Number(d.estoque)===0);
+  if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && +d.meses_cobertura<1);
+  if(f==='parado')  l=l.filter(d=>Number(d.estoque)>0 && Number(d.vendido_total)===0);
+  l.sort((a,b)=>Number(b.estoque)-Number(a.estoque));
+  PUL.vis=l; PUL.pag=0; pulmaoPinta();
+}
+function pulmaoPinta(){
+  const POR=14, l=PUL.vis, tot=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+  const pags=Math.max(1,Math.ceil(l.length/POR));
+  if(PUL.pag>=pags) PUL.pag=pags-1;
+  const pag=l.slice(PUL.pag*POR,(PUL.pag+1)*POR);
+  const zer=PUL.raw.filter(d=>Number(d.estoque)===0).length;
+  const crit=PUL.raw.filter(d=>d.meses_cobertura!=null&&+d.meses_cobertura<1&&Number(d.estoque)>0).length;
+  const par=PUL.raw.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
+  const quando=PUL.raw.find(d=>d.atualizado_em);
+  document.getElementById('pmStats').innerHTML=`<div class="statbar">
+    <div class="s"><div class="n">${fmtInt(PUL.raw.reduce((a,d)=>a+Number(d.estoque||0),0))}</div><div class="l">Peças em estoque</div></div>
+    <div class="s"><div class="n">${fmtInt(PUL.raw.filter(d=>Number(d.estoque)>0).length)}</div><div class="l">Itens com saldo</div></div>
+    <div class="s"><div class="n" style="color:#c0392b">${fmtInt(zer)}</div><div class="l">Itens zerados</div></div>
+    <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(crit)}</div><div class="l">Cobertura &lt; 1 mês</div></div>
+    <div class="s"><div class="n">${fmtInt(par)}</div><div class="l">Parados (sem venda)</div></div>
+    ${quando?`<div class="s"><div class="n" style="font-size:15px">${fmtDataHora(quando.atualizado_em)}</div><div class="l">Última carga</div></div>`:''}
+  </div>`;
+  document.getElementById('pmTab').innerHTML=`<div class="panel"><div class="panel-head">
+    <h2>Itens</h2><span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
+    <table><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
+      <th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
+    <tbody>${pag.map(d=>{
+      const c=d.meses_cobertura==null?null:+d.meses_cobertura;
+      const cor=c==null?'var(--ink-faint)':(c<1?'#c0392b':(c<3?'var(--amber)':'#1f9d55'));
+      return `<tr><td style="font-family:'IBM Plex Mono',monospace">${d.sku}</td>
+        <td>${d.descricao||'—'}</td><td>${d.linha||'—'}</td><td>${d.cor||'—'}</td>
+        <td class="num">${fmtInt(d.estoque)}</td>
+        <td class="num">${(+d.venda_media_mes||0).toFixed(1)}</td>
+        <td class="num" style="color:${cor};font-weight:700">${
+          c==null?(Number(d.estoque)>0?'sem venda':'—'):c.toFixed(1)+' m'}</td></tr>`;}).join('')}
+    </tbody></table>
+    ${pags>1?`<div class="pager"><button class="btn-tool" id="pmPrev" ${PUL.pag===0?'disabled':''}>◀</button>
+      <span>página ${PUL.pag+1} de ${pags}</span>
+      <button class="btn-tool" id="pmNext" ${PUL.pag>=pags-1?'disabled':''}>▶</button></div>`:''}
+  </div>`;
+  const pv=document.getElementById('pmPrev'), nx=document.getElementById('pmNext');
+  if(pv) pv.onclick=()=>{ PUL.pag--; pulmaoPinta(); };
+  if(nx) nx.onclick=()=>{ PUL.pag++; pulmaoPinta(); };
 }
 
 /* ============================================================
