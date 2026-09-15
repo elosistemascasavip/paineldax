@@ -426,6 +426,10 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
         Histórico de cargas
       </div>
+      <div class="nav-item" data-route="cobertura">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/></svg>
+        Cobertura da base
+      </div>
     </div>
     <div class="nav-group">
       <div class="nav-title">ANÁLISE</div>
@@ -571,7 +575,8 @@ const ORDEM_PADRAO={
   vw_vendas_geo:['sku','loja','competencia'],
   vw_produtos:['sku'], vw_lojas:['nome'], vw_usuarios:['email'],
   vw_vendas_por_loja:['competencia','loja'], vw_preco_medio_loja:['loja'],
-  vw_grupos:['rotulo'], vw_linhas:['rotulo'], vw_cores:['rotulo']
+  vw_grupos:['rotulo'], vw_linhas:['rotulo'], vw_cores:['rotulo'],
+  vw_cobertura_matriz:['ano','loja','mes'], vw_lojas_sem_venda_ano:['ano','loja']
 };
 async function fetchAll(tabela, colunas, ordem){
   const PAGE=1000; let de=0, todos=[];
@@ -614,7 +619,27 @@ function printTabela(titulo, cols, rows){
     <style>body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}
     h1{font-size:16px;margin:0 0 4px} .sub{color:#666;margin:0 0 14px;font-size:11px}
     table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:4px 7px;text-align:left}
-    th{background:#eef2f8} .r{text-align:right}</style></head>
+    th{background:#eef2f8} .r{text-align:right}
+/* --- Matriz de cobertura --- */
+.cob-tbl{table-layout:auto}
+.cob-tbl th{text-align:center;font-size:11.5px}
+.cob-tbl th.lj,.cob-tbl td.lj{text-align:left;white-space:nowrap;font-weight:600;position:sticky;left:0;background:#fff;z-index:1}
+.cob-tbl thead th.lj{background:#fbfcfe}
+.cob-tbl td.cb{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  padding:6px 4px;border-radius:5px;min-width:48px}
+.cob-tbl td.cb.cli{cursor:pointer;outline:1px dashed rgba(0,0,0,.18);outline-offset:-3px}
+.cob-tbl td.cb.cli:hover{filter:brightness(.94)}
+.cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap}
+.c-ok{background:#e7f0ff;color:#1552c9}
+.c-ver{background:#fff2df;color:#9a6100}
+.c-conf{background:#f2f3f6;color:#697588}
+.c-pend,.c-aguard{background:#fdeaea;color:#c0392b}
+.c-fora{background:repeating-linear-gradient(45deg,#f7f8fa,#f7f8fa 4px,#eef0f4 4px,#eef0f4 8px);color:transparent}
+.cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
+.cob-leg i{width:13px;height:13px;border-radius:4px;display:inline-block}
+.cob-leg i.c-aguard{background:#fdeaea}
+.cob-nota{padding:10px 16px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line)}
+</style></head>
     <body><h1>${titulo}</h1><div class="sub">Casa VIP · Abastecimento — ${new Date().toLocaleDateString('pt-BR')} — ${rows.length} itens</div>
     <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>
     <script>window.onload=()=>window.print()<\/script></body></html>`);
@@ -936,6 +961,7 @@ async function route(r){
   if(r==='ruptura') return renderRuptura();
   if(r==='oportunidades') return renderOportunidades();
   if(r==='historico') return renderHistorico();
+  if(r==='cobertura') return renderCobertura();
 }
 
 /* ============================================================
@@ -1057,6 +1083,9 @@ function pickColD(D,preds){
   for(const p of preds){ const i=D.findIndex(p); if(i>=0) return i; }
   return -1;
 }
+// Alt+Enter dentro da celula deixa quebra invisivel no texto: some do que se ve,
+// fica no dado. Limpa na leitura para nao depender de quem digita.
+function limpaTxt(v){ return (v==null?'':String(v)).replace(/[\r\n\t]+/g,' ').replace(/\s+/g,' ').trim(); }
 function toNum(v){ return typeof v==='number' ? v : (parseFloat(String(v).replace(',','.'))||0); }
 
 // cor = último bloco do código, se for 2-4 letras (BL, CR, GR, GDE…)
@@ -1078,7 +1107,7 @@ function extractLinha(desc){
 }
 
 function parseVendas(wb){
-  const catalogo=[], vendas=[], lojasSet=new Set(), mesesSet=new Set();
+  const catalogo=[], vendas=[], faturamento=[], lojasSet=new Set(), mesesSet=new Set();
   const corSet=new Set(), linhaSet=new Set();
   const detalhe={meses:[],catalogoLinhas:0,amostraVendas:[],cores:0,linhas:0,semLinha:0};
 
@@ -1104,14 +1133,14 @@ function parseVendas(wb){
       const row=rows[i]; const skuRaw=cSku>=0?row[cSku]:row[0];
       if(!skuRaw||String(skuRaw).trim()==='')continue;
       const sku=normSku(skuRaw); if(!sku)continue;
-      const cat=cCat>=0?String(row[cCat]||'').trim()||null:null;
-      const desc=cDesc>=0?String(row[cDesc]||'').trim()||null:null;
+      const cat=cCat>=0?limpaTxt(row[cCat])||null:null;
+      const desc=cDesc>=0?limpaTxt(row[cDesc])||null:null;
       const cor=extractCor(skuRaw);
       const linha=extractLinha(desc);
       if(cor) corSet.add(cor);
       if(linha) linhaSet.add(linha); else detalhe.semLinha++;
       catalogo.push({
-        sku, sku_origem:String(skuRaw).trim(),
+        sku, sku_origem:limpaTxt(skuRaw),
         descricao:desc,
         categoria:cat, grupo:cat,           // categoria semeia o grupo
         linha:linha, cor:cor, ncm:null, preco:null,
@@ -1135,8 +1164,8 @@ function parseVendas(wb){
     let mesTem=false;
     for(let r=hr+1;r<rows.length;r++){
       const row=rows[r]; const skuRaw=cSku>=0?row[cSku]:row[0];
-      if(!skuRaw||String(skuRaw).trim()==='')continue;
-      const sku=String(skuRaw).trim();
+      if(!skuRaw||limpaTxt(skuRaw)==='')continue;
+      const sku=limpaTxt(skuRaw);
       for(const lc of lojaCols){
         const q=toNum(row[lc.i]);
         if(!q) continue;
@@ -1144,11 +1173,41 @@ function parseVendas(wb){
         lojasSet.add(lc.nome); mesTem=true;
       }
     }
+    // Linhas de rodape da aba: "TOTAL" (unidades) e "VENDA (R$)" por loja.
+    // E a unica origem do faturamento — a planilha nao traz valor por SKU.
+    // O rótulo não fica sempre na mesma coluna: em algumas abas está em "CATEGORIA",
+    // em outras em "Código Jiwi". Varre todas as colunas antes da primeira loja.
+    const limId = lojaCols.length ? lojaCols[0].i : 5;
+    let rTot=-1, rVal=-1;
+    for(let r=hr+1;r<rows.length;r++){
+      const row=rows[r]||[];
+      const a=deacc(row.slice(0,limId).map(x=>x==null?'':String(x)).join(' ')).replace(/\s+/g,' ').trim();
+      if(!a) continue;
+      if(rTot<0 && /^total( geral)?$/.test(a)) rTot=r;
+      if(rVal<0 && /^venda\s*\(?\s*r\$\s*\)?$/.test(a)) rVal=r;
+      if(rTot>=0 && rVal>=0) break;
+    }
+    if(rTot>=0 || rVal>=0){
+      const fatMes=lojaCols.map(lc=>({loja_origem:lc.nome,ano,mes,
+        unidades:rTot>=0?toNum(rows[rTot][lc.i]):0,
+        valor:   rVal>=0?toNum(rows[rVal][lc.i]):0}));
+      // Meses ainda não preenchidos (Set–Dez de um ano corrente) vêm todos zerados
+      // ou com erro de fórmula: não podem virar competência na base.
+      if(fatMes.some(f=>f.unidades>0 || f.valor>0)){
+        fatMes.forEach(f=>{
+          faturamento.push(f);
+          lojasSet.add(f.loja_origem);
+        });
+        // Loja zerada não gera linha de venda, mas gera faturamento zero —
+        // é assim que se distingue "vendeu zero" de "mês inexistente".
+        mesTem=true;
+      }
+    }
     if(mesTem){ mesesSet.add(mes); detalhe.meses.push(MES_NOME[mes]+'/'+ano); }
   }
   detalhe.amostraVendas = vendas.slice(0,5);
   detalhe.cores = corSet.size; detalhe.linhas = linhaSet.size;
-  return {catalogo,vendas,lojas:[...lojasSet],meses:[...mesesSet],detalhe};
+  return {catalogo,vendas,faturamento,lojas:[...lojasSet],meses:[...mesesSet],detalhe};
 }
 
 /* ---------- fluxo de importação de vendas ---------- */
@@ -1175,6 +1234,9 @@ document.getElementById('fileVendas').onchange = async (e)=>{
       <b>Meses com movimento</b><span>${parsed.meses.length? parsed.detalhe.meses.join(', ') : '—'}</span>
       <b>Lojas detectadas</b><span>${fmtInt(parsed.lojas.length)}</span>
       <b>Linhas de venda</b><span>${fmtInt(parsed.vendas.length)}</span>
+      <b>Faturamento lido</b><span>${parsed.faturamento.length
+        ? fmtInt(parsed.faturamento.length)+' linhas · '+moneyHTML(parsed.faturamento.reduce((a,f)=>a+(+f.valor||0),0))
+        : '<span style="color:#c0392b">nenhum — confira as linhas TOTAL e VENDA (R$)</span>'}</span>
       <b>Cores identificadas</b><span>${parsed.detalhe.cores}</span>
       <b>Linhas (coleção)</b><span>${parsed.detalhe.linhas} · ${parsed.detalhe.semLinha} sem linha p/ associar</span>
     </div>
@@ -1222,6 +1284,12 @@ async function aplicarVendas(){
     await chunkInsert('vendas_staging',p.vendas,3000,v=>({
       importacao_id:imp.id,sku_origem:v.sku_origem,loja_origem:v.loja_origem,
       ano:v.ano,mes:v.mes,quantidade:v.quantidade}));
+    if(p.faturamento && p.faturamento.length){
+      logln('Enviando faturamento por loja/mês…');
+      await chunkInsert('faturamento_staging',p.faturamento,2000,f=>({
+        importacao_id:imp.id,loja_origem:f.loja_origem,
+        ano:f.ano,mes:f.mes,unidades:f.unidades,valor:f.valor}));
+    }
     // 3. primeira carga -> semear lojas
     if(document.getElementById('primeiraCarga').checked){
       logln('Criando lojas…');
@@ -2580,6 +2648,146 @@ const APP_CONTAS=[
   ['Vercel (hospedagem)','elosistemascasavip@gmail.com'],
   ['Projeto Supabase','xvwtmnnisklhqeisuqgz · região us-west-2 · PostgreSQL 17']
 ];
+/* ============================================================
+   Tela: Cobertura da base (quem informou venda em cada mês)
+   Distingue "não enviou" de "vendeu zero" — sem isso os dois
+   viram o mesmo número em qualquer análise.
+   ============================================================ */
+const ICO_COB=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/></svg>`;
+const COB={mat:[],semVenda:[],ano:null,anos:[]};
+const COB_ROTULO={com_venda:'Informou venda',sem_venda:'Sem registro — a verificar',
+  sem_venda_confirmada:'Sem venda — confirmado',aguardando_loja:'Aguardando a loja',
+  pendente:'Sem registro — a verificar',nao_informado:'Aba ausente',
+  fora_escopo:'Fora do escopo DAX'};
+const COB_CLS={com_venda:'c-ok',sem_venda:'c-ver',sem_venda_confirmada:'c-conf',
+  aguardando_loja:'c-aguard',pendente:'c-ver',nao_informado:'c-ver',fora_escopo:'c-fora'};
+const COB_ABERTOS=['sem_venda','pendente','nao_informado'];
+
+async function renderCobertura(){
+  view.innerHTML=head(ICO_COB,'Cobertura da base',
+    'Quem informou venda em cada mês. Um mês incompleto deixa de ser indistinguível de um mês completo.','Dados')
+    +'<div id="cbBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('cbBody');
+  if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+  const [m,s]=await Promise.all([
+    fetchAll('vw_cobertura_matriz','loja_id,loja,uf,regiao,trabalha_dax,ano,mes,status,unidades,observacao',['ano','loja','mes']),
+    fetchAll('vw_lojas_sem_venda_ano','ano,loja_id,loja,uf,trabalha_dax,meses_pendentes,meses_avaliados',['ano','loja'])
+  ]);
+  if(m.error){ body.innerHTML=`<div class="notice warn">${m.error.message}</div>`; return; }
+  COB.mat=m.data||[]; COB.semVenda=s.data||[];
+  if(!COB.mat.length){
+    body.innerHTML='<div class="panel"><div class="empty"><div class="big">Sem cobertura calculada</div>Faça uma carga de vendas para gerar a cobertura.</div></div>';
+    return; }
+  COB.anos=[...new Set(COB.mat.map(d=>d.ano))].sort();
+  COB.ano=COB.anos[COB.anos.length-1];
+  cobDesenhar();
+}
+
+function cobDesenhar(){
+  const body=document.getElementById('cbBody');
+  const linhas=COB.mat.filter(d=>d.ano===COB.ano);
+  const meses=[...new Set(linhas.map(d=>d.mes))].sort((a,b)=>a-b);
+  const lojas=[...new Set(linhas.map(d=>d.loja))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const cel={}; linhas.forEach(d=>{ cel[d.loja+'|'+d.mes]=d; });
+
+  const escopo=linhas.filter(d=>d.status!=='fora_escopo');
+  const nPend=escopo.filter(d=>d.status==='aguardando_loja').length;
+  const nVer =escopo.filter(d=>COB_ABERTOS.includes(d.status)).length;
+  const nOk  =escopo.filter(d=>d.status==='com_venda').length;
+  const nLojas=new Set(escopo.map(d=>d.loja)).size;
+  const idx=COB.anos.indexOf(COB.ano);
+
+  body.innerHTML=`
+    <div class="statbar">
+      <div class="s"><div class="n">${fmtInt(nLojas)}</div><div class="l">Lojas no escopo DAX</div></div>
+      <div class="s"><div class="n">${fmtInt(nOk)}</div><div class="l">Meses informados</div></div>
+      <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(nVer)}</div><div class="l">A verificar</div></div>
+      <div class="s"><div class="n" style="color:#c0392b">${fmtInt(nPend)}</div><div class="l">Aguardando a loja</div></div>
+    </div>
+    <div class="tools">
+      <button class="btn-tool" id="cbPrev" ${idx<=0?'disabled':''}>◀</button>
+      <b style="font-size:15px;min-width:52px;text-align:center">${COB.ano}</b>
+      <button class="btn-tool" id="cbNext" ${idx>=COB.anos.length-1?'disabled':''}>▶</button>
+      <span class="cob-leg"><i class="c-ok"></i>Informou</span>
+      <span class="cob-leg"><i class="c-ver"></i>A verificar</span>
+      <span class="cob-leg"><i class="c-conf"></i>Sem venda — confirmado</span>
+      <span class="cob-leg"><i class="c-aguard"></i>Aguardando a loja</span>
+      <span class="cob-leg"><i class="c-fora"></i>Fora do escopo</span>
+      <button class="btn-tool" id="cbCSV" style="margin-left:auto">Exportar CSV</button>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Matriz de cobertura</h2>
+      <span class="count">${isAdmin()?'Clique numa célula para confirmar que a loja não vendeu':'Somente leitura'}</span></div>
+      <table class="cob-tbl"><thead><tr><th class="lj">Loja</th>
+        ${meses.map(x=>`<th>${MES_NOME[x]}</th>`).join('')}<th class="tot">Total</th></tr></thead>
+      <tbody>${lojas.map(l=>{
+        const tot=meses.reduce((a,x)=>a+Number(cel[l+'|'+x]?.unidades||0),0);
+        const fora=cel[l+'|'+meses[0]]?.trabalha_dax===false;
+        return `<tr><td class="lj">${l}${fora?' <span class="pill C">fora</span>':''}</td>
+          ${meses.map(x=>{const d=cel[l+'|'+x]; if(!d) return '<td class="cb c-fora"></td>';
+            const cls=COB_CLS[d.status]||'c-ver';
+            const txt=d.status==='com_venda'?fmtInt(d.unidades)
+                     :d.status==='aguardando_loja'?'?'
+                     :d.status==='fora_escopo'?'':'0';
+            const clicavel=isAdmin()&&d.status!=='com_venda'&&d.status!=='fora_escopo';
+            const resp=d.confirmado_em?' · respondido em '+new Date(d.confirmado_em).toLocaleDateString('pt-BR'):'';
+            return `<td class="cb ${cls}${clicavel?' cli':''}" title="${l} — ${MES_NOME[x]}: ${COB_ROTULO[d.status]}${d.observacao?' — '+d.observacao:''}${resp}"
+              ${clicavel?`data-lj="${d.loja_id}" data-mes="${x}" data-st="${d.status}" data-nome="${l.replace(/"/g,'&quot;')}"`:''}>${txt}</td>`;
+          }).join('')}
+          <td class="tot">${fmtInt(tot)}</td></tr>`;
+      }).join('')}</tbody></table></div>
+    ${cobBlocoSemVenda()}`;
+
+  const prev=document.getElementById('cbPrev'), next=document.getElementById('cbNext');
+  if(prev) prev.onclick=()=>{ if(idx>0){ COB.ano=COB.anos[idx-1]; cobDesenhar(); } };
+  if(next) next.onclick=()=>{ if(idx<COB.anos.length-1){ COB.ano=COB.anos[idx+1]; cobDesenhar(); } };
+  document.getElementById('cbCSV').onclick=()=>exportCSV('cobertura_'+COB.ano,
+    [{label:'Loja',key:'loja'},{label:'UF',key:'uf'},{label:'Mes',get:d=>MES_NOME[d.mes]},
+     {label:'Situacao',get:d=>COB_ROTULO[d.status]},{label:'Unidades',key:'unidades'}],linhas);
+  if(isAdmin()) document.querySelectorAll('#cbBody .cb.cli').forEach(td=>{
+    td.onclick=()=>cobResponder(+td.dataset.lj,+td.dataset.mes,td.dataset.nome,td.dataset.st);
+  });
+}
+
+function cobBlocoSemVenda(){
+  const r=COB.semVenda.filter(d=>d.ano===COB.ano);
+  if(!r.length) return '';
+  return `<div class="panel" style="margin-top:14px"><div class="panel-head">
+    <h2>Lojas sem venda em nenhum mês de ${COB.ano}</h2><span class="count">${r.length}</span></div>
+    <div class="cob-nota">Confira se é ausência real de venda ou erro de lançamento na origem.</div>
+    <table><thead><tr><th>Loja</th><th>UF</th><th>Escopo DAX</th><th>Meses sem informação</th></tr></thead>
+    <tbody>${r.map(d=>`<tr><td>${d.loja}</td><td>${d.uf||'—'}</td>
+      <td>${d.trabalha_dax?'<span class="pill A">sim</span>':'<span class="pill C">não</span>'}</td>
+      <td>${fmtInt(d.meses_pendentes)} de ${fmtInt(d.meses_avaliados)}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function cobResponder(lojaId,mes,nome,statusAtual){
+  const jaResp=['sem_venda_confirmada','aguardando_loja'].includes(statusAtual);
+  openModal(`${nome} — ${MES_NOME[mes]}/${COB.ano}`,
+    `<p class="sub" style="margin:0 0 4px"><b>${nome}</b> não registrou venda em ${MES_NOME[mes]}/${COB.ano}.</p>
+     <p class="sub" style="margin:0 0 12px">A loja pode não ter vendido, ou não ter enviado os dados.</p>
+     ${jaResp?`<div class="notice" style="margin-bottom:10px">Situação atual: <b>${COB_ROTULO[statusAtual]}</b>. Responder de novo substitui.</div>`:''}
+     <input class="selin" id="cbObs" style="width:100%" placeholder="Observação (opcional)">
+     <button class="btn-tool" id="cbAguard" style="width:100%;margin-top:10px;justify-content:center">Ainda não enviou</button>`,
+    async()=>cobSalvar(lojaId,mes,'sem_venda'),'Não teve venda');
+  const b=document.getElementById('cbAguard');
+  if(b) b.onclick=async()=>{ b.disabled=true;
+    const ok=await cobSalvar(lojaId,mes,'aguardando'); b.disabled=false;
+    if(ok!==false) closeModal(); };
+}
+
+async function cobSalvar(lojaId,mes,decisao){
+  const obs=(document.getElementById('cbObs').value||'').trim()||null;
+  const {error}=await sb.rpc('responder_cobertura',
+    {p_loja_id:lojaId,p_ano:COB.ano,p_mes:mes,p_decisao:decisao,p_observacao:obs});
+  if(error){ document.getElementById('mErr').textContent=error.message; return false; }
+  toast(decisao==='sem_venda'?'Registrado: não teve venda.':'Registrado: aguardando a loja.');
+  const d=COB.mat.find(x=>x.loja_id===lojaId&&x.ano===COB.ano&&x.mes===mes);
+  if(d){ d.status=decisao==='sem_venda'?'sem_venda_confirmada':'aguardando_loja';
+         d.observacao=obs; d.confirmado_em=new Date().toISOString(); }
+  cobDesenhar();
+}
+
 async function renderSobre(){
   view.innerHTML=head(ICO_INFO,'Sobre','Informações do sistema, dos dados e do desenvolvimento.','Sistema')+'<div id="sbBody"></div>';
   const body=document.getElementById('sbBody');
