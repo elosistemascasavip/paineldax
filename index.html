@@ -445,9 +445,13 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-4h16l1 4M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9M3 9h18"/></svg>
         Vendas por loja
       </div>
+      <div class="nav-item" data-route="pulmao">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>
+        Estoque Pulmão
+      </div>
       <div class="nav-item" data-route="ruptura">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
-        Estoque Pulmão
+        Cobertura de estoque
       </div>
       <div class="nav-item" data-route="precomedio">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
@@ -641,6 +645,19 @@ function printTabela(titulo, cols, rows){
 .c-fora{background:#f7f8fa;color:#aab3c0}
 .cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
 .cob-leg i{width:13px;height:13px;border-radius:4px;display:inline-block}
+table.densa td,table.densa th{padding:6px 10px;line-height:1.25}
+table.densa td.desc{max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.densa tr.rompido td{background:#fdf1f1}
+table.densa tr.rompido td:first-child{box-shadow:inset 3px 0 0 #d9534f}
+table.densa tr.rompido:hover td{background:#fbe6e6}
+.pa-box .pa-tip{position:absolute;top:6px;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:#12325a;color:#fff;border-radius:9px;padding:8px 11px;font-size:12px;line-height:1.5;
+  max-width:230px;box-shadow:0 6px 18px rgba(18,50,90,.25);z-index:3}
+.pa-box .pa-tip .d{color:#c7d6ea}
+.pa-box .pa-tip .pill{font-size:10.5px;padding:1px 7px}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+  color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
+.chk input{margin:0;cursor:pointer}
 .pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:11px;
   border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);font-weight:600}
 .cob-leg i.c-aguard{background:#fdeaea}
@@ -651,35 +668,90 @@ function printTabela(titulo, cols, rows){
     <script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
 }
-// Pareto: cabe na largura. Barras coloridas por faixa; coluna inteira com hover (mostra o produto) e clique.
+// Pareto. O viewBox e bem maior que o tamanho renderizado: com 400+ itens,
+// resolucao baixa engrossa e serrilha as barras. O clique nao depende de acertar
+// a barra (1-2px) — uma faixa invisivel sobre o grafico inteiro captura o mouse
+// e resolve qual item esta sob o cursor.
+const PARETO_ST = {};
 function paretoSVG(items, corteA, corteB, classKey){
   const N=items.length; if(!N) return '<div style="color:#8794a7;font-size:13px">Sem itens.</div>';
   classKey=classKey||'classe';
-  const COL={A:'#1552c9',B:'#1f9d55',C:'#9aa5b5',D:'#d98b8b'};
+  const COL={A:'#1552c9',B:'#1f9d55',C:'#9aa5b5',D:'#e08a8a'};
   const tot=items.reduce((s,i)=>s+(+i.metrica||0),0)||1;
-  const W=680,H=220,padL=40,padR=46,padT=14,padB=20, iw=W-padL-padR, ih=H-padT-padB;
-  const step=iw/N, barW=Math.max(1.4, step*0.7);
+  const W=1600,H=380,padL=74,padR=104,padT=26,padB=34, iw=W-padL-padR, ih=H-padT-padB;
+  const step=iw/N, barW=Math.max(1.6, step*0.78);
   const maxShare=Math.max(...items.map(i=>(+i.metrica||0)/tot),1e-6);
-  let acum=0; const bars=[],hits=[],lp=[];
+  const id='pa'+Math.random().toString(36).slice(2,9);
+
+  let acum=0; const bars=[], lp=[], meta=[];
   items.forEach((it,i)=>{
     const share=(+it.metrica||0)/tot; acum+=share;
     const cx=padL+step*(i+0.5), h=ih*(share/maxShare), y=padT+ih-h, cls=it[classKey]||'D';
-    bars.push(`<rect x="${(cx-barW/2).toFixed(2)}" y="${y.toFixed(1)}" width="${barW.toFixed(2)}" height="${Math.max(0.6,h).toFixed(1)}" fill="${COL[cls]||'#ccc'}"/>`);
-    const desc=(it.descricao||'').slice(0,72).replace(/[<>&]/g,' ');
-    hits.push(`<rect x="${(padL+step*i).toFixed(2)}" y="${padT}" width="${step.toFixed(2)}" height="${ih}" fill="transparent" style="cursor:pointer" onclick="abcItemDetail('${it.sku}')"><title>${it.sku} · classe ${cls} · ${fmtInt(it.qtd_janela)} un
-${desc}</title></rect>`);
+    bars.push(`<rect x="${(cx-barW/2).toFixed(2)}" y="${y.toFixed(1)}" width="${barW.toFixed(2)}" height="${Math.max(1,h).toFixed(1)}" fill="${COL[cls]||'#ccc'}" rx="${(barW/3).toFixed(2)}"/>`);
     lp.push([cx, padT+ih*(1-acum)]);
+    meta.push({sku:it.sku,cls:cls,cx:cx,qtd:it.qtd_janela,acum:acum*100,
+               desc:(it.descricao||'').slice(0,64)});
   });
+  PARETO_ST[id]={meta:meta,padL:padL,step:step,W:W,N:N};
+
   const yv=v=>padT+ih*(1-v/100);
-  const ticks=[0,50,100].map(t=>`<line x1="${padL}" y1="${yv(t).toFixed(1)}" x2="${W-padR}" y2="${yv(t).toFixed(1)}" stroke="#eef1f6"/><text x="${padL-6}" y="${(yv(t)+3).toFixed(1)}" font-size="9" fill="#8794a7" text-anchor="end">${t}%</text>`).join('');
-  const yA=yv(corteA),yB=yv(corteB);
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
-    ${ticks}${bars.join('')}
-    <line x1="${padL}" y1="${yA.toFixed(1)}" x2="${W-padR}" y2="${yA.toFixed(1)}" stroke="#1f6fe0" stroke-dasharray="4 3"/><text x="${W-padR+4}" y="${(yA+3).toFixed(1)}" font-size="9" fill="#1f6fe0">A ${corteA}%</text>
-    <line x1="${padL}" y1="${yB.toFixed(1)}" x2="${W-padR}" y2="${yB.toFixed(1)}" stroke="#1f9d55" stroke-dasharray="4 3"/><text x="${W-padR+4}" y="${(yB+3).toFixed(1)}" font-size="9" fill="#1f9d55">B ${corteB}%</text>
-    <path d="M${lp.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')}" fill="none" stroke="#0f3f8f" stroke-width="1.7"/>
-    ${hits.join('')}
-  </svg>`;
+  const ticks=[0,25,50,75,100].map(t=>
+    `<line x1="${padL}" y1="${yv(t).toFixed(1)}" x2="${W-padR}" y2="${yv(t).toFixed(1)}" stroke="${t===0?'#dfe4ec':'#f0f3f8'}"/>
+     <text x="${padL-12}" y="${(yv(t)+5).toFixed(1)}" font-size="15" fill="#8794a7" text-anchor="end">${t}%</text>`).join('');
+  const yA=yv(corteA), yB=yv(corteB);
+  const curva=lp.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L');
+
+  return `<div class="pa-box" style="position:relative">
+  <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:300px;display:block" id="${id}">
+    <defs>
+      <linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1552c9" stop-opacity="0.09"/>
+        <stop offset="100%" stop-color="#1552c9" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${ticks}
+    <path d="M${padL} ${padT+ih} L${curva} L${(W-padR).toFixed(1)} ${padT+ih} Z" fill="url(#${id}g)"/>
+    ${bars.join('')}
+    <line x1="${padL}" y1="${yA.toFixed(1)}" x2="${W-padR}" y2="${yA.toFixed(1)}" stroke="#1f6fe0" stroke-width="1.6" stroke-dasharray="8 6"/>
+    <text x="${W-padR+8}" y="${(yA+5).toFixed(1)}" font-size="15" font-weight="700" fill="#1f6fe0">A ${corteA}%</text>
+    <line x1="${padL}" y1="${yB.toFixed(1)}" x2="${W-padR}" y2="${yB.toFixed(1)}" stroke="#1f9d55" stroke-width="1.6" stroke-dasharray="8 6"/>
+    <text x="${W-padR+8}" y="${(yB+5).toFixed(1)}" font-size="15" font-weight="700" fill="#1f9d55">B ${corteB}%</text>
+    <path d="M${curva}" fill="none" stroke="#0f3f8f" stroke-width="2.6" stroke-linejoin="round"/>
+    <line id="${id}cur" x1="0" y1="${padT}" x2="0" y2="${padT+ih}" stroke="#12325a" stroke-width="1.4" opacity="0"/>
+    <circle id="${id}dot" cx="0" cy="0" r="5" fill="#fff" stroke="#0f3f8f" stroke-width="2.4" opacity="0"/>
+    <rect x="${padL}" y="${padT}" width="${iw}" height="${ih}" fill="transparent" style="cursor:crosshair"
+      onmousemove="paretoMove(event,'${id}')" onmouseleave="paretoOut('${id}')" onclick="paretoPick(event,'${id}')"/>
+  </svg>
+  <div class="pa-tip" id="${id}tip"></div></div>`;
+}
+
+function paretoIdx(ev,id){
+  const st=PARETO_ST[id]; if(!st) return -1;
+  const svg=document.getElementById(id); const r=svg.getBoundingClientRect();
+  const x=(ev.clientX-r.left)*(st.W/r.width);
+  return Math.max(0, Math.min(st.N-1, Math.floor((x-st.padL)/st.step)));
+}
+function paretoMove(ev,id){
+  const i=paretoIdx(ev,id); if(i<0) return;
+  const st=PARETO_ST[id], m=st.meta[i];
+  const cur=document.getElementById(id+'cur');
+  cur.setAttribute('x1',m.cx.toFixed(1)); cur.setAttribute('x2',m.cx.toFixed(1)); cur.setAttribute('opacity','0.5');
+  const tip=document.getElementById(id+'tip');
+  const svg=document.getElementById(id), r=svg.getBoundingClientRect();
+  tip.innerHTML=`<b>${m.sku}</b> <span class="pill ${m.cls}">${m.cls}</span><br>
+    <span class="d">${m.desc||'—'}</span><br>
+    ${fmtInt(m.qtd)} un · acumulado ${m.acum.toFixed(1)}%`;
+  tip.style.opacity='1';
+  const px=(m.cx/st.W)*r.width;
+  tip.style.left=Math.max(4,Math.min(r.width-230, px-110))+'px';
+}
+function paretoOut(id){
+  const c=document.getElementById(id+'cur'); if(c) c.setAttribute('opacity','0');
+  const t=document.getElementById(id+'tip'); if(t) t.style.opacity='0';
+}
+function paretoPick(ev,id){
+  const i=paretoIdx(ev,id); if(i<0) return;
+  abcItemDetail(PARETO_ST[id].meta[i].sku);
 }
 const PARETO_LEG=`<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#697588;margin-top:4px">
   <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1552c9;vertical-align:-1px"></span> A</span>
@@ -985,6 +1057,7 @@ async function route(r){
   if(r==='grupos') return renderRotulos('grupo','Grupos','vw_grupos');
   if(r==='linhas') return renderRotulos('linha','Linhas','vw_linhas');
   if(r==='cores')  return renderRotulos('cor','Cores','vw_cores');
+  if(r==='pulmao')  return renderPulmaoConsulta();
   if(r==='ruptura') return renderRuptura();
   if(r==='oportunidades') return renderOportunidades();
   if(r==='historico') return renderHistorico();
@@ -1132,7 +1205,7 @@ function rotuloLinha(d){
   if(d.linha) return d.linha;
   // categoria pode vir em 'categoria' ou 'grupo', com acento e caixa variados
   const c=deacc((d.categoria||'')+' '+(d.grupo||''));
-  if(c.includes('complemento')) return 'Complementos';
+  if(c.includes('complemento')) return 'Universal';
   return 'Sem coleção';
 }
 function extractLinha(desc){
@@ -3039,7 +3112,8 @@ async function renderSobre(){
         ${linha('Presença Casa VIP','mapa por região e estado')}
         ${linha('Preço médio','posição de cada loja')}
         ${linha('Cadastros','produtos, lojas, grupos, linhas e cores')}
-        ${linha('Estoque Pulmão','saldo do CD x venda da rede')}
+        ${linha('Estoque Pulmão','consulta de saldo no JIWI')}
+        ${linha('Cobertura de estoque','saldo x venda da rede, por classe ABC')}
       </div></div>
     </div>
     ${blocoContas}
@@ -3050,17 +3124,90 @@ async function renderSobre(){
 }
 
 /* ============================================================
+   Tela: Estoque Pulmão — consulta pura. Tem ou não tem peça.
+   Sem curva ABC, sem cobertura: quem quer analisar vai em
+   Cobertura de estoque.
+   ============================================================ */
+const PCO={raw:[]};
+async function renderPulmaoConsulta(){
+  const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
+  view.innerHTML=head(ico,'Estoque Pulmão','Consulta de saldo no estoque JIWI.','Análise')
+    +'<div id="pcBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('pcBody');
+  if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+  const {data,error}=await fetchAll('vw_estoque_pulmao',
+    'sku,descricao,linha,cor,grupo,estoque,atualizado_em',['sku']);
+  if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
+  PCO.raw=data||[];
+  if(!PCO.raw.some(d=>Number(d.estoque)>0)){
+    body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Estoque não carregado</div>
+      Importe a planilha de estoque JIWI em Dados › Importar planilhas.</div></div>`;
+    return;
+  }
+  const quando=PCO.raw.find(d=>d.atualizado_em);
+  body.innerHTML=`
+    <div class="tools">
+      <input type="search" id="pcBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:240px" autofocus>
+      <select class="selin" id="pcGrupo"><option value="">Todos os grupos</option>${
+        uniq(PCO.raw.map(d=>d.grupo)).map(v=>`<option>${v}</option>`).join('')}</select>
+      <select class="selin" id="pcLinha"><option value="">Todas as linhas</option>${
+        uniq(PCO.raw.map(d=>d.linha)).map(v=>`<option>${v}</option>`).join('')}</select>
+      <select class="selin" id="pcCor"><option value="">Todas as cores</option>${
+        uniq(PCO.raw.map(d=>d.cor)).map(v=>`<option>${v}</option>`).join('')}</select>
+      <label class="chk"><input type="checkbox" id="pcSoCom"> Só com estoque</label>
+      <div class="grow"></div>
+      ${quando?`<span style="font-size:12px;color:var(--ink-faint)">Atualizado em ${fmtDataHora(quando.atualizado_em)}</span>`:''}
+      <button class="btn-tool" id="pcCSV">Exportar CSV</button>
+    </div>
+    <div id="pcTab"></div>`;
+  ['pcBusca','pcGrupo','pcLinha','pcCor','pcSoCom'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoConsultaPinta; });
+  document.getElementById('pcCSV').onclick=()=>exportCSV('estoque_pulmao',
+    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+     {label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'},{label:'Estoque',key:'estoque'}],
+    pulmaoConsultaFiltra());
+  pulmaoConsultaPinta();
+}
+function pulmaoConsultaFiltra(){
+  const q=(valOf('pcBusca')||'').trim().toLowerCase();
+  const g=valOf('pcGrupo',''), li=valOf('pcLinha',''), co=valOf('pcCor','');
+  const so=document.getElementById('pcSoCom') && document.getElementById('pcSoCom').checked;
+  return PCO.raw.filter(d=>
+       (!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q))
+    && (!g||d.grupo===g) && (!li||d.linha===li) && (!co||d.cor===co)
+    && (!so || Number(d.estoque)>0));
+}
+function pulmaoConsultaPinta(){
+  const l=pulmaoConsultaFiltra();
+  const tot=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+  const semSaldo=l.filter(d=>Number(d.estoque)===0).length;
+  document.getElementById('pcTab').innerHTML=`<div class="panel"><div class="panel-head">
+    <h2>Saldo</h2><span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças${
+      semSaldo?` · ${fmtInt(semSaldo)} sem saldo`:''}</span></div>
+    <div class="tbl-scroll"><table class="densa"><thead><tr>
+      <th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>
+      <th class="num">Estoque</th></tr></thead>
+    <tbody>${l.map(d=>{const zero=Number(d.estoque)===0;
+      return `<tr${zero?' class="rompido"':''}><td>${d.sku}</td>
+      <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
+      <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
+      <td class="num"${zero?' style="color:#c0392b;font-weight:700"':' style="font-weight:700"'}>${
+        zero?'sem saldo':fmtInt(d.estoque)}</td></tr>`;}).join('')}
+    </tbody></table></div></div>`;
+}
+
+/* ============================================================
    Tela: Estoque Pulmão — saldo do CD x venda da rede
    ============================================================ */
 async function renderRuptura(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
-  view.innerHTML=head(ico,'Estoque Pulmão',
-    'Saldo do estoque JIWI confrontado com a venda da rede.','Análise')
+  view.innerHTML=head(ico,'Cobertura de estoque',
+    'Saldo do JIWI confrontado com a venda da rede: onde falta e onde sobra.','Análise')
     +'<div id="pmBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('pmBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
   const {data,error}=await fetchAll('vw_estoque_pulmao',
-    'sku,descricao,categoria,linha,cor,grupo,estoque,vendido_total,venda_media_mes,meses_cobertura,atualizado_em',
+    'sku,descricao,categoria,linha,cor,grupo,classe,posicao_abc,estoque,vendido_total,venda_media_mes,meses_cobertura,atualizado_em',
     ['sku']);
   if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
   PUL.raw=data||[];
@@ -3071,32 +3218,100 @@ async function renderRuptura(){
   }
   body.innerHTML=`
     <div class="tools">
-      <input type="search" id="pmBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:220px">
+      <input type="search" id="pmBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:200px">
+      <select class="selin" id="pmGrupo"><option value="">Todos os grupos</option>${
+        uniq(PUL.raw.map(d=>d.grupo).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
+      <select class="selin" id="pmLinha"><option value="">Todas as linhas</option>${
+        uniq(PUL.raw.map(d=>d.linha).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
+      <select class="selin" id="pmClasse"><option value="">Todas as classes</option>${
+        ['A','B','C','D'].map(v=>`<option value="${v}">Classe ${v}</option>`).join('')}</select>
+      <select class="selin" id="pmCor"><option value="">Todas as cores</option>${
+        uniq(PUL.raw.map(d=>d.cor).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
       <select class="selin" id="pmFiltro">
         <option value="">Todos os itens</option>
-        <option value="zerado">Sem estoque</option>
-        <option value="critico">Cobertura abaixo de 1 mês</option>
-        <option value="parado">Com estoque e sem venda</option>
+        <option value="rompido">Rompidos (estoque zero)</option>
+        <option value="critico">Cobertura abaixo de 30 dias</option>
+        <option value="semgiro">Sem giro (nunca vendeu)</option>
+        <option value="parado">Com estoque e sem giro</option>
       </select>
       <div class="grow"></div>
       <button class="btn-tool" id="pmCSV">Exportar CSV</button>
     </div>
-    <div id="pmStats"></div><div id="pmTab"></div>`;
-  document.getElementById('pmBusca').oninput=pulmaoRefresh;
-  document.getElementById('pmFiltro').onchange=pulmaoRefresh;
+    <div id="pmStats"></div><div id="pmResumo"></div><div id="pmTab"></div>`;
+  ['pmBusca','pmGrupo','pmLinha','pmCor','pmClasse','pmFiltro'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoRefresh; });
   document.getElementById('pmCSV').onclick=()=>exportCSV('estoque_pulmao',
     [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
-     {label:'Cor',key:'cor'},{label:'Estoque',key:'estoque'},
+     {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Estoque',key:'estoque'},
      {label:'Venda media mes',get:d=>(+d.venda_media_mes||0).toFixed(1)},
-     {label:'Meses cobertura',get:d=>d.meses_cobertura==null?'':(+d.meses_cobertura).toFixed(1)}], PUL.vis);
+     {label:'Dias cobertura',get:d=>d.meses_cobertura==null?'':Math.round(diasCob(d))}], PUL.vis);
   pulmaoRefresh();
 }
-const PUL={raw:[],vis:[]};
+const PUL={raw:[],vis:[],base:null,eixo:'grupo'};
+// Estoque e da rede, nao do associado: o pulmao e central e nao se rateia por loja.
+// O agregado responde "onde a rede esta descoberta", que o item a item nao mostra.
+function pulmaoResumo(){
+  const el=document.getElementById('pmResumo'); if(!el) return;
+  const eixo=PUL.eixo||'grupo';
+  const base=PUL.base||PUL.raw;
+  const g={};
+  base.forEach(d=>{
+    const k=d[eixo]||'—';
+    const o=g[k]=g[k]||{k:k,itens:0,estoque:0,venda:0,rompidos:0,semGiro:0};
+    o.itens++; o.estoque+=Number(d.estoque||0); o.venda+=Number(d.venda_media_mes||0);
+    if(Number(d.estoque)===0) o.rompidos++;
+    if(Number(d.vendido_total)===0) o.semGiro++;
+  });
+  const l=Object.values(g).map(o=>({...o, dias: o.venda>0 ? (o.estoque/o.venda)*30 : null}));
+  // classe tem ordem propria (A,B,C,D); os demais eixos ordenam por volume
+  if(eixo==='classe') l.sort((a,b)=>String(a.k).localeCompare(String(b.k)));
+  else l.sort((a,b)=>b.estoque-a.estoque);
+  const totE=l.reduce((a,o)=>a+o.estoque,0), totV=l.reduce((a,o)=>a+o.venda,0);
+  const totD=totV>0?(totE/totV)*30:null;
+  const cor=d=>d==null?'var(--ink-faint)':(d<30?'#c0392b':(d<90?'var(--amber)':'#1f9d55'));
+  el.innerHTML=`<div class="panel" style="margin-bottom:12px"><div class="panel-head">
+      <h2>Cobertura da rede</h2>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        ${['classe','grupo','linha','cor'].map(e=>`<button class="btn-tool${e===eixo?' pri':''}"
+            onclick="PUL.eixo='${e}';pulmaoResumo()">${e==='classe'?'Classe ABC':e[0].toUpperCase()+e.slice(1)}</button>`).join('')}
+      </span></div>
+    <table class="densa"><thead><tr><th>${eixo==='classe'?'Classe':eixo[0].toUpperCase()+eixo.slice(1)}</th>
+      <th class="num">Itens</th><th class="num">Rompidos</th><th class="num">Sem giro</th>
+      <th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
+    <tbody>${l.map(o=>`<tr>
+      <td>${eixo==='classe'?`<span class="pill ${o.k}">${o.k}</span>`:o.k}</td>
+      <td class="num">${fmtInt(o.itens)}</td>
+      <td class="num"${o.rompidos?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(o.rompidos)}${
+        o.itens?` <span style="font-weight:400;color:var(--ink-faint)">(${(100*o.rompidos/o.itens).toFixed(0)}%)</span>`:''}</td>
+      <td class="num">${fmtInt(o.semGiro)}</td>
+      <td class="num">${fmtInt(o.estoque)}</td>
+      <td class="num">${o.venda.toFixed(1)}</td>
+      <td class="num" style="color:${cor(o.dias)};font-weight:700">${
+        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}</td></tr>`).join('')}
+      <tr style="font-weight:700;background:#f7f9fc">
+        <td>TOTAL DA REDE</td><td class="num">${fmtInt(base.length)}</td>
+        <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0).length)}</td>
+        <td class="num">${fmtInt(base.filter(d=>Number(d.vendido_total)===0).length)}</td>
+        <td class="num">${fmtInt(totE)}</td><td class="num">${totV.toFixed(1)}</td>
+        <td class="num" style="color:${cor(totD)}">${totD==null?'—':fmtInt(Math.round(totD))+' d'}</td></tr>
+    </tbody></table></div>`;
+}
+
+// Cobertura em dias: mais legivel que fracao de mes para decidir reposicao.
+function diasCob(d){
+  return d.meses_cobertura==null ? null : (+d.meses_cobertura)*30;
+}
 function pulmaoRefresh(){
   const q=(valOf('pmBusca')||'').trim().toLowerCase(), f=valOf('pmFiltro','');
-  let l=PUL.raw.filter(d=>!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q));
-  if(f==='zerado')  l=l.filter(d=>Number(d.estoque)===0);
-  if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && +d.meses_cobertura<1);
+  const g=valOf('pmGrupo',''), li=valOf('pmLinha',''), co=valOf('pmCor',''), cl=valOf('pmClasse','');
+  let l=PUL.raw.filter(d=>
+       (!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q))
+    && (!g  || d.grupo===g) && (!li || d.linha===li) && (!co || d.cor===co)
+    && (!cl || d.classe===cl));
+  PUL.base=l.slice();
+  if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0);
+  if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && diasCob(d)<30);
+  if(f==='semgiro') l=l.filter(d=>Number(d.vendido_total)===0);
   if(f==='parado')  l=l.filter(d=>Number(d.estoque)>0 && Number(d.vendido_total)===0);
   l.sort((a,b)=>Number(b.estoque)-Number(a.estoque));
   PUL.vis=l; pulmaoPinta();
@@ -3104,31 +3319,38 @@ function pulmaoRefresh(){
 function pulmaoPinta(){
   const l=PUL.vis, tot=l.reduce((a,d)=>a+Number(d.estoque||0),0);
   const pag=l;
-  const zer=PUL.raw.filter(d=>Number(d.estoque)===0).length;
-  const crit=PUL.raw.filter(d=>d.meses_cobertura!=null&&+d.meses_cobertura<1&&Number(d.estoque)>0).length;
-  const par=PUL.raw.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
-  const quando=PUL.raw.find(d=>d.atualizado_em);
+  // base dos indicadores = recorte atual de grupo/linha/cor (sem o filtro de situacao),
+  // senao o numero do topo nao conversa com a lista de baixo
+  const b=PUL.base||PUL.raw;
+  const zer=b.filter(d=>Number(d.estoque)===0).length;
+  const crit=b.filter(d=>d.meses_cobertura!=null&&diasCob(d)<30&&Number(d.estoque)>0).length;
+  const par=b.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
+  const quando=b.find(d=>d.atualizado_em);
   document.getElementById('pmStats').innerHTML=`<div class="statbar">
-    <div class="s"><div class="n">${fmtInt(PUL.raw.reduce((a,d)=>a+Number(d.estoque||0),0))}</div><div class="l">Peças em estoque</div></div>
-    <div class="s"><div class="n">${fmtInt(PUL.raw.filter(d=>Number(d.estoque)>0).length)}</div><div class="l">Itens com saldo</div></div>
-    <div class="s"><div class="n" style="color:#c0392b">${fmtInt(zer)}</div><div class="l">Itens zerados</div></div>
-    <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(crit)}</div><div class="l">Cobertura &lt; 1 mês</div></div>
+    <div class="s"><div class="n">${fmtInt(b.reduce((a,d)=>a+Number(d.estoque||0),0))}</div><div class="l">Peças em estoque</div></div>
+    <div class="s"><div class="n">${fmtInt(b.filter(d=>Number(d.estoque)>0).length)}</div><div class="l">Itens com saldo</div></div>
+    <div class="s"><div class="n" style="color:#c0392b">${fmtInt(zer)}</div><div class="l">Itens rompidos</div></div>
+    <div class="s"><div class="n" style="color:#c0392b">${fmtInt(b.filter(d=>d.classe==='A'&&Number(d.estoque)===0).length)}</div><div class="l">Classe A rompidos</div></div>
+    <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(crit)}</div><div class="l">Cobertura &lt; 30 dias</div></div>
     <div class="s"><div class="n">${fmtInt(par)}</div><div class="l">Parados (sem venda)</div></div>
     ${quando?`<div class="s"><div class="n" style="font-size:15px">${fmtDataHora(quando.atualizado_em)}</div><div class="l">Última carga</div></div>`:''}
   </div>`;
+  pulmaoResumo();
   document.getElementById('pmTab').innerHTML=`<div class="panel"><div class="panel-head">
     <h2>Itens</h2><span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
-    <div class="tbl-scroll"><table><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
-      <th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
+    <div class="tbl-scroll"><table class="densa"><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
+      <th>Classe</th><th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
-      const c=d.meses_cobertura==null?null:+d.meses_cobertura;
-      const cor=c==null?'var(--ink-faint)':(c<1?'#c0392b':(c<3?'var(--amber)':'#1f9d55'));
-      return `<tr><td style="font-family:'IBM Plex Mono',monospace">${d.sku}</td>
-        <td>${d.descricao||'—'}</td><td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
-        <td class="num">${fmtInt(d.estoque)}</td>
+      const dias=diasCob(d), rompido=Number(d.estoque)===0;
+      const cor=dias==null?'var(--ink-faint)':(dias<30?'#c0392b':(dias<90?'var(--amber)':'#1f9d55'));
+      return `<tr${rompido?' class="rompido"':''}><td>${d.sku}</td>
+        <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
+        <td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
+        <td><span class="pill ${d.classe||'D'}">${d.classe||'D'}</span></td>
+        <td class="num"${rompido?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(d.estoque)}</td>
         <td class="num">${(+d.venda_media_mes||0).toFixed(1)}</td>
         <td class="num" style="color:${cor};font-weight:700">${
-          c==null?(Number(d.estoque)>0?'sem venda':'—'):c.toFixed(1)+' m'}</td></tr>`;}).join('')}
+          rompido?'rompido':(dias==null?'sem giro':fmtInt(Math.round(dias))+' d')}</td></tr>`;}).join('')}
     </tbody></table></div>
   </div>`;
 }
