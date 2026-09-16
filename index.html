@@ -655,6 +655,8 @@ table.densa tr.rompido:hover td{background:#fbe6e6}
   max-width:230px;box-shadow:0 6px 18px rgba(18,50,90,.25);z-index:3}
 .pa-box .pa-tip .d{color:#c7d6ea}
 .pa-box .pa-tip .pill{font-size:10.5px;padding:1px 7px}
+table.densa tr.drill td{cursor:pointer}
+table.densa tr.drill:hover td{background:#f2f7ff}
 .chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
   color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
 .chk input{margin:0;cursor:pointer}
@@ -3218,16 +3220,16 @@ async function renderRuptura(){
   }
   body.innerHTML=`
     <div class="tools">
-      <input type="search" id="pmBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:200px">
-      <select class="selin" id="pmGrupo"><option value="">Todos os grupos</option>${
+      <input type="search" id="ceBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:200px">
+      <select class="selin" id="ceGrupo"><option value="">Todos os grupos</option>${
         uniq(PUL.raw.map(d=>d.grupo).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
-      <select class="selin" id="pmLinha"><option value="">Todas as linhas</option>${
+      <select class="selin" id="ceLinha"><option value="">Todas as linhas</option>${
         uniq(PUL.raw.map(d=>d.linha).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
-      <select class="selin" id="pmClasse"><option value="">Todas as classes</option>${
+      <select class="selin" id="ceClasse"><option value="">Todas as classes</option>${
         ['A','B','C','D'].map(v=>`<option value="${v}">Classe ${v}</option>`).join('')}</select>
-      <select class="selin" id="pmCor"><option value="">Todas as cores</option>${
+      <select class="selin" id="ceCor"><option value="">Todas as cores</option>${
         uniq(PUL.raw.map(d=>d.cor).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
-      <select class="selin" id="pmFiltro">
+      <select class="selin" id="ceFiltro">
         <option value="">Todos os itens</option>
         <option value="rompido">Rompidos (estoque zero)</option>
         <option value="critico">Cobertura abaixo de 30 dias</option>
@@ -3235,25 +3237,34 @@ async function renderRuptura(){
         <option value="parado">Com estoque e sem giro</option>
       </select>
       <div class="grow"></div>
-      <button class="btn-tool" id="pmCSV">Exportar CSV</button>
+      <button class="btn-tool" id="ceLimpar">Limpar filtros</button>
+      <button class="btn-tool" id="ceCSV">Exportar CSV</button>
     </div>
-    <div id="pmStats"></div><div id="pmResumo"></div><div id="pmTab"></div>`;
-  ['pmBusca','pmGrupo','pmLinha','pmCor','pmClasse','pmFiltro'].forEach(id=>{
+    <div id="ceStats"></div><div id="ceResumo"></div><div id="ceTab"></div>`;
+  ['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoRefresh; });
-  document.getElementById('pmCSV').onclick=()=>exportCSV('estoque_pulmao',
+  document.getElementById('ceLimpar').onclick=()=>{
+    ['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value=''; });
+    pulmaoRefresh();
+  };
+  document.getElementById('ceCSV').onclick=()=>exportCSV('estoque_pulmao',
     [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
      {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Estoque',key:'estoque'},
      {label:'Venda media mes',get:d=>(+d.venda_media_mes||0).toFixed(1)},
      {label:'Dias cobertura',get:d=>d.meses_cobertura==null?'':Math.round(diasCob(d))}], PUL.vis);
   pulmaoRefresh();
 }
-const PUL={raw:[],vis:[],base:null,eixo:'grupo'};
+const PUL={raw:[],vis:[],eixo:'grupo'};
 // Estoque e da rede, nao do associado: o pulmao e central e nao se rateia por loja.
 // O agregado responde "onde a rede esta descoberta", que o item a item nao mostra.
 function pulmaoResumo(){
-  const el=document.getElementById('pmResumo'); if(!el) return;
+  const el=document.getElementById('ceResumo'); if(!el) return;
   const eixo=PUL.eixo||'grupo';
-  const base=PUL.base||PUL.raw;
+  // Agrega exatamente o que a lista mostra, filtro de situacao incluido.
+  // Calcular sobre um conjunto maior faria o painel somar a venda de itens
+  // que a lista nao exibe — e "sem giro" apareceria com media e cobertura.
+  const base=PUL.vis||PUL.raw;
   const g={};
   base.forEach(d=>{
     const k=d[eixo]||'—';
@@ -3278,18 +3289,21 @@ function pulmaoResumo(){
     <table class="densa"><thead><tr><th>${eixo==='classe'?'Classe':eixo[0].toUpperCase()+eixo.slice(1)}</th>
       <th class="num">Itens</th><th class="num">Rompidos</th><th class="num">Sem giro</th>
       <th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
-    <tbody>${l.map(o=>`<tr>
-      <td>${eixo==='classe'?`<span class="pill ${o.k}">${o.k}</span>`:o.k}</td>
-      <td class="num">${fmtInt(o.itens)}</td>
-      <td class="num"${o.rompidos?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(o.rompidos)}${
+    <tbody>${l.map(o=>{const kk=String(o.k).replace(/'/g,"\\'");
+      return `<tr class="drill" title="Ver os itens">
+      <td onclick="pulmaoDrill('${eixo}','${kk}','')">${eixo==='classe'?`<span class="pill ${o.k}">${o.k}</span>`:o.k}</td>
+      <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','')">${fmtInt(o.itens)}</td>
+      <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','rompido')"${o.rompidos?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(o.rompidos)}${
         o.itens?` <span style="font-weight:400;color:var(--ink-faint)">(${(100*o.rompidos/o.itens).toFixed(0)}%)</span>`:''}</td>
-      <td class="num">${fmtInt(o.semGiro)}</td>
-      <td class="num">${fmtInt(o.estoque)}</td>
+      <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','semgiro')">${fmtInt(o.semGiro)}</td>
+      <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','')">${fmtInt(o.estoque)}</td>
       <td class="num">${o.venda.toFixed(1)}</td>
       <td class="num" style="color:${cor(o.dias)};font-weight:700">${
-        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}</td></tr>`).join('')}
+        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}</td></tr>`;}).join('')}
       <tr style="font-weight:700;background:#f7f9fc">
-        <td>TOTAL DA REDE</td><td class="num">${fmtInt(base.length)}</td>
+        <td>${['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro']
+              .some(id=>valOf(id,''))?'TOTAL DO RECORTE':'TOTAL DA REDE'}</td>
+        <td class="num">${fmtInt(base.length)}</td>
         <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0).length)}</td>
         <td class="num">${fmtInt(base.filter(d=>Number(d.vendido_total)===0).length)}</td>
         <td class="num">${fmtInt(totE)}</td><td class="num">${totV.toFixed(1)}</td>
@@ -3297,18 +3311,33 @@ function pulmaoResumo(){
     </tbody></table></div>`;
 }
 
+// Do agregado para os itens: o numero sozinho nao diz QUAIS SKUs o compoem.
+// Aplica o recorte nos proprios filtros da tela e leva o foco para a lista.
+function pulmaoDrill(eixo, valor, situacao){
+  const mapa={grupo:'ceGrupo',linha:'ceLinha',cor:'ceCor',classe:'ceClasse'};
+  // Preserva os filtros ja aplicados: os numeros do painel sao calculados sobre
+  // esse recorte, entao limpar aqui devolveria uma lista que nao bate com o
+  // numero clicado. O clique estreita, nunca alarga.
+  const alvo=document.getElementById(mapa[eixo]); if(alvo) alvo.value=valor;
+  // A situacao segue a coluna clicada, porque e ela que define o numero:
+  // "Itens"/"Estoque" contam o recorte inteiro; "Rompidos"/"Sem giro" o subconjunto.
+  const sit=document.getElementById('ceFiltro'); if(sit) sit.value=situacao||'';
+  pulmaoRefresh();
+  const tab=document.getElementById('ceTab');
+  if(tab) tab.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 // Cobertura em dias: mais legivel que fracao de mes para decidir reposicao.
 function diasCob(d){
   return d.meses_cobertura==null ? null : (+d.meses_cobertura)*30;
 }
 function pulmaoRefresh(){
-  const q=(valOf('pmBusca')||'').trim().toLowerCase(), f=valOf('pmFiltro','');
-  const g=valOf('pmGrupo',''), li=valOf('pmLinha',''), co=valOf('pmCor',''), cl=valOf('pmClasse','');
+  const q=(valOf('ceBusca')||'').trim().toLowerCase(), f=valOf('ceFiltro','');
+  const g=valOf('ceGrupo',''), li=valOf('ceLinha',''), co=valOf('ceCor',''), cl=valOf('ceClasse','');
   let l=PUL.raw.filter(d=>
        (!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q))
     && (!g  || d.grupo===g) && (!li || d.linha===li) && (!co || d.cor===co)
     && (!cl || d.classe===cl));
-  PUL.base=l.slice();
   if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0);
   if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && diasCob(d)<30);
   if(f==='semgiro') l=l.filter(d=>Number(d.vendido_total)===0);
@@ -3319,14 +3348,13 @@ function pulmaoRefresh(){
 function pulmaoPinta(){
   const l=PUL.vis, tot=l.reduce((a,d)=>a+Number(d.estoque||0),0);
   const pag=l;
-  // base dos indicadores = recorte atual de grupo/linha/cor (sem o filtro de situacao),
-  // senao o numero do topo nao conversa com a lista de baixo
-  const b=PUL.base||PUL.raw;
+  // indicadores, painel e lista usam sempre o mesmo conjunto: o que esta na tela
+  const b=PUL.vis||PUL.raw;
   const zer=b.filter(d=>Number(d.estoque)===0).length;
   const crit=b.filter(d=>d.meses_cobertura!=null&&diasCob(d)<30&&Number(d.estoque)>0).length;
   const par=b.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
   const quando=b.find(d=>d.atualizado_em);
-  document.getElementById('pmStats').innerHTML=`<div class="statbar">
+  document.getElementById('ceStats').innerHTML=`<div class="statbar">
     <div class="s"><div class="n">${fmtInt(b.reduce((a,d)=>a+Number(d.estoque||0),0))}</div><div class="l">Peças em estoque</div></div>
     <div class="s"><div class="n">${fmtInt(b.filter(d=>Number(d.estoque)>0).length)}</div><div class="l">Itens com saldo</div></div>
     <div class="s"><div class="n" style="color:#c0392b">${fmtInt(zer)}</div><div class="l">Itens rompidos</div></div>
@@ -3336,8 +3364,10 @@ function pulmaoPinta(){
     ${quando?`<div class="s"><div class="n" style="font-size:15px">${fmtDataHora(quando.atualizado_em)}</div><div class="l">Última carga</div></div>`:''}
   </div>`;
   pulmaoResumo();
-  document.getElementById('pmTab').innerHTML=`<div class="panel"><div class="panel-head">
-    <h2>Itens</h2><span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
+  document.getElementById('ceTab').innerHTML=`<div class="panel"><div class="panel-head">
+    <h2>Itens${(()=>{const r=[valOf('ceClasse',''),valOf('ceGrupo',''),valOf('ceLinha',''),valOf('ceCor','')]
+        .filter(Boolean); return r.length?` — ${r.join(' · ')}`:'';})()}</h2>
+    <span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
     <div class="tbl-scroll"><table class="densa"><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
       <th>Classe</th><th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
