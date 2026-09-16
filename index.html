@@ -657,6 +657,7 @@ table.densa tr.rompido:hover td{background:#fbe6e6}
 .pa-box .pa-tip .pill{font-size:10.5px;padding:1px 7px}
 table.densa tr.drill td{cursor:pointer}
 table.densa tr.drill:hover td{background:#f2f7ff}
+.review .go.ok{background:#1f9d55;border-color:#1f9d55;cursor:default}
 .chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
   color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
 .chk input{margin:0;cursor:pointer}
@@ -1489,9 +1490,17 @@ async function aplicarEstoque(forcar){
     }
     logln(`✓ ${fmtInt(res.linhas_gravadas)} itens · saldo ${fmtInt(res.saldo_novo)} peças`);
     if(res.linhas_rejeitadas>0)
-      logln(`⚠ ${res.linhas_rejeitadas} item(ns) sem cadastro — veja em Histórico de cargas.`);
+      logln(`⚠ ${fmtInt(res.linhas_rejeitadas)} item(ns) sem cadastro — veja em Histórico de cargas.`);
+    // Encerra o botao ANTES de qualquer coisa que venha depois: se o que vem
+    // depois demorar ou falhar, a carga ja terminou e a tela precisa dizer isso.
+    if(btn){ btn.disabled=false; btn.textContent='Importação concluída'; btn.classList.add('ok'); }
+    document.getElementById('reviewArea').insertAdjacentHTML('beforeend',
+      `<div class="notice" style="margin-top:10px">Estoque atualizado:
+        <b>${fmtInt(res.linhas_gravadas)}</b> itens · <b>${fmtInt(res.saldo_novo)}</b> peças.</div>`);
     toast('Estoque atualizado.');
-    if(typeof carregarStatusImport==='function') carregarStatusImport();
+    try{ if(typeof carregarStatusImport==='function') await carregarStatusImport(); }
+    catch(e){ logln('Aviso: não consegui atualizar o painel de status. A carga foi concluída.'); }
+    return;
   }catch(err){
     if(ehErroSessao(err)){
       logln('✗ Sessão expirada.');
@@ -1553,6 +1562,9 @@ async function aplicarVendas(){
     if(res.status==='abortado' && res.motivo==='queda_maior_que_30pct'){
       logln('⚠ Abortado: algum mês caiu mais de 30% vs. o que já estava salvo.');
       renderQuedaAlerta(imp.id,res.periodos);
+      // o alerta apenas acrescenta conteudo, nao troca a area: o botao precisa
+      // voltar ao normal aqui, senao fica girando com a carga ja encerrada
+      btn.disabled=false; btn.textContent='Aplicar importação';
       return;
     }
     logln(`✔ Gravadas ${fmtInt(res.linhas_gravadas)} linhas. Rejeitadas ${fmtInt(res.linhas_rejeitadas)}.`);
