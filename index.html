@@ -658,6 +658,12 @@ table.densa tr.rompido:hover td{background:#fbe6e6}
 table.densa tr.drill td{cursor:pointer}
 table.densa tr.drill:hover td{background:#f2f7ff}
 .review .go.ok{background:#1f9d55;border-color:#1f9d55;cursor:default}
+.page-head .head-selos{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.selo.mini{padding:4px 10px;font-size:11.5px;font-weight:600}
+.selo.mini i{width:8px;height:8px}
+.selo{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+  color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.selo i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
 .chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
   color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
 .chk input{margin:0;cursor:pointer}
@@ -926,6 +932,7 @@ function resolverMinhaLoja(lojas){
 async function refreshAuth(){
   const {data} = await sb.auth.getSession();
   session = data.session;
+  if(session) carregarCargas();
   const av = document.getElementById('avatar');
   if(session){
     const {data:p} = await sb.from('perfis').select('*').eq('id',session.user.id).maybeSingle();
@@ -998,6 +1005,51 @@ async function doLogin(){
    ============================================================ */
 let PERIODO_BASE={ini:'',fim:''};
 let STATUS={};
+// Saldo velho leva a decisao errada sem avisar. O selo diz a idade da carga
+// em uma olhada: verde hoje/ontem, ambar 2-3 dias, vermelho de 4 em diante.
+// Cada planilha tem ritmo proprio: estoque e diario, venda e mensal.
+// Usar a mesma regua deixaria o selo de vendas vermelho todo mes — e alarme
+// que sempre toca vira alarme que ninguem escuta.
+const RITMO_CARGA={estoque:{ok:1,atencao:3}};
+const DIA_FECHAMENTO=10;   // regra da rede: mes anterior fechado ate o dia 10
+
+// Em vendas o atraso nao se mede pela data da carga, e pela competencia que
+// falta. Antes do dia 10 o mes anterior ainda esta no prazo; depois disso,
+// 48h de tolerancia (ambar) e entao vermelho.
+function statusVendas(competencia){
+  if(!competencia) return {cor:'#c0392b', txt:'sem carga'};
+  const c=new Date(competencia);
+  const carregado=c.getFullYear()*12+c.getMonth();
+  const h=new Date();
+  const esperado=h.getFullYear()*12+h.getMonth()-1;   // mes anterior ao atual
+  const rot=MES_NOME[c.getMonth()+1].toLowerCase()+'/'+String(c.getFullYear()).slice(2);
+  if(carregado>=esperado) return {cor:'#1f9d55', txt:'até '+rot};
+  const atraso=esperado-carregado;                    // meses em falta
+  if(h.getDate()<=DIA_FECHAMENTO && atraso===1)
+    return {cor:'#1f9d55', txt:'até '+rot};           // ainda dentro do prazo
+  const diasApos=h.getDate()-DIA_FECHAMENTO;
+  const cor = (atraso===1 && diasApos<=2) ? '#c9871f' : '#c0392b';
+  return {cor:cor, txt:'até '+rot};
+}
+function idadeCarga(ts, tipo){
+  const lim=RITMO_CARGA[tipo]||RITMO_CARGA.estoque;
+  if(!ts) return {cor:'#c0392b', txt:'sem carga', dias:null};
+  const d=new Date(ts), hoje=new Date();
+  const dias=Math.floor((new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())
+                       - new Date(d.getFullYear(),d.getMonth(),d.getDate()))/86400000);
+  const hora=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let txt;
+  if(dias<=0)       txt='hoje às '+hora;
+  else if(dias===1) txt='ontem às '+hora;
+  else              txt='há '+dias+' dias';
+  const cor = dias<=lim.ok ? '#1f9d55' : (dias<=lim.atencao ? '#c9871f' : '#c0392b');
+  return {cor:cor, txt:txt, dias:dias};
+}
+function seloCarga(ts){
+  const a=idadeCarga(ts,'estoque');
+  return `<span class="selo" title="Carga de ${fmtDataHora(ts)}">
+    <i style="background:${a.cor}"></i>Estoque atualizado ${a.txt}</span>`;
+}
 function fmtDataHora(ts){ if(!ts) return '—'; const d=new Date(ts);
   return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})
        + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
@@ -1036,9 +1088,44 @@ document.querySelectorAll('.nav-item').forEach(el=>{
   el.onclick=()=>{ if(el.classList.contains('disabled'))return; route(el.dataset.route); };
 });
 function setActive(r){ document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.route===r)); }
-function head(ico,title,sub,crumbSec){
+// Data da ultima carga de cada planilha. Depois que a pessoa sai da tela de
+// importacao ela nao volta mais la — entao o aviso tem que ficar onde o dado
+// e consultado, nao onde ele e carregado.
+const CARGAS={vendas:null,estoque:null,competencia:null,carregado:false};
+async function carregarCargas(){
+  try{
+    const {data}=await sb.from('vw_status_dados')
+      .select('vendas_carga,vendas_competencia,estoque_atualizado').maybeSingle();
+    if(data){
+      CARGAS.vendas      = data.vendas_carga;
+      CARGAS.competencia = data.vendas_competencia;
+      CARGAS.estoque     = data.estoque_atualizado;
+    }
+  }catch(e){ /* o selo e informativo: falhar aqui nao pode travar a tela */ }
+  CARGAS.carregado=true;
+  document.querySelectorAll('[data-selo]').forEach(el=>{
+    el.innerHTML=selosHead(el.getAttribute('data-selo'));
+  });
+}
+function selosHead(fonte){
+  if(!fonte || !CARGAS.carregado) return '';
+  const q=[];
+  if(fonte==='vendas'||fonte==='ambos'){
+    const a=statusVendas(CARGAS.competencia);
+    q.push(`<span class="selo mini" title="Vendas: última carga em ${fmtDataHora(CARGAS.vendas)} · fechamento até o dia ${DIA_FECHAMENTO}">
+      <i style="background:${a.cor}"></i>Vendas ${a.txt}</span>`);
+  }
+  if(fonte==='estoque'||fonte==='ambos'){
+    const a=idadeCarga(CARGAS.estoque,'estoque');
+    q.push(`<span class="selo mini" title="Estoque: carga de ${fmtDataHora(CARGAS.estoque)}">
+      <i style="background:${a.cor}"></i>Estoque ${a.txt}</span>`);
+  }
+  return q.join('');
+}
+function head(ico,title,sub,crumbSec,fonte){
   return `<div class="crumb"><b>${crumbSec}</b> &nbsp;›&nbsp; ${title}</div>
-    <div class="page-head"><div class="page-ico">${ico}</div><h1>${title}</h1></div>
+    <div class="page-head"><div class="page-ico">${ico}</div><h1>${title}</h1>
+      <span class="head-selos" data-selo="${fonte||''}">${selosHead(fonte)}</span></div>
     <p class="sub">${sub||''}</p>`;
 }
 function loginWall(msg){
@@ -1636,7 +1723,7 @@ function emConstrucao(resumo){
 const ICO_OPO=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg>`;
 function renderOportunidades(){
   view.innerHTML=head(ICO_OPO,'Oportunidades',
-    'Desempenho de cada associado por SKU, comparado com a média da rede.','Análise')
+    'Desempenho de cada associado por SKU, comparado com a média da rede.','Análise','vendas')
   + emConstrucao(`comparação de performance SKU a SKU entre o associado e a rede, com a venda
     ideal calculada para o porte da loja. A leitura se abre por grupo, linha e cor, mostrando
     onde ele está acima ou abaixo da média — para agir no impulsionamento do item, da cor,
@@ -1740,7 +1827,7 @@ function histRefresh(){
    ============================================================ */
 const ICO_ABC=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>`;
 async function renderABC(){
-  view.innerHTML=head(ICO_ABC,'Curva ABC','Classificação por quantidade no período escolhido. Geral e por grupo, em paralelo.','Análise')+'<div id="abcBody"></div>';
+  view.innerHTML=head(ICO_ABC,'Curva ABC','Classificação por quantidade no período escolhido. Geral e por grupo, em paralelo.','Análise','vendas')+'<div id="abcBody"></div>';
   const body=document.getElementById('abcBody');
   body.innerHTML='<div class="panel"><div class="empty">Carregando vendas…</div></div>';
   const [vg, prod, par] = await Promise.all([
@@ -2038,7 +2125,7 @@ async function abcSalvarConfig(){
    ============================================================ */
 const ICO_STORE=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 9l1-4h16l1 4M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9M3 9h18"/></svg>`;
 async function renderVendas(){
-  view.innerHTML=head(ICO_STORE,'Vendas por loja','Evolução mês a mês e ranking por volume, com participação.','Análise')+'<div id="vBody"></div>';
+  view.innerHTML=head(ICO_STORE,'Vendas por loja','Evolução mês a mês e ranking por volume, com participação.','Análise','vendas')+'<div id="vBody"></div>';
   const body=document.getElementById('vBody');
   if(!session){ body.innerHTML=loginWall('As vendas por loja são restritas à equipe.'); return; }
   const [{data,error},cad]=await Promise.all([
@@ -2437,7 +2524,7 @@ function loadLeaflet(cb){
   setTimeout(()=>{ if(!window.L) fim(new Error('timeout')); },12000);
 }
 async function renderPresenca(){
-  view.innerHTML=head(ICO_PRES,'Presença Casa VIP','Inteligência comercial geográfica — o que vende em cada região, estado e loja.','Análise')+'<div id="prBody"></div>';
+  view.innerHTML=head(ICO_PRES,'Presença Casa VIP','Inteligência comercial geográfica — o que vende em cada região, estado e loja.','Análise','vendas')+'<div id="prBody"></div>';
   const body=document.getElementById('prBody');
   if(!session){ body.innerHTML=loginWall('A inteligência comercial é restrita à equipe.'); return; }
   const [g,l]=await Promise.all([
@@ -2685,7 +2772,7 @@ function presExport(){
 const ICO_PM=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>`;
 const PM={data:[],regiao:''};
 async function renderPrecoMedio(){
-  view.innerHTML=head(ICO_PM,'Preço médio de venda','Faturamento ÷ unidades. Onde cada loja está em relação à rede.','Análise')+'<div id="pmBody"></div>';
+  view.innerHTML=head(ICO_PM,'Preço médio de venda','Faturamento ÷ unidades. Onde cada loja está em relação à rede.','Análise','vendas')+'<div id="pmBody"></div>';
   const body=document.getElementById('pmBody');
   if(!session){ body.innerHTML=loginWall('O preço médio é restrito à equipe.'); return; }
   const {data,error}=await fetchAll('vw_preco_medio_loja');
@@ -2940,7 +3027,7 @@ const COB_ABERTOS=['sem_venda','pendente','nao_informado'];
 
 async function renderCobertura(){
   view.innerHTML=head(ICO_COB,'Cobertura da base',
-    'Quem informou venda em cada mês. Um mês incompleto deixa de ser indistinguível de um mês completo.','Dados')
+    'Quem informou venda em cada mês. Um mês incompleto deixa de ser indistinguível de um mês completo.','Dados','vendas')
     +'<div id="cbBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('cbBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
@@ -2993,30 +3080,34 @@ function cobDesenhar(){
     <div class="panel"><div class="panel-head"><h2>Matriz de cobertura</h2>
       <span class="count">${isAdmin()?'Clique numa célula para confirmar que a loja não vendeu':'Somente leitura'}</span></div>
       <table class="cob-tbl"><thead><tr><th class="lj">Loja</th>
-        ${meses.map(x=>`<th>${MES_NOME[x]}</th>`).join('')}<th class="tot">Total</th></tr></thead>
+        ${meses.map(x=>`<th class="num">${MES_NOME[x]}</th>`).join('')}<th class="tot num">Total</th></tr></thead>
       <tbody>${lojas.map(l=>{
         const tot=meses.reduce((a,x)=>a+Number(cel[l+'|'+x]?.unidades||0),0);
         const fora=cel[l+'|'+meses[0]]?.trabalha_dax===false;
         return `<tr><td class="lj">${l}${fora?' <span class="pill C">fora</span>':''}</td>
-          ${meses.map(x=>{const d=cel[l+'|'+x]; if(!d) return '<td class="cb c-fora"></td>';
+          ${meses.map(x=>{const d=cel[l+'|'+x]; if(!d) return '<td class="cb num c-fora"></td>';
             const cls=COB_CLS[d.status]||'c-ver';
             const txt=d.status==='com_venda'?fmtInt(d.unidades)
                      :d.status==='aguardando_loja'?'?':'0';
             const clicavel=isAdmin()&&d.status!=='com_venda'&&d.status!=='fora_escopo';
             const resp=d.confirmado_em?' · respondido em '+new Date(d.confirmado_em).toLocaleDateString('pt-BR'):'';
-            return `<td class="cb ${cls}${clicavel?' cli':''}" title="${l} — ${MES_NOME[x]}: ${COB_ROTULO[d.status]}${d.observacao?' — '+d.observacao:''}${resp}"
+            return `<td class="cb num ${cls}${clicavel?' cli':''}" title="${l} — ${MES_NOME[x]}: ${COB_ROTULO[d.status]}${d.observacao?' — '+d.observacao:''}${resp}"
               ${clicavel?`data-lj="${d.loja_id}" data-mes="${x}" data-st="${d.status}" data-nome="${l.replace(/"/g,'&quot;')}"`:''}>${txt}</td>`;
           }).join('')}
-          <td class="tot">${fmtInt(tot)}</td></tr>`;
+          <td class="tot num">${fmtInt(tot)}</td></tr>`;
       }).join('')}</tbody>
       <tfoot><tr><td class="lj">TOTAL DA REDE</td>
-        ${meses.map(x=>`<td>${fmtInt(linhas.filter(d=>d.mes===x)
+        ${meses.map(x=>`<td class="num">${fmtInt(linhas.filter(d=>d.mes===x)
             .reduce((a,d)=>a+Number(d.unidades||0),0))}</td>`).join('')}
-        <td>${fmtInt(linhas.reduce((a,d)=>a+Number(d.unidades||0),0))}</td></tr>
+        <td class="num">${fmtInt(linhas.reduce((a,d)=>a+Number(d.unidades||0),0))}</td></tr>
       <tr><td class="lj" style="font-weight:600;color:var(--ink-soft)">Lojas que informaram</td>
-        ${meses.map(x=>{const e=linhas.filter(d=>d.mes===x&&d.status!=='fora_escopo');
-          return `<td style="font-weight:600;color:var(--ink-soft)">${e.filter(d=>d.status==='com_venda').length}/${e.length}</td>`;}).join('')}
-        <td></td></tr></tfoot></table></div>
+        ${meses.map(x=>{
+          // Informar nao e o mesmo que vender: zero confirmado pelo admin tambem
+          // e informacao. Falta so o que a loja ainda nao mandou.
+          const e=linhas.filter(d=>d.mes===x&&d.status!=='fora_escopo');
+          const inf=e.filter(d=>d.status==='com_venda'||d.status==='sem_venda_confirmada').length;
+          return `<td class="num" style="font-weight:600;color:${inf<e.length?'#c9871f':'var(--ink-soft)'}">${inf}/${e.length}</td>`;}).join('')}
+        <td class="num"></td></tr></tfoot></table></div>
     ${cobBlocoSemVenda()}`;
 
   const prev=document.getElementById('cbPrev'), next=document.getElementById('cbNext');
@@ -3145,7 +3236,7 @@ async function renderSobre(){
 const PCO={raw:[]};
 async function renderPulmaoConsulta(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
-  view.innerHTML=head(ico,'Estoque Pulmão','Consulta de saldo no estoque JIWI.','Análise')
+  view.innerHTML=head(ico,'Estoque Pulmão','Consulta de saldo no estoque JIWI.','Análise','estoque')
     +'<div id="pcBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('pcBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
@@ -3170,7 +3261,7 @@ async function renderPulmaoConsulta(){
         uniq(PCO.raw.map(d=>d.cor)).map(v=>`<option>${v}</option>`).join('')}</select>
       <label class="chk"><input type="checkbox" id="pcSoCom"> Só com estoque</label>
       <div class="grow"></div>
-      ${quando?`<span style="font-size:12px;color:var(--ink-faint)">Atualizado em ${fmtDataHora(quando.atualizado_em)}</span>`:''}
+      ${seloCarga(quando&&quando.atualizado_em)}
       <button class="btn-tool" id="pcCSV">Exportar CSV</button>
     </div>
     <div id="pcTab"></div>`;
@@ -3216,7 +3307,7 @@ function pulmaoConsultaPinta(){
 async function renderRuptura(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
   view.innerHTML=head(ico,'Cobertura de estoque',
-    'Saldo do JIWI confrontado com a venda da rede: onde falta e onde sobra.','Análise')
+    'Saldo do JIWI confrontado com a venda da rede: onde falta e onde sobra.','Análise','ambos')
     +'<div id="pmBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('pmBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
@@ -3373,7 +3464,8 @@ function pulmaoPinta(){
     <div class="s"><div class="n" style="color:#c0392b">${fmtInt(b.filter(d=>d.classe==='A'&&Number(d.estoque)===0).length)}</div><div class="l">Classe A rompidos</div></div>
     <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(crit)}</div><div class="l">Cobertura &lt; 30 dias</div></div>
     <div class="s"><div class="n">${fmtInt(par)}</div><div class="l">Parados (sem venda)</div></div>
-    ${quando?`<div class="s"><div class="n" style="font-size:15px">${fmtDataHora(quando.atualizado_em)}</div><div class="l">Última carga</div></div>`:''}
+    ${(()=>{const a=idadeCarga(quando&&quando.atualizado_em,'estoque');
+      return `<div class="s"><div class="n" style="font-size:15px;color:${a.cor}">${a.txt}</div><div class="l">Última carga</div></div>`;})()}
   </div>`;
   pulmaoResumo();
   document.getElementById('ceTab').innerHTML=`<div class="panel"><div class="panel-head">
