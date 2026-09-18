@@ -1018,11 +1018,13 @@ const DIA_FECHAMENTO=10;   // regra da rede: mes anterior fechado ate o dia 10
 // 48h de tolerancia (ambar) e entao vermelho.
 function statusVendas(competencia){
   if(!competencia) return {cor:'#c0392b', txt:'sem carga'};
-  const c=new Date(competencia);
-  const carregado=c.getFullYear()*12+c.getMonth();
+  // "2026-08-01" em new Date() e lido como UTC: no fuso de Brasilia vira 31/07
+  // e o mes retrocede. Le direto da string, que ja e a competencia.
+  const [ano,mes]=String(competencia).slice(0,7).split('-').map(Number);
+  const carregado=ano*12+(mes-1);
   const h=new Date();
   const esperado=h.getFullYear()*12+h.getMonth()-1;   // mes anterior ao atual
-  const rot=MES_NOME[c.getMonth()+1].toLowerCase()+'/'+String(c.getFullYear()).slice(2);
+  const rot=MES_NOME[mes].toLowerCase()+'/'+String(ano).slice(2);
   if(carregado>=esperado) return {cor:'#1f9d55', txt:'até '+rot};
   const atraso=esperado-carregado;                    // meses em falta
   if(h.getDate()<=DIA_FECHAMENTO && atraso===1)
