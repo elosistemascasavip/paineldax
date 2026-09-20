@@ -524,6 +524,15 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   font-size:12.5px;color:var(--ink-soft);font-weight:600;cursor:pointer;font-family:inherit}
 .chip:hover{border-color:var(--blue);color:var(--blue);background:#f4f8ff}
 .chip.trocar{padding:7px 11px;font-size:14px;line-height:1;color:var(--ink-faint)}
+.chat-sug.temas{gap:6px;margin-bottom:7px}
+.chip.tema{font-size:11.5px;padding:5px 11px;border-radius:8px;background:#f4f6fa;border-color:transparent}
+.chip.tema.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip.tema.on:hover{background:var(--blue);color:#fff}
+.chat-seguir{margin-top:10px;padding-top:9px;border-top:1px solid #e3e9f2;
+  display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.chat-seguir>span{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;
+  letter-spacing:.04em;font-weight:700}
+.chat-seguir .chip{font-size:12px;padding:6px 11px;background:#fff}
 .chat-lista{margin:8px 0 2px;padding:0;list-style:none;font-size:12.5px}
 .chat-lista li{padding:3px 0;border-bottom:1px dashed #dfe6f0;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
@@ -4147,9 +4156,14 @@ function pulmaoPinta(){
    Consequência prática: o chat pode não entender uma pergunta, mas não tem
    como inventar um número. É o erro que dá para conviver.
    ============================================================ */
-const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M21 12a8 8 0 01-8 8H7l-4 3v-4.6A8 8 0 1121 12z"/><path d="M9.2 9.6a2.8 2.8 0 015.4 1c0 1.9-2.6 2.4-2.6 2.4M12 17h.01"/></svg>`;
+const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+  <rect x="3.5" y="5" width="25" height="17.5" rx="7.6" fill="#1f6fe0"/>
+  <path d="M11.2 20.9v6.5l6.6-5.3z" fill="#1f6fe0"/>
+  <circle cx="11.4" cy="13.8" r="1.8" fill="#fff"/>
+  <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
+  <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={meses:[],period:{},lojas:[],loja:'',minha:'',ocupado:false,n:0};
+const CHAT={meses:[],period:{},lojas:[],loja:'',minha:'',tema:'',ocupado:false,n:0};
 
 // O chat mora em dois lugares — a aba inteira e o painel flutuante — mas e um
 // so. Os ids sao fixos porque nunca existem os dois ao mesmo tempo: abrir a aba
@@ -4221,7 +4235,12 @@ function chatMarkup(dock){
 }
 
 function chatWire(){
-  document.getElementById('pgLoja').onchange=e=>{ CHAT.loja=e.target.value; chatChips(); };
+  document.getElementById('pgLoja').onchange=e=>{
+    CHAT.loja=e.target.value;
+    if(CHAT.loja && CHAT.tema==='rede') CHAT.tema='loja';
+    if(!CHAT.loja && CHAT.tema==='loja') CHAT.tema='rede';
+    CHAT_SUG_DE=0; chatChips();
+  };
   const cx=document.getElementById('pgPeriod');
   if(cx){                                        // aba inteira: o filtro do sistema
     CHAT.montando=true;
@@ -4274,6 +4293,7 @@ async function dockAbrir(){
   await chatDados();
   const daTela=periodoDaTela();                  // pergunta olhando a tela: mesma janela
   if(daTela) CHAT.period=daTela;
+  CHAT.tema=CHAT_TEMA_TELA[current]||'';         // e o assunto acompanha a tela
   document.getElementById('dkPer').textContent=periodLabel(CHAT.period);
   corpo.innerHTML=chatMarkup(true);
   chatWire();
@@ -4297,39 +4317,111 @@ function chatAvisoPeriodo(){
 }
 
 /* ---------- sugestões: a tela nunca abre em branco ---------- */
-// Ninguem digita numa caixa vazia. As sugestoes sao o cardapio — e elas giram,
-// para a pessoa descobrir aos poucos tudo que da para perguntar.
-const CHAT_SUG_LOJA=[
-  'Como está minha loja?','O que estou deixando de vender?','Meu preço está acima ou abaixo da rede?',
-  'Onde eu vou bem?','O que está rompido no Pulmão SP?','Quais itens de classe A estão rompidos?',
-  'O que estou deixando de vender em Banheiro?','Onde eu vou bem em Acessórios?',
-  'Como estou em Chuveiro?','E no grupo Gourmet?',
-  'Quanto eu deixo na mesa no preço?','Meus itens abaixo do porte na classe A',
-  'Como eu fico no ranking da rede?','O que estou deixando de vender nos últimos 3 meses?'];
-const CHAT_SUG_REDE=[
-  'Quem vende mais na rede?','O que está rompido no Pulmão SP?','Onde tem capital parado?',
-  'Quais itens têm estoque e não giram?','Quais itens de classe A estão rompidos?',
-  'Tem excesso de estoque na classe C?','O que está rompido em Banheiro?',
-  'Quanto a rede vendeu nos últimos 3 meses?','Itens parados em Chuveiro',
-  'Como está a Vilarejo?','Quem vende mais caro na rede?','Onde tem estoque demais na classe A?'];
+// Ninguem digita numa caixa vazia. As sugestoes sao o cardapio — organizadas por
+// assunto, abrindo no assunto da tela em que a pessoa estava, e com um passo
+// seguinte no fim de cada resposta. A ideia e conduzir, nao sortear.
+const CHAT_TEMAS=[
+  {id:'loja', rot:'Minha loja', loja:true, perguntas:[
+    'Como está minha loja?',
+    'O que estou deixando de vender?',
+    'Onde eu vou bem?',
+    'Meus itens abaixo do porte na classe A',
+    'O que estou deixando de vender em Banheiro?',
+    'O que estou deixando de vender em Chuveiro?',
+    'Onde eu vou bem em Acessórios?',
+    'Como estou em Complementos?',
+    'E no grupo Gourmet?',
+    'Como eu fico no ranking da rede?',
+    'Como está minha loja nos últimos 3 meses?',
+    'O que eu deixo de vender que tem saldo no Pulmão SP?']},
+  {id:'estoque', rot:'Estoque', perguntas:[
+    'O que está rompido no Pulmão SP?',
+    'Quais itens de classe A estão rompidos?',
+    'O que está rompido em Banheiro?',
+    'O que está rompido em Chuveiro?',
+    'Onde tem capital parado?',
+    'Onde tem estoque demais na classe A?',
+    'Tem excesso de estoque na classe C?',
+    'Quais itens têm estoque e não giram?',
+    'Itens parados em Acessórios',
+    'Itens parados em Complementos',
+    'Como está o estoque nos últimos 3 meses?',
+    'O que está rompido em Gourmet?']},
+  {id:'preco', rot:'Preço', perguntas:[
+    'Meu preço está acima ou abaixo da rede?',
+    'Quanto eu deixo na mesa no preço?',
+    'Quem vende mais caro na rede?',
+    'Como está o preço médio da rede?',
+    'Meu preço nos últimos 3 meses',
+    'Meu preço nos últimos 12 meses']},
+  {id:'rede', rot:'Rede', perguntas:[
+    'Quem vende mais na rede?',
+    'Quanto a rede vendeu nos últimos 3 meses?',
+    'Quanto a rede vendeu nos últimos 12 meses?',
+    'Como está a Vilarejo?',
+    'Como está a Viveza?',
+    'O que a rede está deixando de vender?',
+    'Quem vende mais caro na rede?',
+    'O que está rompido na rede?']},
+];
+// a tela aberta escolhe o assunto: quem esta na Cobertura quer falar de estoque
+const CHAT_TEMA_TELA={ruptura:'estoque', pulmao:'estoque', oportunidades:'loja',
+  precomedio:'preco', vendas:'rede', abc:'rede', presenca:'rede', cobertura:'rede'};
 let CHAT_SUG_DE=0;
+function chatTema(){
+  const t=CHAT_TEMAS.find(x=>x.id===CHAT.tema);
+  if(t && (!t.loja || CHAT.loja)) return t;
+  return CHAT_TEMAS.find(x=>x.id===(CHAT.loja?'loja':'rede'));
+}
 function chatChips(){
   const cx=document.getElementById('pgChips'); if(!cx) return;
-  const pool = CHAT.loja ? CHAT_SUG_LOJA : CHAT_SUG_REDE;
+  const tema=chatTema(); CHAT.tema=tema.id;
+  const pool=tema.perguntas.filter(q=>CHAT.loja || !/\b(meu|minha|meus|eu|estou)\b/i.test(q));
+  if(!pool.length) return cx.innerHTML='';
   const n = dockAberto() ? 3 : 5;
-  const sug = Array.from({length:n},(_,i)=>pool[(CHAT_SUG_DE+i)%pool.length]);
-  cx.innerHTML=`<div class="chat-sug">
-    ${dockAberto()?'':'<span class="rot">Experimente perguntar</span>'}
-    ${sug.map(t=>`<button class="chip" data-q="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
-    <button class="chip trocar" id="pgOutras" title="Outras sugestões">↻</button></div>`;
+  const sug = Array.from({length:Math.min(n,pool.length)},(_,i)=>pool[(CHAT_SUG_DE+i)%pool.length]);
+  const abas=CHAT_TEMAS.filter(t=>!t.loja||CHAT.loja)
+    .map(t=>`<button class="chip tema${t.id===tema.id?' on':''}" data-tema="${t.id}">${t.rot}</button>`).join('');
+  cx.innerHTML=`<div class="chat-sug temas">${abas}</div>
+    <div class="chat-sug">
+      ${sug.map(t=>`<button class="chip" data-q="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
+      ${pool.length>n?'<button class="chip trocar" id="pgOutras" title="Outras sugestões">↻</button>':''}
+    </div>`;
+  cx.querySelectorAll('.chip[data-tema]').forEach(b=>{
+    b.onclick=()=>{ CHAT.tema=b.dataset.tema; CHAT_SUG_DE=0; chatChips(); };
+  });
   cx.querySelectorAll('.chip[data-q]').forEach(b=>{
     b.onclick=()=>{ document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
   });
-  cx.querySelector('#pgOutras').onclick=()=>{ CHAT_SUG_DE=(CHAT_SUG_DE+n)%pool.length; chatChips(); };
+  const out=cx.querySelector('#pgOutras');
+  if(out) out.onclick=()=>{ CHAT_SUG_DE=(CHAT_SUG_DE+n)%pool.length; chatChips(); };
+}
+// O passo seguinte natural de cada resposta. E o que transforma uma consulta
+// avulsa numa investigacao — a pessoa nao precisa saber o que perguntar depois.
+const CHAT_SEGUIR={
+  rompidos:['Quais itens de classe A estão rompidos?','Onde tem capital parado?','Quais itens têm estoque e não giram?'],
+  excesso_estoque:['Quais itens têm estoque e não giram?','O que está rompido no Pulmão SP?','Tem excesso de estoque na classe C?'],
+  sem_giro:['Onde tem capital parado?','O que está rompido no Pulmão SP?'],
+  itens_abaixo_porte:['Onde eu vou bem?','Meu preço está acima ou abaixo da rede?','Como está minha loja?'],
+  destaques:['O que estou deixando de vender?','Como está minha loja?'],
+  preco_medio:['Quem vende mais caro na rede?','Como está minha loja?','O que estou deixando de vender?'],
+  resumo_loja:['O que estou deixando de vender?','Onde eu vou bem?','Meu preço está acima ou abaixo da rede?'],
+  ranking_lojas:['Quem vende mais caro na rede?','O que está rompido no Pulmão SP?','Onde tem capital parado?'],
+};
+function chatSeguir(intencao){
+  const l=(CHAT_SEGUIR[intencao]||[]).filter(q=>CHAT.loja || !/\bmeu|minha|eu\b/i.test(q));
+  if(!l.length) return '';
+  return `<div class="chat-seguir"><span>Em seguida</span>${
+    l.slice(0,3).map(q=>`<button class="chip" data-q="${q.replace(/"/g,'&quot;')}">${q}</button>`).join('')}</div>`;
 }
 
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
+  if(!fio.dataset.wired){                        // delegacao: os chips nascem depois
+    fio.dataset.wired='1';
+    fio.onclick=ev=>{ const b=ev.target.closest('.chip[data-q]'); if(!b) return;
+      document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
+  }
   const d=document.createElement('div');
   d.className='chat-msg '+quem;
   d.innerHTML=html;
@@ -4355,7 +4447,7 @@ async function chatEnviar(){
         e um resumo da loja.</p>`;
       chatLog(txt,null,'nenhuma',false);
     }else{
-      esp.innerHTML=await chatResponder(alvo.intencao, alvo.params||{});
+      esp.innerHTML=await chatResponder(alvo.intencao, alvo.params||{})+chatSeguir(alvo.intencao);
       chatLog(txt,alvo.intencao,alvo.origem,true);
     }
   }catch(e){
