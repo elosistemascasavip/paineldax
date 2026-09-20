@@ -4155,6 +4155,17 @@ const CHAT={meses:[],period:{},lojas:[],loja:'',minha:'',ocupado:false,n:0};
 // so. Os ids sao fixos porque nunca existem os dois ao mesmo tempo: abrir a aba
 // fecha o painel, e o botao flutuante nao abre painel quando a aba esta aberta.
 let CHAT_CARREGADO=false;
+// Periodo da tela aberta. Perguntar olhando a Cobertura filtrada em 3 meses e
+// receber resposta de 6 seria a pior armadilha possivel: dois numeros certos,
+// de janelas diferentes, lado a lado.
+function periodoDaTela(){
+  let st=null;
+  if(current==='ruptura'||current==='pulmao') st=PUL.period;
+  else if(current==='oportunidades')          st=OPO.period;
+  else if(current==='precomedio')             st=PM.period;
+  else if(current==='vendas')                 st=VEN.period;
+  return (st && st.aIni) ? {aIni:st.aIni, aFim:st.aFim} : null;
+}
 async function chatDados(){
   if(CHAT_CARREGADO) return;
   const {data:mm}=await sb.from('vw_vendas_por_loja').select('competencia')
@@ -4170,10 +4181,20 @@ async function chatDados(){
   CHAT_CARREGADO=true;
 }
 
+const CHAT_ATALHOS=[[3,'3 meses'],[6,'6 meses'],[12,'12 meses'],[0,'Todo o histórico']];
+function chatPeriodoAtual(){
+  const n=CHAT.meses.length, st=CHAT.period||{};
+  if(!st.aIni) return 0;
+  return n - CHAT.meses.indexOf(st.aIni);
+}
 function chatMarkup(dock){
-  const seletor=`<select class="selin" id="pgLoja"${dock?' style="flex:1;min-width:0"':' style="min-width:210px"'}>
+  const seletor=`<select class="selin" id="pgLoja"${dock?' style="flex:1;min-width:0"':' style="min-width:190px"'}>
       <option value="">Rede — todas as lojas</option>
       ${CHAT.lojas.map(l=>`<option${l===CHAT.loja?' selected':''}>${l}</option>`).join('')}
+    </select>`;
+  const atual=chatPeriodoAtual();
+  const atalho=`<select class="selin" id="pgMeses"${dock?' style="flex:0 0 auto"':''}>
+      ${CHAT_ATALHOS.map(([n,r])=>`<option value="${n}"${n===atual?' selected':''}>${r}</option>`).join('')}
     </select>`;
   const conversa=`<div class="chat-fio" id="pgFio"></div>
     <div id="pgChips"></div>
@@ -4183,14 +4204,16 @@ function chatMarkup(dock){
       <button class="btn-tool pri" id="pgEnviar">Perguntar</button>
     </div>`;
   // no painel tudo divide 460px: barra de uma linha so e sugestoes dentro
-  if(dock) return `<div class="tools dock-tools">${seletor}
+  if(dock) return `<div class="tools dock-tools">${seletor}${atalho}
       <button class="btn-tool" id="pgLimpar">Limpar</button></div>${conversa}`;
   return `<div class="notice" style="margin-bottom:12px">
       <b>Novo por aqui.</b> Pergunte com suas palavras: eu respondo sobre
       ${periodLabel(CHAT.period)} com os mesmos números das telas. Entendo oito assuntos hoje —
       o que eu não souber fica anotado para virar resposta depois.</div>
+    <div class="tools" style="margin-bottom:10px">
+      <div id="pgPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+    </div>
     <div class="tools">${seletor}
-      <span style="font-size:12.5px;color:var(--ink-faint)">período: ${periodLabel(CHAT.period)}</span>
       <div class="grow"></div>
       <button class="btn-tool" id="pgLimpar">Limpar conversa</button>
     </div>
@@ -4199,6 +4222,22 @@ function chatMarkup(dock){
 
 function chatWire(){
   document.getElementById('pgLoja').onchange=e=>{ CHAT.loja=e.target.value; chatChips(); };
+  const cx=document.getElementById('pgPeriod');
+  if(cx){                                        // aba inteira: o filtro do sistema
+    CHAT.montando=true;
+    wirePeriod(cx, CHAT.meses, st=>{
+      if(CHAT.montando) return;
+      CHAT.period={aIni:st.aIni, aFim:st.aFim};
+      chatAvisoPeriodo();
+    }, CHAT.period);
+    CHAT.montando=false;
+  }
+  const at=document.getElementById('pgMeses');
+  if(at) at.onchange=e=>{
+    const n=+e.target.value;
+    CHAT.period = n ? ultimosMeses(CHAT.meses,n) : {};
+    chatAvisoPeriodo();
+  };
   document.getElementById('pgLimpar').onclick=()=>{
     document.getElementById('pgFio').innerHTML=''; CHAT.n=0; chatAbertura(); };
   document.getElementById('pgEnviar').onclick=()=>chatEnviar();
@@ -4233,6 +4272,8 @@ async function dockAbrir(){
   const corpo=d.querySelector('#dkCorpo');
   corpo.innerHTML='<div class="empty">Carregando…</div>';
   await chatDados();
+  const daTela=periodoDaTela();                  // pergunta olhando a tela: mesma janela
+  if(daTela) CHAT.period=daTela;
   document.getElementById('dkPer').textContent=periodLabel(CHAT.period);
   corpo.innerHTML=chatMarkup(true);
   chatWire();
@@ -4242,8 +4283,17 @@ function dockToggle(){ dockAberto() ? dockFechar() : dockAbrir(); }
 
 function chatAbertura(){
   const quem = CHAT.loja || 'a rede';
-  chatBolha('bot',`<p>Pergunte com suas palavras sobre <b>${quem}</b>.
-    Eu respondo com os números das telas — se não souber, digo que não sei.</p>`);
+  chatBolha('bot',`<p>Pergunte com suas palavras sobre <b>${quem}</b>, no período
+    <b>${periodLabel(CHAT.period)}</b>. Eu respondo com os números das telas —
+    se não souber, digo que não sei.</p>`);
+}
+// Trocar o periodo no meio da conversa muda o significado do que ja foi dito.
+// Em vez de reescrever o passado, o chat marca a virada na propria conversa.
+function chatAvisoPeriodo(){
+  const dk=document.getElementById('dkPer');
+  if(dk) dk.textContent=periodLabel(CHAT.period);
+  chatBolha('bot',`<p class="chat-dica" style="border:none;padding:0;margin:0">
+    Daqui para frente respondo sobre <b>${periodLabel(CHAT.period)}</b>.</p>`);
 }
 
 /* ---------- sugestões: a tela nunca abre em branco ---------- */
@@ -4343,6 +4393,9 @@ function chatRegras(txt){
   if(g) params.grupo=g;
   const lj=CHAT.lojas.find(x=>t.includes(deacc(x)));
   if(lj) params.loja=lj;
+  const m=t.match(/(\d{1,2})\s*(?:ultimos\s*)?(?:mes|meses)/) || t.match(/ultimos?\s*(\d{1,2})\s*(?:mes|meses)/);
+  if(m){ const n=+m[1]; if(n>=1&&n<=36) params.meses=n; }
+  if(/\bano\s*(todo|inteiro)|12\s*meses\b/.test(t)) params.meses=12;
   // "cobertura" sozinho e ambiguo: sem pista de excesso, mostro o quadro geral
   const intencao = hit.i==='cobertura' ? 'excesso_estoque' : hit.i;
   return {intencao, params, origem:'regra'};
@@ -4368,8 +4421,10 @@ function chatLoja(params){
   return CHAT.loja;
 }
 function chatPer(params){
-  const n = params.meses>0 ? params.meses : 6;
-  return ultimosMeses(CHAT.meses, n);
+  // o filtro manda. A pergunta so o sobrepoe quando cita o prazo em palavras
+  // ("nos ultimos 3 meses"), e nesse caso a resposta diz qual janela usou.
+  if(params.meses>0) return ultimosMeses(CHAT.meses, params.meses);
+  return CHAT.period || {};
 }
 // O link nao leva so para a tela: leva para a tela com os mesmos filtros da
 // pergunta. Sem isso a pessoa cai numa lista de 443 itens e perde o que achou.
