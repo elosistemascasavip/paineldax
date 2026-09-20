@@ -64,6 +64,7 @@ aside{width:236px;flex:0 0 auto;background:var(--side);border-right:1px solid va
 .nav-item .ico{width:18px;height:18px;flex:0 0 auto}
 .nav-item.disabled{opacity:.5;cursor:default}
 .nav-item.disabled:hover{background:transparent}
+.esconde{display:none !important}
 .side-foot{flex:0 0 auto;padding-top:14px}
 .acct{display:flex;align-items:center;gap:10px;padding:10px;border-radius:11px;background:#fff;border:1px solid var(--side-line)}
 .acct .home{width:32px;height:32px;flex:0 0 auto}
@@ -462,6 +463,73 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #16202f}
 .duto-pin.zero{left:0;margin-left:0}
 .opo-rot{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em}
+.chat-bolha{position:fixed;right:22px;bottom:22px;z-index:60;width:58px;height:58px;border-radius:50%;
+  border:none;padding:0;background:linear-gradient(145deg,#3d8bf5,#1557c0);color:#fff;
+  box-shadow:0 10px 26px rgba(21,87,192,.42),inset 0 1px 0 rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .18s cubic-bezier(.34,1.3,.64,1),box-shadow .18s}
+.chat-bolha svg{width:30px;height:30px;transition:transform .22s,opacity .16s}
+.chat-bolha .ic-x{position:absolute;width:23px;height:23px;opacity:0;transform:rotate(-90deg) scale(.6)}
+.chat-bolha:hover{transform:translateY(-3px) scale(1.04);
+  box-shadow:0 14px 32px rgba(21,87,192,.5),inset 0 1px 0 rgba(255,255,255,.35)}
+.chat-bolha:active{transform:translateY(-1px) scale(.97)}
+.chat-bolha.aberto{background:linear-gradient(145deg,#4a5666,#1d2733);
+  box-shadow:0 10px 24px rgba(18,32,47,.4)}
+.chat-bolha.aberto .ic-fala{opacity:0;transform:rotate(90deg) scale(.6)}
+.chat-bolha.aberto .ic-x{opacity:1;transform:none}
+.chat-dock{position:fixed;right:22px;bottom:92px;z-index:59;width:min(430px,calc(100vw - 44px));
+  max-height:min(620px,calc(100vh - 124px));display:flex;flex-direction:column;
+  background:#fff;border:1px solid var(--line);border-radius:15px;
+  box-shadow:0 18px 50px rgba(18,50,90,.22);overflow:hidden}
+#dkCorpo{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
+.chat-dock-topo{display:flex;align-items:center;gap:10px;padding:11px 12px 11px 16px;
+  border-bottom:1px solid var(--line);background:#fbfcfe;font-size:14px}
+.chat-dock-topo span{font-size:11.5px;color:var(--ink-faint);margin-right:auto}
+.chat-dock-x{border:none;background:transparent;color:var(--ink-faint);font-size:15px;
+  line-height:1;padding:5px 7px;border-radius:7px}
+.chat-dock-x:hover{background:#eef1f6;color:var(--ink)}
+.chat-dock .chat-fio{flex:1 1 auto;min-height:120px;max-height:none}
+.chat-dock .chat-sug{padding:2px 14px 10px}
+.chat-dock .chat-sug .rot{display:none}
+.chat-dock .chip{font-size:12px;padding:6px 11px}
+.dock-tools{display:flex;gap:8px;flex-wrap:nowrap;padding:10px 14px 2px;margin:0}
+@media(max-width:760px){
+  .chat-dock{right:10px;left:10px;bottom:82px;width:auto}
+  .chat-bolha{right:14px;bottom:14px}
+}
+.chat-fio{padding:14px 16px;min-height:200px;max-height:46vh;overflow:auto;
+  display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:min(760px,92%);border-radius:13px;padding:10px 14px;font-size:13.5px;line-height:1.55}
+.chat-msg p{margin:0 0 7px}
+.chat-msg p:last-child{margin-bottom:0}
+.chat-msg.eu{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.chat-msg.bot{align-self:flex-start;background:#f3f6fb;color:var(--ink);border-bottom-left-radius:4px}
+.chat-msg.bot b{color:var(--ink)}
+.chat-msg .pensando{color:var(--ink-faint)}
+.chat-msg .erro{color:#c0392b}
+.chat-dica{font-size:12px;color:var(--ink-faint);border-top:1px solid #e3e9f2;padding-top:6px;margin-top:8px}
+.chat-ver{margin-top:8px}
+.chat-ver a{color:var(--blue);font-weight:700;text-decoration:none;font-size:12.5px}
+.chat-tab{margin:9px 0;background:#fff;border:1px solid var(--line);border-radius:9px;overflow:auto;max-height:260px}
+.chat-tab table{font-size:12.5px}
+.chat-tab th{background:#fbfcfe}
+.chat-barra{display:flex;gap:9px;padding:11px 14px;border-top:1px solid var(--line);background:#fbfcfe;
+  border-radius:0 0 14px 14px}
+.chat-inp{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 13px;
+  font-family:inherit;font-size:14px;background:#fff}
+.chat-inp:focus{outline:none;border-color:var(--blue)}
+.chat-sug{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chat-sug .rot{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;
+  font-size:12.5px;color:var(--ink-soft);font-weight:600;cursor:pointer;font-family:inherit}
+.chip:hover{border-color:var(--blue);color:var(--blue);background:#f4f8ff}
+.chip.trocar{padding:7px 11px;font-size:14px;line-height:1;color:var(--ink-faint)}
+.chat-lista{margin:8px 0 2px;padding:0;list-style:none;font-size:12.5px}
+.chat-lista li{padding:3px 0;border-bottom:1px dashed #dfe6f0;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.chat-lista li:last-child{border-bottom:none}
+.chat-lista .mais{color:var(--ink-faint);font-style:italic}
+
 .duto-num{font-variant-numeric:tabular-nums;font-size:11.5px;font-weight:700;
   white-space:nowrap;min-width:48px;text-align:right}
 .duto-cel{padding:0 3px}
@@ -493,6 +561,27 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   </div>
 </header>
 
+<button class="chat-bolha so-admin esconde" id="chatBolha" title="Perguntar sobre os dados">
+  <svg class="ic-fala" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+    <rect x="4" y="5.5" width="24" height="17" rx="7.5" fill="#fff"/>
+    <path d="M11.4 20.8v6.4l6.4-5.2z" fill="#fff"/>
+    <circle cx="11.6" cy="14" r="1.75" fill="#1f6fe0"/>
+    <circle cx="16" cy="14" r="1.75" fill="#1f6fe0"/>
+    <circle cx="20.4" cy="14" r="1.75" fill="#1f6fe0"/>
+    <path d="M26.6 2.2l.78 2.02L29.4 5l-2.02.78-.78 2.02-.78-2.02L23.8 5l2.02-.78z" fill="#ffd166"/>
+  </svg>
+  <svg class="ic-x" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"
+    stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+</button>
+<div class="chat-dock esconde" id="chatDock">
+  <div class="chat-dock-topo">
+    <b>Perguntar</b>
+    <span id="dkPer"></span>
+    <button class="chat-dock-x" id="dkTela" title="Abrir em tela cheia">⤢</button>
+    <button class="chat-dock-x" id="dkFechar" title="Fechar">✕</button>
+  </div>
+  <div id="dkCorpo"></div>
+</div>
 <div class="shell">
   <aside>
     <div class="nav-scroll">
@@ -1005,6 +1094,7 @@ async function refreshAuth(){
     av.innerHTML = ICON_USER;
     av.title = 'Entrar';
   }
+  aplicarVisibilidade();
   document.getElementById('whoNome').textContent = CONTA.nome;
   document.getElementById('whoPapel').textContent = CONTA.papel;
 }
@@ -1145,6 +1235,16 @@ document.querySelectorAll('.nav-item').forEach(el=>{
   el.onclick=()=>{ if(el.classList.contains('disabled'))return; route(el.dataset.route); };
 });
 function setActive(r){ document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.route===r)); }
+// Aberto para qualquer conta logada. Para voltar a restringir, troque por isAdmin().
+function aplicarVisibilidade(){
+  const pode = !!session;
+  document.querySelectorAll('.so-admin').forEach(el=>el.classList.toggle('esconde', !pode));
+  if(!pode) dockFechar();
+}
+document.getElementById('chatBolha').onclick=dockToggle;
+document.getElementById('dkFechar').onclick=dockFechar;
+document.getElementById('dkTela').onclick=()=>{ dockFechar(); route('perguntar'); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && dockAberto()) dockFechar(); });
 // Data da ultima carga de cada planilha. Depois que a pessoa sai da tela de
 // importacao ela nao volta mais la — entao o aviso tem que ficar onde o dado
 // e consultado, nao onde ele e carregado.
@@ -1190,7 +1290,7 @@ function loginWall(msg){
 }
 
 async function route(r){
-  current=r; setActive(r); view.scrollTop=0;
+  current=r; setActive(r); aplicarVisibilidade(); view.scrollTop=0;
   if(r==='importar') return renderImportar();
   if(r==='abc') return renderABC();
   if(r==='vendas') return renderVendas();
@@ -1207,6 +1307,7 @@ async function route(r){
   if(r==='pulmao')  return renderPulmaoConsulta();
   if(r==='ruptura') return renderRuptura();
   if(r==='oportunidades') return renderOportunidades();
+  if(r==='perguntar') return renderPerguntar();
   if(r==='historico') return renderHistorico();
   if(r==='cobertura') return renderCobertura();
 }
@@ -3561,7 +3662,12 @@ async function renderSobre(){
           <b>As senhas não ficam registradas aqui.</b> Elas estão em poder do desenvolvedor e do
           administrador da Casa VIP.
         </div>
-      </div></div>` : '';
+      </div></div>` : `
+    <div class="notice" style="margin-top:14px">
+      <b>Contas e infraestrutura</b> (e-mails do Google, Supabase, GitHub e Vercel) aparecem
+      só para o administrador. Você está conectado como
+      <b>${perfil? (perfil.nome||'—')+' · '+(PAPEL_LABEL[perfil.papel]||perfil.papel||'—') : 'visitante'}</b>.
+      ${isAdmin()?'':'Entre com a conta de administrador para ver este bloco.'}</div>`;
   body.innerHTML=`
     <div class="sb-hero">
       <img class="sb-logo" data-logo="elo" alt="Elo Sistemas de Informação">
@@ -3723,6 +3829,7 @@ async function renderRuptura(){
         <option value="critico">Cobertura abaixo de 30 dias</option>
         <option value="semgiro">Sem giro (nunca vendeu)</option>
         <option value="parado">Com estoque e sem giro</option>
+        <option value="excesso">Cobertura acima da meta</option>
       </select>
       <div class="grow"></div>
       <button class="btn-tool" id="ceLimpar">Limpar filtros</button>
@@ -3739,11 +3846,7 @@ async function renderRuptura(){
   PUL.montando=false;
   ['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoRefresh; });
-  document.getElementById('ceLimpar').onclick=()=>{
-    ['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro'].forEach(id=>{
-      const el=document.getElementById(id); if(el) el.value=''; });
-    pulmaoRefresh();
-  };
+  document.getElementById('ceLimpar').onclick=ceLimparFiltros;
   document.getElementById('ceCSV').onclick=()=>exportCSV('estoque_pulmao',
     [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
      {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Estoque',key:'estoque'},
@@ -3944,6 +4047,12 @@ function dutoHTML(dias, rompido){
 function diasCob(d){
   return d.meses_cobertura==null ? null : (+d.meses_cobertura)*30;
 }
+// usada pelo botao da barra e pelo aviso de recorte vazio
+function ceLimparFiltros(){
+  ['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value=''; });
+  pulmaoRefresh();
+}
 function pulmaoRefresh(){
   const q=(valOf('ceBusca')||'').trim().toLowerCase(), f=valOf('ceFiltro','');
   const g=valOf('ceGrupo',''), li=valOf('ceLinha',''), co=valOf('ceCor',''), cl=valOf('ceClasse','');
@@ -3955,6 +4064,7 @@ function pulmaoRefresh(){
   if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && diasCob(d)<30);
   if(f==='semgiro') l=l.filter(d=>Number(d.vendido_total)===0);
   if(f==='parado')  l=l.filter(d=>Number(d.estoque)>0 && Number(d.vendido_total)===0);
+  if(f==='excesso') l=l.filter(d=>d.meses_cobertura!=null && diasCob(d)>dutoMeta());
   l.sort((a,b)=>Number(b.estoque)-Number(a.estoque));
   PUL.vis=l; pulmaoPinta();
 }
@@ -3966,7 +4076,10 @@ function pulmaoPinta(){
   const zer=b.filter(d=>Number(d.estoque)===0).length;
   const crit=b.filter(d=>d.meses_cobertura!=null&&diasCob(d)<30&&Number(d.estoque)>0).length;
   const par=b.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
-  const quando=b.find(d=>d.atualizado_em);
+  // a carga e do arquivo inteiro: filtrar itens nao muda quando o estoque chegou.
+  // Vinha do recorte e, num recorte vazio, aparecia "sem carga" como se nada
+  // tivesse sido importado.
+  const quando=(PUL.raw||[]).find(d=>d.atualizado_em);
   document.getElementById('ceStats').innerHTML=`<div class="statbar">
     <div class="s"><div class="n">${fmtInt(b.reduce((a,d)=>a+Number(d.estoque||0),0))}</div><div class="l">Peças em estoque</div></div>
     <div class="s"><div class="n">${fmtInt(b.filter(d=>Number(d.estoque)>0).length)}</div><div class="l">Itens com saldo</div></div>
@@ -3978,9 +4091,27 @@ function pulmaoPinta(){
       return `<div class="s"><div class="n" style="font-size:15px;color:${a.cor}">${a.txt}</div><div class="l">Última carga</div></div>`;})()}
   </div>`;
   pulmaoResumo();
+  const busca=(valOf('ceBusca','')||'').trim();
+  const rotulos=[busca&&`busca "${busca}"`,
+    valOf('ceClasse','')&&'Classe '+valOf('ceClasse',''), valOf('ceGrupo',''),
+    valOf('ceLinha',''), valOf('ceCor',''),
+    ({rompido:'Rompidos',critico:'Cobertura < 30 dias',semgiro:'Sem giro',
+      parado:'Com estoque e sem giro',excesso:'Cobertura acima da meta'})[valOf('ceFiltro','')]
+    ].filter(Boolean);
+  if(!l.length){
+    // tabela vazia com zeros parecia sistema quebrado. Agora diz o que houve.
+    document.getElementById('ceTab').innerHTML=`<div class="panel"><div class="empty">
+      <div class="big">Nenhum item neste recorte</div>
+      ${rotulos.length?`Os filtros <b>${rotulos.join(' · ')}</b> não deixaram nenhum item.
+        ${fmtInt((PUL.raw||[]).length)} itens no período.`
+       :'Não há itens de estoque no período escolhido.'}
+      <div style="margin-top:12px"><button class="btn-tool" onclick="ceLimparFiltros()">Limpar filtros</button></div>
+    </div></div>`;
+    return;
+  }
   document.getElementById('ceTab').innerHTML=`<div class="panel"><div class="panel-head">
-    <h2>Itens${(()=>{const r=[valOf('ceClasse',''),valOf('ceGrupo',''),valOf('ceLinha',''),valOf('ceCor','')]
-        .filter(Boolean); return r.length?` — ${r.join(' · ')}`:'';})()}</h2>
+    <h2>Itens${(()=>{const r=rotulos.filter(x=>!String(x).startsWith('busca'));
+      return r.length?` — ${r.join(' · ')}`:'';})()}</h2>
     <span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
     ${dutoLegenda()}
     <div class="tbl-scroll"><table class="densa"><thead><tr><th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th>
@@ -3997,6 +4128,473 @@ function pulmaoPinta(){
         <td>${dutoHTML(dias, rompido)}</td></tr>`;}).join('')}
     </tbody></table></div>
   </div>`;
+}
+
+/* ============================================================
+   Tela: Perguntar — chat sobre os dados da rede
+   ------------------------------------------------------------
+   Como funciona, e por que assim:
+
+   1. A pergunta vira uma INTENÇÃO (um item de uma lista fechada). Primeiro
+      por regras, aqui no navegador — a maioria das perguntas resolve sem sair
+      da máquina. Só o que as regras não pegam vai para a Edge Function
+      chat-intencao, que usa o modelo.
+   2. A intenção vira uma chamada às MESMAS RPCs que as telas já usam, com a
+      sessão do próprio usuário e o RLS de sempre.
+   3. A resposta é MONTADA com os números que voltaram. O modelo nunca escreve
+      a resposta e nunca vê um dado de venda, estoque ou faturamento.
+
+   Consequência prática: o chat pode não entender uma pergunta, mas não tem
+   como inventar um número. É o erro que dá para conviver.
+   ============================================================ */
+const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M21 12a8 8 0 01-8 8H7l-4 3v-4.6A8 8 0 1121 12z"/><path d="M9.2 9.6a2.8 2.8 0 015.4 1c0 1.9-2.6 2.4-2.6 2.4M12 17h.01"/></svg>`;
+
+const CHAT={meses:[],period:{},lojas:[],loja:'',minha:'',ocupado:false,n:0};
+
+// O chat mora em dois lugares — a aba inteira e o painel flutuante — mas e um
+// so. Os ids sao fixos porque nunca existem os dois ao mesmo tempo: abrir a aba
+// fecha o painel, e o botao flutuante nao abre painel quando a aba esta aberta.
+let CHAT_CARREGADO=false;
+async function chatDados(){
+  if(CHAT_CARREGADO) return;
+  const {data:mm}=await sb.from('vw_vendas_por_loja').select('competencia')
+    .order('competencia',{ascending:true});
+  CHAT.meses=uniq((mm||[]).map(x=>x.competencia));
+  CHAT.period=ultimosMeses(CHAT.meses,6);
+  const {data:pt}=await fetchRpc('loja_porte',{p_ini:CHAT.period.aIni,p_fim:CHAT.period.aFim});
+  CHAT.lojas=uniq((pt||[]).map(x=>x.loja));
+  CHAT.minha=resolverMinhaLoja(CHAT.lojas)||'';
+  CHAT.loja=CHAT.minha;
+  const {data:pg}=await fetchAll('vw_produtos','grupo',['sku']);
+  CHAT_GRUPOS=uniq((pg||[]).map(x=>x.grupo).filter(Boolean));
+  CHAT_CARREGADO=true;
+}
+
+function chatMarkup(dock){
+  const seletor=`<select class="selin" id="pgLoja"${dock?' style="flex:1;min-width:0"':' style="min-width:210px"'}>
+      <option value="">Rede — todas as lojas</option>
+      ${CHAT.lojas.map(l=>`<option${l===CHAT.loja?' selected':''}>${l}</option>`).join('')}
+    </select>`;
+  const conversa=`<div class="chat-fio" id="pgFio"></div>
+    <div id="pgChips"></div>
+    <div class="chat-barra">
+      <input id="pgTxt" class="chat-inp" maxlength="300" autocomplete="off"
+        placeholder="Ex.: o que estou deixando de vender?">
+      <button class="btn-tool pri" id="pgEnviar">Perguntar</button>
+    </div>`;
+  // no painel tudo divide 460px: barra de uma linha so e sugestoes dentro
+  if(dock) return `<div class="tools dock-tools">${seletor}
+      <button class="btn-tool" id="pgLimpar">Limpar</button></div>${conversa}`;
+  return `<div class="notice" style="margin-bottom:12px">
+      <b>Novo por aqui.</b> Pergunte com suas palavras: eu respondo sobre
+      ${periodLabel(CHAT.period)} com os mesmos números das telas. Entendo oito assuntos hoje —
+      o que eu não souber fica anotado para virar resposta depois.</div>
+    <div class="tools">${seletor}
+      <span style="font-size:12.5px;color:var(--ink-faint)">período: ${periodLabel(CHAT.period)}</span>
+      <div class="grow"></div>
+      <button class="btn-tool" id="pgLimpar">Limpar conversa</button>
+    </div>
+    <div class="panel" style="margin-bottom:12px">${conversa}</div>`;
+}
+
+function chatWire(){
+  document.getElementById('pgLoja').onchange=e=>{ CHAT.loja=e.target.value; chatChips(); };
+  document.getElementById('pgLimpar').onclick=()=>{
+    document.getElementById('pgFio').innerHTML=''; CHAT.n=0; chatAbertura(); };
+  document.getElementById('pgEnviar').onclick=()=>chatEnviar();
+  document.getElementById('pgTxt').onkeydown=e=>{ if(e.key==='Enter') chatEnviar(); };
+  chatAbertura(); chatChips();
+}
+
+async function renderPerguntar(){
+  dockFechar();
+  view.innerHTML=head(ICO_CHAT,'Perguntar',
+    'Pergunte com suas palavras. A resposta vem dos mesmos números das telas.','Análise')
+    +'<div id="pgBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('pgBody');
+  if(!session){ body.innerHTML=loginWall('O assistente é restrito à equipe.'); return; }
+  await chatDados();
+  body.innerHTML=chatMarkup(false);
+  chatWire();
+}
+
+/* ---------- painel flutuante: perguntar sem sair da tela ---------- */
+function dockAberto(){ const d=document.getElementById('chatDock'); return d && !d.classList.contains('esconde'); }
+function dockFechar(){
+  const d=document.getElementById('chatDock'), b=document.getElementById('chatBolha');
+  if(d){ d.classList.add('esconde'); d.querySelector('#dkCorpo').innerHTML=''; }
+  if(b) b.classList.remove('aberto');
+}
+async function dockAbrir(){
+  if(current==='perguntar'){ const t=document.getElementById('pgTxt'); if(t) t.focus(); return; }
+  const d=document.getElementById('chatDock'), b=document.getElementById('chatBolha');
+  if(!d || !session) return;
+  d.classList.remove('esconde'); b.classList.add('aberto');
+  const corpo=d.querySelector('#dkCorpo');
+  corpo.innerHTML='<div class="empty">Carregando…</div>';
+  await chatDados();
+  document.getElementById('dkPer').textContent=periodLabel(CHAT.period);
+  corpo.innerHTML=chatMarkup(true);
+  chatWire();
+  document.getElementById('pgTxt').focus();
+}
+function dockToggle(){ dockAberto() ? dockFechar() : dockAbrir(); }
+
+function chatAbertura(){
+  const quem = CHAT.loja || 'a rede';
+  chatBolha('bot',`<p>Pergunte com suas palavras sobre <b>${quem}</b>.
+    Eu respondo com os números das telas — se não souber, digo que não sei.</p>`);
+}
+
+/* ---------- sugestões: a tela nunca abre em branco ---------- */
+// Ninguem digita numa caixa vazia. As sugestoes sao o cardapio — e elas giram,
+// para a pessoa descobrir aos poucos tudo que da para perguntar.
+const CHAT_SUG_LOJA=[
+  'Como está minha loja?','O que estou deixando de vender?','Meu preço está acima ou abaixo da rede?',
+  'Onde eu vou bem?','O que está rompido no Pulmão SP?','Quais itens de classe A estão rompidos?',
+  'O que estou deixando de vender em Banheiro?','Onde eu vou bem em Acessórios?',
+  'Como estou em Chuveiro?','E no grupo Gourmet?',
+  'Quanto eu deixo na mesa no preço?','Meus itens abaixo do porte na classe A',
+  'Como eu fico no ranking da rede?','O que estou deixando de vender nos últimos 3 meses?'];
+const CHAT_SUG_REDE=[
+  'Quem vende mais na rede?','O que está rompido no Pulmão SP?','Onde tem capital parado?',
+  'Quais itens têm estoque e não giram?','Quais itens de classe A estão rompidos?',
+  'Tem excesso de estoque na classe C?','O que está rompido em Banheiro?',
+  'Quanto a rede vendeu nos últimos 3 meses?','Itens parados em Chuveiro',
+  'Como está a Vilarejo?','Quem vende mais caro na rede?','Onde tem estoque demais na classe A?'];
+let CHAT_SUG_DE=0;
+function chatChips(){
+  const cx=document.getElementById('pgChips'); if(!cx) return;
+  const pool = CHAT.loja ? CHAT_SUG_LOJA : CHAT_SUG_REDE;
+  const n = dockAberto() ? 3 : 5;
+  const sug = Array.from({length:n},(_,i)=>pool[(CHAT_SUG_DE+i)%pool.length]);
+  cx.innerHTML=`<div class="chat-sug">
+    ${dockAberto()?'':'<span class="rot">Experimente perguntar</span>'}
+    ${sug.map(t=>`<button class="chip" data-q="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
+    <button class="chip trocar" id="pgOutras" title="Outras sugestões">↻</button></div>`;
+  cx.querySelectorAll('.chip[data-q]').forEach(b=>{
+    b.onclick=()=>{ document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
+  });
+  cx.querySelector('#pgOutras').onclick=()=>{ CHAT_SUG_DE=(CHAT_SUG_DE+n)%pool.length; chatChips(); };
+}
+
+function chatBolha(quem, html){
+  const fio=document.getElementById('pgFio'); if(!fio) return null;
+  const d=document.createElement('div');
+  d.className='chat-msg '+quem;
+  d.innerHTML=html;
+  fio.appendChild(d);
+  fio.scrollTop=fio.scrollHeight;
+  return d;
+}
+
+async function chatEnviar(){
+  const inp=document.getElementById('pgTxt');
+  const txt=(inp.value||'').trim();
+  if(!txt || CHAT.ocupado) return;
+  inp.value=''; CHAT.ocupado=true;
+  chatBolha('eu', `<p>${txt.replace(/</g,'&lt;')}</p>`);
+  const esp=chatBolha('bot','<p class="pensando">consultando os dados…</p>');
+  try{
+    const alvo = chatRegras(txt) || await chatModelo(txt);
+    if(!alvo){
+      esp.innerHTML=`<p>Ainda não sei responder isso. Anotei a pergunta —
+        se ela aparecer mais vezes, vira uma resposta.</p>
+        <p class="chat-dica">Coisas que eu entendo hoje: itens abaixo do porte, destaques,
+        preço médio, rompidos, excesso de estoque, itens sem giro, ranking das lojas
+        e um resumo da loja.</p>`;
+      chatLog(txt,null,'nenhuma',false);
+    }else{
+      esp.innerHTML=await chatResponder(alvo.intencao, alvo.params||{});
+      chatLog(txt,alvo.intencao,alvo.origem,true);
+    }
+  }catch(e){
+    esp.innerHTML=`<p class="erro">Não consegui buscar os dados agora. ${String(e.message||e)}</p>`;
+  }
+  CHAT.n++; CHAT.ocupado=false;
+  document.getElementById('pgFio').scrollTop=1e9;
+}
+
+/* ---------- 1. intenção por regras (roda aqui, sem sair) ---------- */
+const CHAT_REGRAS=[
+  {i:'rompidos',        re:/\b(rompid|zerad|falta|faltando|sem saldo|em falta|acabou|esgotad)/},
+  {i:'sem_giro',        re:/\b(sem giro|nao vende|nao gira|nao girou|parad[oa]s? no estoque|encalhad)/},
+  {i:'excesso_estoque', re:/\b(excesso|capital parado|estoque demais|sobrando|sobra de estoque|muito estoque|cobertura alta)/},
+  {i:'preco_medio',     re:/\b(preco|preço|caro|barato|ticket|valor medio|margem)/},
+  {i:'destaques',       re:/\b(destaque|vou bem|vendo bem|forte|acima do porte|melhor que a rede|meus melhores)/},
+  {i:'itens_abaixo_porte', re:/\b(abaixo|deixando de vender|perdendo venda|oportunidade|gap|poderia vender|vendo pouco|nao vendo)/},
+  {i:'ranking_lojas',   re:/\b(ranking|quem vende mais|maiores lojas|comparar as lojas|posicao da rede|como esta a rede|melhores lojas)/},
+  {i:'resumo_loja',     re:/\b(como (eu )?est(ou|a)|resumo|panorama|visao geral|como vai|meu desempenho|como fui)/},
+  {i:'cobertura',       re:/\b(cobertura|quantos dias de estoque|dura quanto)/},
+];
+// Grupos reais, vindos da base. Antes era uma lista escrita a mao que tinha
+// "Cozinha" e "Ducha" (nao existem) e esquecia "Gourmet" — a pergunta casava com
+// um grupo inexistente e a resposta vinha vazia.
+let CHAT_GRUPOS=[];
+
+function chatRegras(txt){
+  const t=deacc(txt);
+  const hit=CHAT_REGRAS.find(r=>r.re.test(t));
+  if(!hit) return null;
+  const params={};
+  const cl=t.match(/\bclasse\s*([abc])\b/) || t.match(/\bcurva\s*([abc])\b/);
+  if(cl) params.classe=cl[1].toUpperCase();
+  const g=CHAT_GRUPOS.find(x=>t.includes(deacc(x)));
+  if(g) params.grupo=g;
+  const lj=CHAT.lojas.find(x=>t.includes(deacc(x)));
+  if(lj) params.loja=lj;
+  // "cobertura" sozinho e ambiguo: sem pista de excesso, mostro o quadro geral
+  const intencao = hit.i==='cobertura' ? 'excesso_estoque' : hit.i;
+  return {intencao, params, origem:'regra'};
+}
+
+/* ---------- 2. o que as regras não pegam vai para o modelo ---------- */
+async function chatModelo(txt){
+  try{
+    const {data,error}=await sb.functions.invoke('chat-intencao',{body:{pergunta:txt}});
+    if(error || !data || !data.intencao) return null;
+    return {intencao:data.intencao, params:data.params||{}, origem:'modelo'};
+  }catch{ return null; }
+}
+
+/* ---------- 3. a intenção vira consulta, e os números viram texto ---------- */
+function chatLoja(params){
+  if(params.loja){
+    const k=chaveLoja(params.loja);
+    const hit=CHAT.lojas.find(l=>chaveLoja(l)===k)
+          || CHAT.lojas.find(l=>deacc(l).includes(deacc(params.loja)));
+    if(hit) return hit;
+  }
+  return CHAT.loja;
+}
+function chatPer(params){
+  const n = params.meses>0 ? params.meses : 6;
+  return ultimosMeses(CHAT.meses, n);
+}
+// O link nao leva so para a tela: leva para a tela com os mesmos filtros da
+// pergunta. Sem isso a pessoa cai numa lista de 443 itens e perde o que achou.
+const CHAT_IR={}; let CHAT_IR_N=0;
+function chatVer(rota, rotulo, cfg){
+  const id='ir'+(++CHAT_IR_N);
+  // a conversa pode ficar longa; guardo so os ultimos destinos
+  Object.keys(CHAT_IR).slice(0,-40).forEach(k=>delete CHAT_IR[k]);
+  CHAT_IR[id]=cfg||{};
+  return `<p class="chat-ver"><a href="#" onclick="chatIr('${rota}','${id}');return false">${rotulo} →</a></p>`;
+}
+async function chatIr(rota, id){
+  const cfg=CHAT_IR[id]||{};
+  dockFechar();
+  await route(rota);
+  const set=(el,v)=>{ const e=document.getElementById(el); if(e&&v!=null){ e.value=v; return true; } return false; };
+  if(rota==='oportunidades'){
+    if(cfg.loja!=null){ OPO.loja=cfg.loja; set('opLoja',cfg.loja); }
+    if(cfg.aba) OPO.aba=cfg.aba;
+    if(typeof opoPinta==='function') opoPinta();
+  }
+  if(rota==='ruptura'){
+    set('ceFiltro',cfg.situacao||'');
+    set('ceClasse',cfg.classe||'');
+    set('ceGrupo',cfg.grupo||'');
+    if(typeof pulmaoRefresh==='function') pulmaoRefresh();
+  }
+}
+// No painel flutuante a tabela some: ela empurrava a conversa para fora da tela
+// e criava rolagem dentro de rolagem. Fica um resumo curto e o link para a tela
+// de verdade, ja filtrada. Na aba inteira a tabela aparece normalmente.
+function chatTab(cols, linhas){
+  if(!linhas.length) return '';
+  if(dockAberto()) return `<ul class="chat-lista">${linhas.slice(0,3).map(l=>
+    `<li><b>${cols[0].v(l)}</b> ${String(cols[1].v(l)).slice(0,42)}</li>`).join('')}${
+    linhas.length>3?`<li class="mais">e mais ${fmtInt(linhas.length-3)}…</li>`:''}</ul>`;
+  return `<div class="chat-tab"><table class="densa"><thead><tr>${
+    cols.map(c=>`<th${c.num?' class="num"':''}>${c.t}</th>`).join('')}</tr></thead><tbody>${
+    linhas.map(l=>`<tr>${cols.map(c=>`<td${c.num?' class="num"':''}>${c.v(l)}</td>`).join('')}</tr>`).join('')
+  }</tbody></table></div>`;
+}
+const chatDesc=x=>`<span title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.sku}</span>`;
+const pl=(n,um,varios)=>Number(n)===1?um:varios;
+const nItens=n=>`<b>${fmtInt(n)} ${pl(n,'item','itens')}</b>`;
+
+async function chatResponder(intencao, params){
+  const per=chatPer(params), loja=chatLoja(params);
+  const a={p_ini:per.aIni,p_fim:per.aFim}, aPM={p_comp_ini:per.aIni,p_comp_fim:per.aFim};
+  const quando=periodLabel(per);
+  const precisaLoja = ['resumo_loja','itens_abaixo_porte','destaques','preco_medio'].includes(intencao);
+  if(precisaLoja && !loja)
+    return `<p>Essa pergunta é sobre uma loja específica. Escolha a loja no filtro acima
+      (ou me diga o nome dela na pergunta) que eu respondo.</p>`;
+
+  if(intencao==='ranking_lojas'){
+    const {data}=await fetchRpc('loja_porte',a);
+    const r=(data||[]).sort((x,y)=>y.unidades-x.unidades);
+    const tot=r.reduce((t,x)=>t+(+x.unidades||0),0);
+    return `<p>Em ${quando} a rede vendeu <b>${fmtInt(tot)} peças</b> em ${r.length} lojas.
+      As maiores:</p>${chatTab(
+      [{t:'Loja',v:x=>x.loja},{t:'Peças',num:1,v:x=>fmtInt(x.unidades)},
+       {t:'Participação',num:1,v:x=>fmtPct(100*(x.participacao||0))},
+       {t:'SKUs',num:1,v:x=>fmtInt(x.skus_ativos)}], r.slice(0,8))
+      }${chatVer('vendas','Ver vendas por loja')}`;
+  }
+
+  if(intencao==='rompidos'){
+    const {data}=await fetchRpc('estoque_cobertura',a);
+    let r=(data||[]).filter(x=>Number(x.estoque)===0 && (+x.venda_media_mes||0)>0);
+    if(params.classe) r=r.filter(x=>x.classe===params.classe);
+    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
+    r.sort((x,y)=>y.venda_media_mes-x.venda_media_mes);
+    if(!r.length) return `<p>Nenhum item com venda no período está sem saldo no Pulmão SP${
+      params.classe?' na classe '+params.classe:''}. Bom sinal.</p>${chatVer('ruptura','Ver cobertura de estoque')}`;
+    const emA=r.filter(x=>x.classe==='A').length;
+    const perdaMes=r.reduce((t,x)=>t+(+x.venda_media_mes||0),0);
+    // a nota sobre classe A so faz sentido quando a pergunta NAO filtrou por classe
+    const notaA = (!params.classe && emA)
+      ? `<b>${emA}</b> ${pl(emA,'é','são')} de classe A. ` : '';
+    return `<p>${nItens(r.length)} ${pl(r.length,'está rompido','estão rompidos')} no Pulmão SP e
+      ${pl(r.length,'tinha','tinham')} venda em ${quando}${
+      params.classe?` (classe ${params.classe})`:''}. ${notaA}
+      ${pl(r.length,'Girava','Juntos giravam')} <b>${fmtInt(Math.round(perdaMes))} peças por mês</b> na rede.</p>${chatTab(
+      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
+       {t:'Venda/mês',num:1,v:x=>(+x.venda_media_mes||0).toFixed(1)}], r.slice(0,10))
+      }${(!dockAberto()&&r.length>10)?`<p class="chat-dica">Mostrando os 10 de maior giro, de ${fmtInt(r.length)}.</p>`:''}
+      ${chatVer('ruptura', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} na tela`,
+        {situacao:'rompido', classe:params.classe, grupo:params.grupo})}`;
+  }
+
+  if(intencao==='excesso_estoque'){
+    const {data}=await fetchRpc('estoque_cobertura',a);
+    const meta=(data&&data[0]&&+data[0].meses_periodo)||6;
+    let r=(data||[]).filter(x=>x.meses_cobertura!=null && +x.meses_cobertura>meta);
+    if(params.classe) r=r.filter(x=>x.classe===params.classe);
+    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
+    r.sort((x,y)=>(y.estoque-x.estoque));
+    if(!r.length) return `<p>Nenhum item passa de ${meta*30} dias de cobertura no período.</p>${
+      chatVer('ruptura','Ver cobertura de estoque')}`;
+    const pecas=r.reduce((t,x)=>t+(+x.estoque||0),0);
+    return `<p>${nItens(r.length)} ${pl(r.length,'tem','têm')} mais de <b>${fmtInt(meta*30)} dias</b>
+      de cobertura — a meta do período. São <b>${fmtInt(pecas)} peças</b> paradas no Pulmão SP.</p>${chatTab(
+      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
+       {t:'Estoque',num:1,v:x=>fmtInt(x.estoque)},
+       {t:'Cobertura',num:1,v:x=>fmtInt(Math.round(30*x.meses_cobertura))+' d'}], r.slice(0,10))
+      }${chatVer('ruptura', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} na tela`,
+        {situacao:'excesso', classe:params.classe, grupo:params.grupo})}`;
+  }
+
+  if(intencao==='sem_giro'){
+    const {data}=await fetchRpc('estoque_cobertura',a);
+    let r=(data||[]).filter(x=>(+x.estoque||0)>0 && (+x.vendido_total||0)===0);
+    if(params.classe) r=r.filter(x=>x.classe===params.classe);
+    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
+    r.sort((x,y)=>y.estoque-x.estoque);
+    if(!r.length) return `<p>Todo item com saldo no Pulmão SP teve alguma venda em ${quando}.</p>`;
+    const pecas=r.reduce((t,x)=>t+(+x.estoque||0),0);
+    return `<p>${nItens(r.length)} ${pl(r.length,'tem','têm')} saldo no Pulmão SP e
+      <b>${pl(r.length,'não vendeu','não venderam')} nenhuma peça</b>
+      em ${quando}: ${fmtInt(pecas)} peças paradas.</p>${chatTab(
+      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
+       {t:'Estoque',num:1,v:x=>fmtInt(x.estoque)}], r.slice(0,10))
+      }${chatVer('ruptura', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} na tela`,
+        {situacao:'parado', classe:params.classe, grupo:params.grupo})}`;
+  }
+
+  if(intencao==='preco_medio'){
+    const {data}=await fetchRpc('preco_medio_loja',aPM);
+    const base=(data||[]).filter(x=>+x.unidades>0);
+    const eu=base.find(x=>x.loja===loja);
+    if(!eu) return `<p>Não há faturamento de ${loja} em ${quando}.</p>`;
+    const pmRede=+base[0].pm_rede, dif=pmRede-(+eu.preco_medio);
+    const posto=[...base].sort((x,y)=>y.preco_medio-x.preco_medio).findIndex(x=>x.loja===loja)+1;
+    const opo=Math.abs(dif*(+eu.unidades));
+    return `<p>Em ${quando}, <b>${loja}</b> vendeu ${fmtInt(eu.unidades)} peças a um preço médio de
+      <b>${fmtBRL(eu.preco_medio)}</b>. A rede está em ${fmtBRL(pmRede)} — ${
+      dif>0?`<b>${fmtPct(Math.abs(eu.vs_rede_pct))} abaixo</b>`:`<b>${fmtPct(Math.abs(eu.vs_rede_pct))} acima</b>`}.
+      É o <b>${posto}º</b> maior preço médio entre ${base.length} lojas.</p>
+      <p>${dif>0
+        ? `As mesmas ${fmtInt(eu.unidades)} peças teriam rendido <b>${fmtBRL(opo)}</b> a mais ao preço da rede.
+           Não é venda nova, é margem — e subir preço pode custar giro.`
+        : `Essas ${fmtInt(eu.unidades)} peças renderam <b>${fmtBRL(opo)}</b> a mais do que renderiam ao preço da rede.`}</p>
+      ${chatVer('oportunidades','Ver em Oportunidades',{loja, aba:'gap'})}`;
+  }
+
+  if(intencao==='itens_abaixo_porte'){
+    const {data}=await fetchRpc('oportunidade_gap',a);
+    let r=(data||[]).filter(x=>x.loja===loja);
+    if(params.classe) r=r.filter(x=>x.classe===params.classe);
+    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
+    if(params.linha)  r=r.filter(x=>deacc(x.linha||'')===deacc(params.linha));
+    r.sort((x,y)=>y.gap_atendivel-x.gap_atendivel||y.gap-x.gap);
+    if(!r.length) return `<p>Não encontrei itens abaixo do porte para ${loja} em ${quando}${
+      params.grupo?' em '+params.grupo:''}${params.classe?' na classe '+params.classe:''}.</p>`;
+    const emA=r.filter(x=>x.classe==='A').length;
+    const disp=r.reduce((t,x)=>t+(+x.gap_atendivel||0),0);
+    return `<p><b>${loja}</b> tem ${nItens(r.length)} que ${pl(r.length,'pesa','pesam')} menos na loja
+      do que na rede${(!params.classe&&emA)?`, ${emA} ${pl(emA,'dele','deles')} de classe A`:''}.
+      ${pl(r.length,'Dele','Desses')}, <b>${fmtInt(disp)} peças</b> têm saldo no Pulmão SP hoje.</p>${chatTab(
+      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
+       {t:'Índice',num:1,v:x=>Math.round(100*x.indice)+'%'},
+       {t:'Vendeu',num:1,v:x=>fmtInt(x.un_loja)},{t:'No porte',num:1,v:x=>fmtInt(x.esperado)},
+       {t:'No Pulmão',num:1,v:x=>fmtInt(x.estoque_cd)}], r.slice(0,10))
+      }<p class="chat-dica">O índice é o peso do item na loja dividido pelo peso dele na rede.
+      100% é vender no tamanho da própria loja. <b>Não é previsão de venda</b> — é diferença de
+      sortimento, para investigar exposição, preço ou demanda local.</p>
+      ${chatVer('oportunidades', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} em Oportunidades`,
+        {loja, aba:'gap'})}`;
+  }
+
+  if(intencao==='destaques'){
+    const {data}=await fetchRpc('oportunidade_destaque',a);
+    let r=(data||[]).filter(x=>x.loja===loja);
+    if(params.grupo) r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
+    r.sort((x,y)=>y.indice-x.indice);
+    if(!r.length) return `<p>Sem destaques para ${loja} em ${quando}.</p>`;
+    return `<p><b>${loja}</b> vende ${nItens(r.length)} acima do próprio porte em ${quando}${
+      r.length>1?'. Os mais fortes:':':'}</p>${chatTab(
+      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
+       {t:'Índice',num:1,v:x=>Math.round(100*x.indice)+'%'},
+       {t:'Esta loja',num:1,v:x=>fmtInt(x.un_loja)},{t:'Rede',num:1,v:x=>fmtInt(x.un_rede)}], r.slice(0,10))
+      }${chatVer('oportunidades', `Ver ${pl(r.length,'o destaque','os '+fmtInt(r.length)+' destaques')}`,
+        {loja, aba:'dest'})}`;
+  }
+
+  if(intencao==='resumo_loja'){
+    const [pt,gp,pm]=await Promise.all([
+      fetchRpc('loja_porte',a), fetchRpc('oportunidade_gap',a), fetchRpc('preco_medio_loja',aPM)]);
+    const porte=(pt.data||[]).find(x=>x.loja===loja);
+    if(!porte) return `<p>Não há venda registrada para ${loja} em ${quando}.</p>`;
+    const ord=[...(pt.data||[])].sort((x,y)=>y.unidades-x.unidades);
+    const posto=ord.findIndex(x=>x.loja===loja)+1;
+    const g=(gp.data||[]).filter(x=>x.loja===loja);
+    const disp=g.reduce((t,x)=>t+(+x.gap_atendivel||0),0);
+    const emA=g.filter(x=>x.classe==='A').length;
+    const base=(pm.data||[]).filter(x=>+x.unidades>0);
+    const eu=base.find(x=>x.loja===loja);
+    return `<p>Em ${quando}, <b>${loja}</b> vendeu <b>${fmtInt(porte.unidades)} peças</b> —
+      ${fmtPct(100*(porte.participacao||0))} da rede, <b>${posto}º</b> de ${ord.length} em volume,
+      com ${fmtInt(porte.skus_ativos)} SKUs diferentes.</p>
+      ${eu?`<p>Preço médio de <b>${fmtBRL(eu.preco_medio)}</b>, ${
+        (+eu.vs_rede_pct)>=0?'acima':'abaixo'} da rede em ${fmtPct(Math.abs(eu.vs_rede_pct))}
+        (rede: ${fmtBRL(eu.pm_rede)}).</p>`:''}
+      <p>${nItens(g.length)} ${pl(g.length,'pesa','pesam')} menos aqui do que na rede${
+        emA?`, ${emA} de classe A`:''} — e <b>${fmtInt(disp)} peças</b> ${
+        pl(g.length,'desse item','desses itens')} estão disponíveis no Pulmão SP hoje.</p>
+      <p class="chat-dica">Quer detalhar? Pergunte "o que estou deixando de vender?",
+      "onde eu vou bem?" ou "meu preço está abaixo da rede?".</p>
+      ${chatVer('oportunidades','Ver em Oportunidades',{loja, aba:'gap'})}`;
+  }
+
+  return `<p>Entendi a pergunta, mas ainda não montei essa resposta.</p>`;
+}
+
+/* ---------- 4. o log: roteiro do que construir, e medida de uso ---------- */
+async function chatLog(pergunta, intencao, origem, respondida){
+  try{
+    await sb.from('chat_perguntas').insert({
+      usuario: session.user.id,
+      papel: perfil?.papel || null,
+      loja: CHAT.loja || null,
+      pergunta: pergunta.slice(0,500),
+      intencao, origem, respondida
+    });
+  }catch{ /* log e melhor-esforco: nunca atrapalha a resposta */ }
 }
 
 /* ============================================================
