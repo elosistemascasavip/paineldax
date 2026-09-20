@@ -136,11 +136,12 @@ h1{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0}
 .panel-head h2{font-size:15px;margin:0;font-weight:700}
 .panel-head .count{margin-left:auto;color:var(--ink-faint);font-size:13px;font-weight:600}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:7px 12px;color:var(--ink-faint);font-weight:600;font-size:11px;letter-spacing:.03em;
-  border-bottom:1px solid var(--line);background:#fbfcfe;position:sticky;top:0;white-space:nowrap}
-td{padding:6px 12px;border-bottom:1px solid #f1f3f8;white-space:nowrap;line-height:1.3}
+th{text-align:left;padding:7px 9px;color:var(--ink-faint);font-weight:600;font-size:11px;letter-spacing:.03em;
+  border-bottom:1px solid var(--line);background:#fbfcfe;position:sticky;top:0;white-space:nowrap;z-index:2}
+td{padding:6px 9px;border-bottom:1px solid #f1f3f8;white-space:nowrap;line-height:1.3}
 td.desc{max-width:420px;overflow:hidden;text-overflow:ellipsis}
 .rowline{max-width:0}
+th.wide{width:99%}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafbfe}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -393,6 +394,85 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
   .panel{border:none}
   td,th{white-space:normal}
 }
+/* --- Matriz de cobertura --- */
+.cob-tbl{table-layout:auto}
+.cob-tbl th{font-size:11.5px;padding:7px 13px}
+.cob-tbl th.lj,.cob-tbl td.lj{text-align:left;white-space:nowrap;font-weight:600;position:sticky;left:0;background:#fff;z-index:1}
+.cob-tbl thead th.lj{background:#fbfcfe;z-index:3}
+.cob-tbl td.cb{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  padding:6px 13px;border-radius:5px;min-width:54px;background-clip:padding-box;
+  border-left:2px solid #fff;border-right:2px solid #fff}
+.cob-tbl th{text-align:right}
+.cob-tbl tfoot td{background:#f7f9fc;font-weight:700;border-top:2px solid var(--line);
+  text-align:right;font-family:'IBM Plex Mono',monospace}
+.cob-tbl tfoot td.lj{text-align:left;background:#f7f9fc}
+.cob-tbl td.cb.cli{cursor:pointer;outline:1px dashed rgba(0,0,0,.18);outline-offset:-3px}
+.cob-tbl td.cb.cli:hover{filter:brightness(.94)}
+.cob-tbl td.lj,.cob-tbl th.lj{padding-right:16px}
+.cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap}
+.c-ok{background:#f4f7fb;color:var(--ink)}
+.c-ver{background:#fff2df;color:#9a6100}
+.c-conf{background:#f2f3f6;color:#697588}
+.c-pend,.c-aguard{background:#fdeaea;color:#c0392b}
+.c-fora{background:#f7f8fa;color:#aab3c0}
+.cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
+.cob-leg i{width:13px;height:13px;border-radius:4px;display:inline-block}
+table.densa td,table.densa th{padding:6px 8px;line-height:1.25}
+table.densa td.desc{max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.densa tr.rompido td{background:#fdf1f1}
+table.densa tr.rompido td:first-child{box-shadow:inset 3px 0 0 #d9534f}
+table.densa tr.rompido:hover td{background:#fbe6e6}
+.pa-box .pa-tip{position:absolute;top:6px;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:#12325a;color:#fff;border-radius:9px;padding:8px 11px;font-size:12px;line-height:1.5;
+  max-width:230px;box-shadow:0 6px 18px rgba(18,50,90,.25);z-index:3}
+.pa-box .pa-tip .d{color:#c7d6ea}
+.pa-box .pa-tip .pill{font-size:10.5px;padding:1px 7px}
+table.densa tr.drill td{cursor:pointer}
+table.densa tr.drill:hover td{background:#f2f7ff}
+.review .go.ok{background:#1f9d55;border-color:#1f9d55;cursor:default}
+.page-head .head-selos{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.selo.mini{padding:4px 10px;font-size:11.5px;font-weight:600}
+.selo.mini i{width:8px;height:8px}
+.selo{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+  color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.selo i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.duto-cel{display:flex;align-items:center;gap:10px}
+.duto{position:relative;height:14px;border-radius:999px;background:#e9edf4;
+  flex:1 1 auto;min-width:76px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(18,50,90,.07)}
+.duto-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;transition:width .25s}
+.duto-marca{position:absolute;top:0;bottom:0;width:1px;background:rgba(18,50,90,.16)}
+.duto-legenda{display:flex;align-items:flex-end;gap:14px;padding:10px 16px 4px;flex-wrap:wrap}
+.dl-tit{font-size:11px;font-weight:700;color:var(--ink-faint);letter-spacing:.03em;
+  text-transform:uppercase;padding-bottom:3px}
+.dl-regua{width:230px;position:relative}
+.dl-rot,.dl-pct{position:relative;height:14px;font-size:10px;color:var(--ink-faint);
+  font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.dl-rot{margin-top:3px}
+.dl-pct{margin-bottom:2px}
+.dl-pct b{color:var(--ink-soft)}
+.dl-rot b{color:var(--ink-soft)}
+.dl-nota{font-size:11.5px;color:var(--ink-faint);padding-bottom:3px}
+.dl-nota b{color:var(--ink-soft)}
+.duto-pista{background:#eef1f6}
+.duto-ate{position:absolute;left:0;top:0;bottom:0;overflow:hidden}
+.duto-wrap{position:relative;flex:1 1 auto;min-width:76px}
+.duto-wrap>.duto{width:100%}
+.duto-pin{position:absolute;top:0;bottom:0;width:0}
+.duto-pin>i{position:absolute;left:0;top:-7px;transform:translateX(-50%);width:0;height:0;
+  border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #16202f}
+.duto-pin.zero{left:0;margin-left:0}
+.opo-rot{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em}
+.duto-num{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;
+  white-space:nowrap;min-width:48px;text-align:right}
+.duto-cel{padding:0 3px}
+.duto.semgiro{background:repeating-linear-gradient(45deg,#f1f4f8,#f1f4f8 3px,#e6eaf1 3px,#e6eaf1 6px)}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+  color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
+.chk input{margin:0;cursor:pointer}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:11px;
+  border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);font-weight:600}
+.cob-leg i.c-aguard{background:#fdeaea}
+.cob-nota{padding:10px 16px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -580,7 +660,9 @@ const ORDEM_PADRAO={
   vw_produtos:['sku'], vw_lojas:['nome'], vw_usuarios:['email'],
   vw_vendas_por_loja:['competencia','loja'], vw_preco_medio_loja:['loja'],
   vw_grupos:['rotulo'], vw_linhas:['rotulo'], vw_cores:['rotulo'],
-  vw_cobertura_matriz:['ano','loja','mes'], vw_lojas_sem_venda_ano:['ano','loja']
+  vw_cobertura_matriz:['ano','loja','mes'], vw_lojas_sem_venda_ano:['ano','loja'],
+  vw_oportunidade_gap:['loja','sku'], vw_oportunidade_destaque:['loja','sku'],
+  vw_loja_porte:['loja']
 };
 async function fetchAll(tabela, colunas, ordem){
   const PAGE=1000; let de=0, todos=[];
@@ -624,53 +706,6 @@ function printTabela(titulo, cols, rows){
     h1{font-size:16px;margin:0 0 4px} .sub{color:#666;margin:0 0 14px;font-size:11px}
     table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:4px 7px;text-align:left}
     th{background:#eef2f8} .r{text-align:right}
-/* --- Matriz de cobertura --- */
-.cob-tbl{table-layout:auto}
-.cob-tbl th{font-size:11.5px}
-.cob-tbl th.lj,.cob-tbl td.lj{text-align:left;white-space:nowrap;font-weight:600;position:sticky;left:0;background:#fff;z-index:1}
-.cob-tbl thead th.lj{background:#fbfcfe}
-.cob-tbl td.cb{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
-  padding:6px 9px;border-radius:5px;min-width:54px}
-.cob-tbl th{text-align:right}
-.cob-tbl tfoot td{background:#f7f9fc;font-weight:700;border-top:2px solid var(--line);
-  text-align:right;font-family:'IBM Plex Mono',monospace}
-.cob-tbl tfoot td.lj{text-align:left;background:#f7f9fc}
-.cob-tbl td.cb.cli{cursor:pointer;outline:1px dashed rgba(0,0,0,.18);outline-offset:-3px}
-.cob-tbl td.cb.cli:hover{filter:brightness(.94)}
-.cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap}
-.c-ok{background:#e7f0ff;color:#1552c9}
-.c-ver{background:#fff2df;color:#9a6100}
-.c-conf{background:#f2f3f6;color:#697588}
-.c-pend,.c-aguard{background:#fdeaea;color:#c0392b}
-.c-fora{background:#f7f8fa;color:#aab3c0}
-.cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
-.cob-leg i{width:13px;height:13px;border-radius:4px;display:inline-block}
-table.densa td,table.densa th{padding:6px 10px;line-height:1.25}
-table.densa td.desc{max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-table.densa tr.rompido td{background:#fdf1f1}
-table.densa tr.rompido td:first-child{box-shadow:inset 3px 0 0 #d9534f}
-table.densa tr.rompido:hover td{background:#fbe6e6}
-.pa-box .pa-tip{position:absolute;top:6px;pointer-events:none;opacity:0;transition:opacity .12s;
-  background:#12325a;color:#fff;border-radius:9px;padding:8px 11px;font-size:12px;line-height:1.5;
-  max-width:230px;box-shadow:0 6px 18px rgba(18,50,90,.25);z-index:3}
-.pa-box .pa-tip .d{color:#c7d6ea}
-.pa-box .pa-tip .pill{font-size:10.5px;padding:1px 7px}
-table.densa tr.drill td{cursor:pointer}
-table.densa tr.drill:hover td{background:#f2f7ff}
-.review .go.ok{background:#1f9d55;border-color:#1f9d55;cursor:default}
-.page-head .head-selos{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
-.selo.mini{padding:4px 10px;font-size:11.5px;font-weight:600}
-.selo.mini i{width:8px;height:8px}
-.selo{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
-  color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
-.selo i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
-.chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
-  color:var(--ink-soft);border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}
-.chk input{margin:0;cursor:pointer}
-.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:11px;
-  border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);font-weight:600}
-.cob-leg i.c-aguard{background:#fdeaea}
-.cob-nota{padding:10px 16px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line)}
 </style></head>
     <body><h1>${titulo}</h1><div class="sub">Casa VIP · Abastecimento — ${new Date().toLocaleDateString('pt-BR')} — ${rows.length} itens</div>
     <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>
@@ -850,7 +885,7 @@ function readPeriod(box){ const v={};
   st.mode = st.cmp==='1' ? 'compare' : 'single';
   return st;
 }
-function wirePeriod(box, meses, onChange){
+function wirePeriod(box, meses, onChange, stInicial){
   const render=(st)=>{ box.innerHTML=periodControlHTML(meses,st);
     box.querySelectorAll('[data-k]').forEach(el=>el.onchange=()=>{
       const s=readPeriod(box);
@@ -858,8 +893,28 @@ function wirePeriod(box, meses, onChange){
       onChange(readPeriod(box));
     });
   };
-  render({});
+  render(stInicial||{});
   onChange(readPeriod(box));
+}
+// Ultimos N meses da base. Na cobertura o padrao NAO pode ser "todo o historico":
+// com 2025 carregado a media por item cairia pela metade e a cobertura em dias
+// dobraria sozinha, apagando o alerta de ruptura sem nada ter mudado.
+function ultimosMeses(meses, n){
+  if(!meses || !meses.length) return {};
+  const fim=meses[meses.length-1], ini=meses[Math.max(0, meses.length-n)];
+  return {aIni:ini, aFim:fim};
+}
+// rpc paginado: mesma guarda de 1000 linhas que o fetchAll resolve nas views
+async function fetchRpc(fn, args){
+  const PAGE=1000; let de=0, todos=[];
+  for(;;){
+    const {data,error}=await sb.rpc(fn,args).range(de,de+PAGE-1);
+    if(error) return {data:null,error};
+    todos=todos.concat(data||[]);
+    if(!data || data.length<PAGE) break;
+    de+=PAGE; if(de>200000) break;
+  }
+  return {data:todos,error:null};
 }
 function inPeriod(comp,ini,fim){ comp=String(comp); return (!ini||comp>=ini)&&(!fim||comp<=fim); }
 function periodLabel(st){
@@ -1119,7 +1174,7 @@ function selosHead(fonte){
   }
   if(fonte==='estoque'||fonte==='ambos'){
     const a=idadeCarga(CARGAS.estoque,'estoque');
-    q.push(`<span class="selo mini" title="Estoque: carga de ${fmtDataHora(CARGAS.estoque)}">
+    q.push(`<span class="selo mini" title="Pulmão SP: carga de ${fmtDataHora(CARGAS.estoque)}">
       <i style="background:${a.cor}"></i>Estoque ${a.txt}</span>`);
   }
   return q.join('');
@@ -1723,13 +1778,298 @@ function emConstrucao(resumo){
    piso de amostra, eixos grupo/linha/cor).
    ============================================================ */
 const ICO_OPO=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg>`;
-function renderOportunidades(){
+// indice = peso do item na loja / peso do item na rede.
+// 1,00 e estar na media do proprio porte; abaixo e acima usam a mesma regua,
+// entao gap e destaque deixam de ser duas metricas desconexas.
+// Em percentual: 68% le direto como "vende 68% do que venderia no proprio porte".
+// O decimal 0,68 exigia traduzir de cabeca; a base 100 nao.
+function indiceHTML(v){
+  const n=+v||0;
+  const cor = n>=1.2 ? '#1f9d55' : (n>=0.8 ? 'var(--ink-soft)' : (n>=0.4 ? 'var(--amber)' : '#c0392b'));
+  return `<span style="font-weight:700;color:${cor}" title="índice ${n.toFixed(2)}">${
+    Math.round(n*100)}%</span>`;
+}
+const OPO={gap:[],dest:[],porte:[],pm:[],loja:'',aba:'gap',meses:[],period:{},montando:false};
+// porte e peso do item vem da MESMA janela: comparar venda de um mes com o
+// porte do ano inteiro daria indice sem sentido
+async function opoCarregar(){
+  const st=OPO.period||{};
+  const a={p_ini: st.aIni||null, p_fim: st.aFim||null};
+  const [g,d,pt,pm]=await Promise.all([
+    fetchRpc('oportunidade_gap',a),
+    fetchRpc('oportunidade_destaque',a),
+    fetchRpc('loja_porte',a),
+    fetchRpc('preco_medio_loja',{p_comp_ini:a.p_ini, p_comp_fim:a.p_fim})
+  ]);
+  if(g.error) return g.error.message;
+  OPO.gap=g.data||[]; OPO.dest=d.data||[]; OPO.porte=pt.data||[]; OPO.pm=pm.data||[];
+  return null;
+}
+async function renderOportunidades(){
   view.innerHTML=head(ICO_OPO,'Oportunidades',
-    'Desempenho de cada associado por SKU, comparado com a média da rede.','Análise','vendas')
-  + emConstrucao(`comparação de performance SKU a SKU entre o associado e a rede, com a venda
-    ideal calculada para o porte da loja. A leitura se abre por grupo, linha e cor, mostrando
-    onde ele está acima ou abaixo da média — para agir no impulsionamento do item, da cor,
-    da linha ou do grupo inteiro.`);
+    'Onde a loja vende abaixo do próprio porte, onde vende acima e onde o preço deixa dinheiro na mesa.','Análise','vendas')
+    +'<div id="opBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('opBody');
+  if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+
+  const mesesDisp=await sb.from('vw_vendas_por_loja').select('competencia')
+    .order('competencia',{ascending:true});
+  OPO.meses=uniq((mesesDisp.data||[]).map(x=>x.competencia));
+  OPO.period=ultimosMeses(OPO.meses,6);
+  const erro=await opoCarregar();
+  if(erro){ body.innerHTML=`<div class="notice warn">${erro}</div>`; return; }
+  if(!OPO.gap.length && !OPO.dest.length){
+    body.innerHTML='<div class="panel"><div class="empty"><div class="big">Sem dados suficientes</div>'
+      +'Importe a planilha de vendas para calcular as oportunidades.</div></div>'; return; }
+
+  const lojas=uniq(OPO.porte.map(x=>x.loja));
+  // associado cai na propria loja; gestor comeca na visao da rede
+  OPO.loja=resolverMinhaLoja(lojas)||'';
+  body.innerHTML=`
+    <div class="tools" style="margin-bottom:10px">
+      <div id="opPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+    </div>
+    <div class="tools">
+      <select class="selin" id="opLoja" style="min-width:210px">
+        <option value="">Rede — todas as lojas</option>
+        ${lojas.map(l=>`<option${l===OPO.loja?' selected':''}>${l}</option>`).join('')}
+      </select>
+      <div class="grow"></div>
+      <button class="btn-tool" id="opCSV">Exportar CSV</button>
+    </div>
+    <div id="opConteudo"></div>`;
+  document.getElementById('opLoja').onchange=e=>{ OPO.loja=e.target.value; OPO.aba='gap'; opoPinta(); };
+  document.getElementById('opCSV').onclick=opoExportar;
+  OPO.montando=true;
+  wirePeriod(document.getElementById('opPeriod'), OPO.meses, async(st)=>{
+    if(OPO.montando) return;                    // dispara uma vez ao montar
+    OPO.period=st;
+    const e=await opoCarregar(); if(!e) opoPinta();
+  }, OPO.period);
+  OPO.montando=false;
+  opoPinta();
+}
+
+function opoPinta(){
+  const el=document.getElementById('opConteudo');
+  if(!OPO.loja) return el.innerHTML=opoRede();
+  const g=OPO.gap.filter(x=>x.loja===OPO.loja).sort((a,b)=>b.gap_atendivel-a.gap_atendivel||b.gap-a.gap);
+  const d=OPO.dest.filter(x=>x.loja===OPO.loja).sort((a,b)=>b.indice-a.indice);
+  const p=OPO.porte.find(x=>x.loja===OPO.loja)||{};
+  const atend=g.reduce((a,x)=>a+x.gap_atendivel,0);
+  const emA=g.filter(x=>x.classe==='A').length;
+  const prc=opoPreco(OPO.loja);
+
+  el.innerHTML=`
+    <div class="statbar">
+      <div class="s"><div class="n">${fmtInt(p.unidades)}</div><div class="l">Peças vendidas</div></div>
+      <div class="s"><div class="n">${fmtPct(100*(p.participacao||0))}</div><div class="l">Participação na rede</div></div>
+      <div class="s"><div class="n">${fmtInt(p.skus_ativos)}</div><div class="l">SKUs que vende</div></div>
+      <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(g.length)}</div><div class="l">Itens abaixo do porte</div></div>
+      <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(atend)}</div><div class="l">Peças com estoque hoje</div></div>
+      <div class="s"><div class="n" style="color:#1f9d55">${fmtInt(d.length)}</div><div class="l">Destaques</div></div>
+      ${prc.card}
+    </div>
+    ${prc.painel}
+    <div class="tools" style="margin-bottom:0">
+      <button class="btn-tool${OPO.aba==='gap'?' pri':''}" onclick="OPO.aba='gap';opoPinta()">Abaixo do porte (${g.length})</button>
+      <button class="btn-tool${OPO.aba==='dest'?' pri':''}" onclick="OPO.aba='dest';opoPinta()">Destaques (${d.length})</button>
+    </div>
+    <div class="notice" style="margin:12px 0"><b>Índice</b> = quanto o item pesa nesta loja ÷ quanto pesa na rede.
+      <b>100%</b> é vender esse item no tamanho da própria loja. ${OPO.aba==='gap'
+      ? '68%, por exemplo, quer dizer que a loja vendeu 68% do que venderia se tratasse o item como a rede trata. <b>Não é previsão de venda</b> — é a diferença de sortimento, para investigar exposição, preço ou demanda local.'
+      : 'Acima de 100% a loja vende mais que o porte dela sugere. Vale entender o que dá certo aqui e levar para as outras.'}</div>
+    ${OPO.aba==='gap' ? opoTabelaGap(g) : opoTabelaDest(d)}`;
+}
+
+function opoTabelaGap(g){
+  if(!g.length) return '<div class="panel"><div class="empty">Nenhum item abaixo do porte nesta loja.</div></div>';
+  return `<div class="panel"><div class="panel-head"><h2>Abaixo do porte</h2>
+    <span class="count">${fmtInt(g.length)} itens · ${fmtInt(g.reduce((a,x)=>a+x.gap_atendivel,0))} peças disponíveis</span></div>
+    <div class="tbl-scroll"><table class="densa"><thead><tr>
+      <th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Classe</th>
+      <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num" title="peso na loja ÷ peso na rede · 100% = no porte">Índice</th>
+      <th class="num">Esta loja</th><th class="num">Esperado</th>
+      <th class="num">Diferença</th><th class="num">Pulmão SP</th></tr></thead>
+    <tbody>${g.map(x=>`<tr${x.estoque_cd===0?' class="rompido"':''}>
+      <td>${x.sku}</td>
+      <td class="desc" title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.descricao||'—'}</td>
+      <td>${rotuloLinha(x)}</td>
+      <td><span class="pill ${x.classe}">${x.classe}</span></td>
+      <td class="num">${(+x.peso_rede_pct).toFixed(2)}%</td>
+      <td class="num">${(+x.peso_loja_pct).toFixed(2)}%</td>
+      <td class="num">${indiceHTML(x.indice)}</td>
+      <td class="num">${fmtInt(x.un_loja)}</td>
+      <td class="num">${fmtInt(x.esperado)}</td>
+      <td class="num" style="font-weight:700;color:var(--amber)">${fmtInt(x.gap)}</td>
+      <td class="num"${x.estoque_cd===0?' style="color:#c0392b;font-weight:700"':''}>${
+        x.estoque_cd===0?'rompido':fmtInt(x.estoque_cd)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+
+function opoTabelaDest(d){
+  if(!d.length) return '<div class="panel"><div class="empty">Sem destaques nesta loja no período.</div></div>';
+  return `<div class="panel"><div class="panel-head"><h2>Destaques</h2>
+    <span class="count">${fmtInt(d.length)} itens</span></div>
+    <div class="tbl-scroll"><table class="densa"><thead><tr>
+      <th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Classe</th>
+      <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num" title="peso na loja ÷ peso na rede · 100% = no porte">Índice</th>
+      <th class="num">Rede</th><th class="num">Esta loja</th><th class="num">% do item</th></tr></thead>
+    <tbody>${d.map(x=>`<tr>
+      <td>${x.sku}</td>
+      <td class="desc" title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.descricao||'—'}</td>
+      <td>${rotuloLinha(x)}</td>
+      <td><span class="pill ${x.classe}">${x.classe}</span></td>
+      <td class="num">${(+x.peso_rede_pct).toFixed(2)}%</td>
+      <td class="num">${(+x.peso_loja_pct).toFixed(2)}%</td>
+      <td class="num">${indiceHTML(x.indice)}</td>
+      <td class="num">${fmtInt(x.un_rede)}</td>
+      <td class="num">${fmtInt(x.un_loja)}</td>
+      <td class="num">${x.concentracao_pct}%</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+
+// Oportunidade de preco: quanto a loja deixou na mesa por vender a um preco medio
+// abaixo do da rede — (preco da rede - preco da loja) x as unidades que ela JA
+// vendeu. Nao e projecao de volume: sao as mesmas pecas, so reprecificadas.
+// Nao promete resultado (subir preco pode custar giro); diz onde olhar.
+function opoPreco(lojaSel){
+  const base=OPO.pm.filter(d=>+d.unidades>0);
+  if(!base.length) return lojaSel ? {card:'',painel:''} : `<div class="panel"><div class="empty">
+    <div class="big">Sem faturamento no período</div>
+    Importe a aba “Venda (R$)” para calcular o preço médio.</div></div>`;
+  const pmRede=+base[0].pm_rede;
+  const calc=d=>({...d, dif:pmRede-(+d.preco_medio), opo:(pmRede-(+d.preco_medio))*(+d.unidades)});
+  const abaixo=base.filter(d=>+d.preco_medio<pmRede).map(calc).sort((a,b)=>b.opo-a.opo);
+
+  if(lojaSel){
+    const vazio={card:'',painel:''};
+    const eu=base.find(d=>d.loja===lojaSel);
+    if(!eu) return vazio;
+    const e=calc(eu), acima=e.dif<0;
+    const posto=[...base].sort((a,b)=>(+b.preco_medio)-(+a.preco_medio))
+      .findIndex(d=>d.loja===lojaSel)+1;
+    return {
+      card:`<div class="s"><div class="n" style="color:${acima?'#1f9d55':'#0f3f8f'}">${
+        moneyHTML(Math.abs(e.opo),'150px')}</div><div class="l">${
+        acima?'A mais que a rede renderia':'Em jogo no preço'}</div></div>`,
+      painel:`<div class="panel" style="margin-bottom:14px"><div class="panel-head">
+        <h2>Oportunidade de preço</h2>
+        <span class="count">${posto}º de ${base.length} no preço médio da rede</span></div>
+        <div style="padding:13px 16px;display:flex;gap:28px;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;gap:22px;flex-wrap:wrap">
+            <div><div class="opo-rot">Preço médio da loja</div>
+              <div style="font-size:17px;font-weight:700">${moneyHTML(e.preco_medio,'112px')}</div></div>
+            <div><div class="opo-rot">Preço médio da rede</div>
+              <div style="font-size:17px;font-weight:700;color:var(--ink-soft)">${moneyHTML(pmRede,'112px')}</div></div>
+            <div><div class="opo-rot">Diferença</div>
+              <div style="font-size:17px;font-weight:700">${deltaHTML(e.vs_rede_pct)}</div></div>
+          </div>
+          <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.5;flex:1 1 320px;min-width:280px">${acima
+            ? `Vende <b>acima</b> da média da rede. As ${fmtInt(e.unidades)} peças do período
+               renderam <b>${fmtBRL(Math.abs(e.opo))}</b> a mais do que renderiam ao preço da rede.
+               Vale entender o que sustenta esse preço e levar para as outras lojas.`
+            : `As <b>mesmas ${fmtInt(e.unidades)} peças</b> já vendidas teriam gerado
+               <b>${fmtBRL(e.opo)}</b> a mais ao preço médio da rede. Não é venda nova —
+               é margem de preço. Subir preço pode custar giro; o número diz onde olhar,
+               não o que fazer.`}</div>
+        </div></div>`};
+  }
+
+  if(!abaixo.length) return `<div class="panel"><div class="panel-head"><h2>Oportunidade de preço</h2></div>
+    <div class="empty">Nenhuma loja abaixo do preço médio da rede no período.</div></div>`;
+  const total=abaixo.reduce((t,d)=>t+d.opo,0);
+  const un=abaixo.reduce((t,d)=>t+(+d.unidades||0),0);
+  const maior=abaixo[0].opo||1;
+  return `<div class="panel" style="margin-top:14px"><div class="panel-head"><h2>Oportunidade de preço</h2>
+    <span class="count">${abaixo.length} ${abaixo.length===1?'loja abaixo da média':'lojas abaixo da média'}</span></div>
+    <div style="padding:12px 16px 4px;display:flex;gap:26px;flex-wrap:wrap;align-items:baseline">
+      <div><div style="font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em">Em jogo no período</div>
+        <div style="font-size:21px;font-weight:700;color:#0f3f8f">${fmtBRL(total)}</div></div>
+      <div style="font-size:12.5px;color:var(--ink-soft);max-width:520px;line-height:1.5">
+        É o que as <b>mesmas ${fmtInt(un)} peças</b> que essas lojas já venderam teriam
+        gerado ao preço médio da rede (${fmtBRL(pmRede)}). Não é venda nova — é margem de preço.
+        Subir preço pode custar giro; o número diz onde olhar, não o que fazer.</div>
+    </div>
+    <div class="tbl-scroll"><table class="densa"><thead><tr>
+      <th>Loja</th><th class="num">Peças</th><th class="num">Preço médio</th>
+      <th class="num">Dif. p/ rede</th><th class="num">Oportunidade</th><th style="width:150px"></th>
+    </tr></thead><tbody>${abaixo.map(d=>`<tr class="drill" onclick="OPO.loja='${
+        d.loja.replace(/'/g,"\\'")}';OPO.aba='gap';
+        document.getElementById('opLoja').value='${d.loja.replace(/'/g,"\\'")}';opoPinta()">
+      <td>${d.loja}${d.uf?` <span style="color:var(--ink-faint)">${d.uf}</span>`:''}</td>
+      <td class="num">${fmtInt(d.unidades)}</td>
+      <td class="num">${moneyHTML(d.preco_medio,'104px')}</td>
+      <td class="num" style="color:#c0392b">${moneyHTML(-d.dif,'100px')}</td>
+      <td class="num"><b>${moneyHTML(d.opo,'124px')}</b></td>
+      <td><div class="duto" style="height:9px"><div class="duto-fill"
+        style="width:${Math.max(3,100*d.opo/maior).toFixed(1)}%;
+        background:linear-gradient(90deg,#1f6fe0,#4a90ee)"></div></div></td>
+    </tr>`).join('')}</tbody></table></div></div>`;
+}
+
+function opoRede(){
+  const linhas=OPO.porte.map(p=>{
+    const g=OPO.gap.filter(x=>x.loja===p.loja);
+    return {loja:p.loja, un:p.unidades, part:p.participacao,
+            itens:g.length, gap:g.reduce((a,x)=>a+x.gap,0),
+            atend:g.reduce((a,x)=>a+x.gap_atendivel,0),
+            emA:g.filter(x=>x.classe==='A').length,
+            dest:OPO.dest.filter(x=>x.loja===p.loja).length};
+  }).sort((a,b)=>b.atend-a.atend);
+  const tot=linhas.reduce((a,x)=>({itens:a.itens+x.itens, gap:a.gap+x.gap, atend:a.atend+x.atend}),
+                          {itens:0,gap:0,atend:0});
+  return `<div class="statbar">
+      <div class="s"><div class="n">${fmtInt(tot.itens)}</div><div class="l">Oportunidades na rede</div></div>
+      <div class="s"><div class="n">${fmtInt(tot.atend)}</div><div class="l">Peças com estoque hoje</div></div>
+      <div class="s"><div class="n">${fmtInt(linhas.filter(x=>x.itens>0).length)}</div><div class="l">Lojas com oportunidade</div></div>
+    </div>
+    <div class="notice" style="margin-bottom:12px">Clique numa loja para ver os itens.</div>
+    <div class="panel"><div class="panel-head"><h2>Por loja</h2>
+      <span class="count">ordenado por peças disponíveis</span></div>
+    <div class="tbl-scroll"><table class="densa"><thead><tr>
+      <th>Loja</th><th class="num">Peças vendidas</th><th class="num">Participação</th>
+      <th class="num">Itens abaixo</th><th class="num">Em classe A</th>
+      <th class="num">Diferença</th><th class="num">Com estoque</th><th class="num">Destaques</th></tr></thead>
+    <tbody>${linhas.map(x=>`<tr class="drill" onclick="OPO.loja='${x.loja.replace(/'/g,"\\'")}';
+        document.getElementById('opLoja').value='${x.loja.replace(/'/g,"\\'")}';opoPinta()">
+      <td style="font-weight:600">${x.loja}</td>
+      <td class="num">${fmtInt(x.un)}</td>
+      <td class="num">${fmtPct(100*x.part)}</td>
+      <td class="num">${fmtInt(x.itens)}</td>
+      <td class="num">${fmtInt(x.emA)}</td>
+      <td class="num">${fmtInt(x.gap)}</td>
+      <td class="num" style="font-weight:700;color:var(--amber)">${fmtInt(x.atend)}</td>
+      <td class="num" style="color:#1f9d55">${fmtInt(x.dest)}</td></tr>`).join('')}
+      <tr style="font-weight:700;background:#f7f9fc"><td>TOTAL DA REDE</td>
+        <td class="num"></td><td class="num"></td>
+        <td class="num">${fmtInt(tot.itens)}</td><td class="num"></td>
+        <td class="num">${fmtInt(tot.gap)}</td>
+        <td class="num">${fmtInt(tot.atend)}</td><td class="num"></td></tr>
+    </tbody></table></div></div>
+    ${opoPreco('')}`;
+}
+
+function opoExportar(){
+  if(!OPO.loja){
+    return exportCSV('oportunidades_rede',
+      [{label:'Loja',key:'loja'},{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},
+       {label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},{label:'Un loja',key:'un_loja'},
+       {label:'Esperado',key:'esperado'},{label:'Diferenca',key:'gap'},
+       {label:'Pulmao SP',key:'estoque_cd'}], OPO.gap);
+  }
+  if(OPO.aba==='gap')
+    return exportCSV('oportunidades_'+OPO.loja,
+      [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+       {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},
+       {label:'Un loja',key:'un_loja'},{label:'Esperado',key:'esperado'},
+       {label:'Diferenca',key:'gap'},{label:'Pulmao SP',key:'estoque_cd'}],
+      OPO.gap.filter(x=>x.loja===OPO.loja));
+  return exportCSV('destaques_'+OPO.loja,
+    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+     {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},
+     {label:'Un loja',key:'un_loja'},{label:'Pct da rede',key:'concentracao_pct'},
+     {label:'Indice %',get:x=>Math.round((+x.indice||0)*100)}], OPO.dest.filter(x=>x.loja===OPO.loja));
 }
 
 /* ============================================================
@@ -1879,7 +2219,8 @@ async function renderABC(){
     <div class="panel"><div class="panel-head"><h2 id="abcTit">Produtos classificados</h2><span class="count" id="abcCount"></span></div>
       <div class="tbl-scroll"><table><thead><tr id="abcHead"></tr></thead><tbody id="abcRows"></tbody></table></div></div>
     <div id="abcLegenda"></div>`;
-  wirePeriod(document.getElementById('abcPeriod'), ABC.meses, (st)=>{ABC.period=st; abcRefresh();});
+  wirePeriod(document.getElementById('abcPeriod'), ABC.meses, (st)=>{ABC.period=st; abcRefresh();},
+    ultimosMeses(ABC.meses,6));
   ['fSearch','fLojaAbc','fGrupo','fLinha','fCor','fClasse'].forEach(id=>{
     const el=document.getElementById(id); el.oninput=el.onchange=abcRefresh;
   });
@@ -2003,7 +2344,7 @@ function abcRefresh(){
 
   document.getElementById('abcCount').textContent=fmtInt(rows.length)+' SKUs';
   const cmp=ABC.comparando;
-  document.getElementById('abcHead').innerHTML = `<th class="num">#</th><th>SKU</th><th>Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>`
+  document.getElementById('abcHead').innerHTML = `<th class="num">#</th><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>`
     + (cmp? `<th class="num">Período A</th><th class="num">Período B</th><th class="num">Variação</th>` : `<th class="num">Qtd</th>`)
     + `<th class="num">% acum.</th><th class="cls">Classe</th><th class="cls">No grupo</th>`
     + (lojaSel? `<th class="cls">Na rede</th>` : '');
@@ -2154,7 +2495,8 @@ async function renderVendas(){
       <div style="padding:14px 16px" id="vChart"></div></div>
     <div id="vStats"></div>
     <div id="vRankPanel"></div>`;
-  wirePeriod(document.getElementById('vPeriod'), VEN.meses, (st)=>{VEN.period=st; vendasRefresh();});
+  wirePeriod(document.getElementById('vPeriod'), VEN.meses, (st)=>{VEN.period=st; vendasRefresh();},
+    ultimosMeses(VEN.meses,6));
   document.getElementById('vLoja').onchange=vendasChart;
   document.getElementById('vBusca').oninput=vendasRefresh;
   document.getElementById('vOrd').onchange=vendasRefresh;
@@ -2165,14 +2507,22 @@ async function renderVendas(){
 const VEN={raw:[],meses:[],lojas:[],cad:[],rank:[],period:{mode:'all'}};
 function vendasChart(){
   const lojaSel=document.getElementById('vLoja').value;
-  const rede=VEN.meses.map(m=>VEN.raw.filter(d=>d.competencia===m).reduce((s,d)=>s+(+d.quantidade||0),0));
+  const st=VEN.period||{};
+  // o grafico seguia VEN.meses (base inteira) e ignorava o filtro: mexer no
+  // periodo mudava o ranking mas nao a curva, que e o que se olha primeiro
+  const meses = st.mode==='compare'
+    ? VEN.meses.filter(m=>inPeriod(m,st.aIni,st.aFim)||inPeriod(m,st.bIni,st.bFim))
+    : VEN.meses.filter(m=>inPeriod(m,st.aIni,st.aFim));
+  const usar = meses.length ? meses : VEN.meses;
+  const rede=usar.map(m=>VEN.raw.filter(d=>d.competencia===m).reduce((s,d)=>s+(+d.quantidade||0),0));
   const series=[{name:'Rede',color:'#1f6fe0',values:rede}];
   if(lojaSel){ series.push({name:lojaSel,color:'#e0793b',
-    values:VEN.meses.map(m=>VEN.raw.filter(d=>d.competencia===m&&d.loja===lojaSel).reduce((s,d)=>s+(+d.quantidade||0),0))}); }
-  document.getElementById('vChart').innerHTML=lineChart(VEN.meses.map(mesLabel),series,{media:true});
+    values:usar.map(m=>VEN.raw.filter(d=>d.competencia===m&&d.loja===lojaSel).reduce((s,d)=>s+(+d.quantidade||0),0))}); }
+  document.getElementById('vChart').innerHTML=lineChart(usar.map(mesLabel),series,{media:true});
 }
 function vendasRefresh(){
   const st=VEN.period||{mode:'all'};
+  if(document.getElementById('vChart')) vendasChart();
   if(st.mode==='compare') return vendasCompare(st);
   const rows = st.mode==='single' ? VEN.raw.filter(d=>inPeriod(d.competencia,st.aIni,st.aFim)) : VEN.raw;
   const by={}; rows.forEach(d=>{(by[d.loja]=by[d.loja]||{loja:d.loja,qtd:0});by[d.loja].qtd+=+d.quantidade||0;});
@@ -2277,7 +2627,7 @@ async function renderProdutos(){
       <button class="btn-tool" id="pPrint">Imprimir</button>
     </div>
     <div class="panel"><div class="panel-head"><h2>Catálogo</h2><span class="count" id="pCount"></span></div>
-    <div class="tbl-scroll"><table><thead><tr><th>SKU</th><th>Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>${canEdit?'<th></th>':''}</tr></thead>
+    <div class="tbl-scroll"><table><thead><tr><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>${canEdit?'<th></th>':''}</tr></thead>
     <tbody id="pRows"></tbody></table></div></div>`;
   ['pSearch','pGrupo','pLinha','pCor'].forEach(id=>{const el=document.getElementById(id);el.oninput=el.onchange=prodRefresh;});
   document.getElementById('pCSV').onclick=()=>exportCSV('produtos',prodCols(),prodFilter());
@@ -2564,7 +2914,8 @@ async function renderPresenca(){
     <div class="panel" style="margin-top:14px"><div class="panel-head"><h2 id="prLinhaTit">Participação das linhas</h2>
       <span class="count" id="prLinhaCtx"></span></div><div style="padding:12px 16px" id="prLinhaShare"></div></div>`;
   presFillFiltros();
-  wirePeriod(document.getElementById('prPeriod'), PRES.meses, (st)=>{PRES.period=st; presRefresh();});
+  wirePeriod(document.getElementById('prPeriod'), PRES.meses, (st)=>{PRES.period=st; presRefresh();},
+    ultimosMeses(PRES.meses,6));
   document.getElementById('prReg').onchange=e=>{PRES.regiao=e.target.value;PRES.uf='';PRES.loja='';presFillFiltros();presRefresh();};
   document.getElementById('prUf').onchange=e=>{PRES.uf=e.target.value;PRES.loja='';presFillFiltros();presRefresh();};
   document.getElementById('prLoja').onchange=e=>{PRES.loja=e.target.value;presFillFiltros();presRefresh();};
@@ -2772,18 +3123,25 @@ function presExport(){
    Módulo: Preço médio de venda
    ============================================================ */
 const ICO_PM=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>`;
-const PM={data:[],regiao:''};
+const PM={data:[],regiao:'',meses:[],period:{},montando:false};
 async function renderPrecoMedio(){
   view.innerHTML=head(ICO_PM,'Preço médio de venda','Faturamento ÷ unidades. Onde cada loja está em relação à rede.','Análise','vendas')+'<div id="pmBody"></div>';
   const body=document.getElementById('pmBody');
   if(!session){ body.innerHTML=loginWall('O preço médio é restrito à equipe.'); return; }
-  const {data,error}=await fetchAll('vw_preco_medio_loja');
-  if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
+  const mesesDisp=await sb.from('vw_faturamento_mes').select('competencia')
+    .order('competencia',{ascending:true});
+  PM.meses=uniq((mesesDisp.data||[]).map(x=>x.competencia));
+  PM.period=ultimosMeses(PM.meses,6);
+  const erro=await pmCarregar();
+  if(erro){ body.innerHTML=`<div class="notice warn">${erro}</div>`; return; }
+  const data=PM.data;
   if(!data || !data.length){
     body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Sem faturamento carregado</div>
       Importe a aba “Venda (R$)” para calcular o preço médio.</div></div>`; return; }
-  PM.data=data;
   body.innerHTML=`
+    <div class="tools" style="margin-bottom:10px">
+      <div id="pmPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+    </div>
     <div class="tools">
       <select class="selin" id="pmReg"><option value="">Todas as regiões</option>${uniq(data.map(d=>d.regiao)).map(r=>`<option>${r}</option>`).join('')}</select>
       <input type="search" id="pmBusca" class="selin" placeholder="Buscar associado…" style="min-width:190px">
@@ -2801,14 +3159,30 @@ async function renderPrecoMedio(){
         <th class="num">Preço médio</th><th class="num">vs. rede</th><th class="num">vs. maior</th>
       </tr></thead><tbody id="pmRows"></tbody></table></div></div>
     <div style="margin-top:10px;font-size:12px;color:var(--ink-faint)">
-      Período agregado da planilha (jan–jul/2026). Como o faturamento vem totalizado por loja, o preço médio
-      não se divide por mês nem por produto — isso virá com a tabela de preço por SKU.</div>`;
+      O faturamento vem totalizado por loja/mês, então o preço médio não se abre por produto —
+      isso virá com a tabela de preço por SKU.</div>`;
   document.getElementById('pmReg').onchange=e=>{PM.regiao=e.target.value; pmRefresh();};
   document.getElementById('pmBusca').oninput=pmRefresh;
   document.getElementById('pmOrd').onchange=pmRefresh;
   document.getElementById('pmCSV').onclick=()=>exportCSV('preco_medio',pmCols(),pmRows());
   document.getElementById('pmPrint').onclick=()=>printTabela('Preço médio por loja',pmCols().map(c=>({...c,num:/Fatur|Unid|Preço|vs/.test(c.label)})),pmRows());
+  PM.montando=true;
+  wirePeriod(document.getElementById('pmPeriod'), PM.meses, async(st)=>{
+    if(PM.montando) return;                     // dispara uma vez ao montar
+    PM.period=st;
+    const e=await pmCarregar(); if(!e) pmRefresh();
+  }, PM.period);
+  PM.montando=false;
   pmRefresh();
+}
+// preco medio do periodo escolhido: soma R$ e soma unidades da janela
+async function pmCarregar(){
+  const st=PM.period||{};
+  const {data,error}=await fetchRpc('preco_medio_loja',
+    {p_comp_ini: st.aIni||null, p_comp_fim: st.aFim||null});
+  if(error) return error.message;
+  PM.data=data||[];
+  return null;
 }
 function pmRows(){
   const base=PM.data.filter(d=>(!PM.regiao||d.regiao===PM.regiao)&&+d.unidades>0);
@@ -2907,7 +3281,7 @@ async function renderPendencias(){
       <button class="btn-tool" id="pePrint">Imprimir</button>
     </div>
     <div class="panel"><div class="panel-head"><h2>Produtos a ajustar</h2><span class="count" id="peCount"></span></div>
-    <div class="tbl-scroll"><table><thead><tr><th>SKU</th><th>Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th><th>Falta</th>${PROD.canEdit?'<th></th>':''}</tr></thead>
+    <div class="tbl-scroll"><table><thead><tr><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th><th>Falta</th>${PROD.canEdit?'<th></th>':''}</tr></thead>
     <tbody id="peRows"></tbody></table></div></div>`;
   ['peSearch','peTipo'].forEach(id=>{const el=document.getElementById(id); el.oninput=el.onchange=pendRefresh;});
   document.getElementById('peCSV').onclick=()=>exportCSV('pendencias_cadastro',
@@ -3219,8 +3593,9 @@ async function renderSobre(){
         ${linha('Presença Casa VIP','mapa por região e estado')}
         ${linha('Preço médio','posição de cada loja')}
         ${linha('Cadastros','produtos, lojas, grupos, linhas e cores')}
-        ${linha('Estoque Pulmão','consulta de saldo no JIWI')}
+        ${linha('Estoque Pulmão','consulta de saldo no Pulmão SP')}
         ${linha('Cobertura de estoque','saldo x venda da rede, por classe ABC')}
+        ${linha('Oportunidades','venda da loja x porte dela na rede')}
       </div></div>
     </div>
     ${blocoContas}
@@ -3238,7 +3613,7 @@ async function renderSobre(){
 const PCO={raw:[]};
 async function renderPulmaoConsulta(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
-  view.innerHTML=head(ico,'Estoque Pulmão','Consulta de saldo no estoque JIWI.','Análise','estoque')
+  view.innerHTML=head(ico,'Estoque Pulmão','Consulta de saldo no Pulmão SP.','Análise','estoque')
     +'<div id="pcBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('pcBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
@@ -3248,7 +3623,7 @@ async function renderPulmaoConsulta(){
   PCO.raw=data||[];
   if(!PCO.raw.some(d=>Number(d.estoque)>0)){
     body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Estoque não carregado</div>
-      Importe a planilha de estoque JIWI em Dados › Importar planilhas.</div></div>`;
+      Importe a planilha de estoque do Pulmão SP em Dados › Importar planilhas.</div></div>`;
     return;
   }
   const quando=PCO.raw.find(d=>d.atualizado_em);
@@ -3292,7 +3667,7 @@ function pulmaoConsultaPinta(){
     <h2>Saldo</h2><span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças${
       semSaldo?` · ${fmtInt(semSaldo)} sem saldo`:''}</span></div>
     <div class="tbl-scroll"><table class="densa"><thead><tr>
-      <th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>
+      <th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>
       <th class="num">Estoque</th></tr></thead>
     <tbody>${l.map(d=>{const zero=Number(d.estoque)===0;
       return `<tr${zero?' class="rompido"':''}><td>${d.sku}</td>
@@ -3309,21 +3684,25 @@ function pulmaoConsultaPinta(){
 async function renderRuptura(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
   view.innerHTML=head(ico,'Cobertura de estoque',
-    'Saldo do JIWI confrontado com a venda da rede: onde falta e onde sobra.','Análise','ambos')
-    +'<div id="pmBody"><div class="empty">Carregando…</div></div>';
-  const body=document.getElementById('pmBody');
+    'Saldo do Pulmão SP confrontado com a venda da rede: onde falta e onde sobra.','Análise','ambos')
+    +'<div id="ceBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('ceBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
-  const {data,error}=await fetchAll('vw_estoque_pulmao',
-    'sku,descricao,categoria,linha,cor,grupo,classe,posicao_abc,estoque,vendido_total,venda_media_mes,meses_cobertura,atualizado_em',
-    ['sku']);
-  if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
-  PUL.raw=data||[];
+  const mesesDisp=await sb.from('vw_vendas_por_loja').select('competencia')
+    .order('competencia',{ascending:true});
+  PUL.meses=uniq((mesesDisp.data||[]).map(d=>d.competencia));
+  PUL.period=ultimosMeses(PUL.meses, 6);       // padrão: últimos 6 meses
+  const ok=await pulmaoCarregar();
+  if(ok!==true){ body.innerHTML=`<div class="notice warn">${ok}</div>`; return; }
   if(!PUL.raw.some(d=>Number(d.estoque)>0)){
     body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Estoque não carregado</div>
-      Importe a planilha de estoque JIWI em Dados › Importar planilhas.</div></div>`;
+      Importe a planilha de estoque do Pulmão SP em Dados › Importar planilhas.</div></div>`;
     return;
   }
   body.innerHTML=`
+    <div class="tools" style="margin-bottom:10px">
+      <div id="cePeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+    </div>
     <div class="tools">
       <input type="search" id="ceBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:200px">
       <select class="selin" id="ceGrupo"><option value="">Todos os grupos</option>${
@@ -3346,6 +3725,14 @@ async function renderRuptura(){
       <button class="btn-tool" id="ceCSV">Exportar CSV</button>
     </div>
     <div id="ceStats"></div><div id="ceResumo"></div><div id="ceTab"></div>`;
+  PUL.montando=true;
+  wirePeriod(document.getElementById('cePeriod'), PUL.meses, async(st)=>{
+    // wirePeriod dispara onChange uma vez ao montar: os dados desse período já
+    // foram buscados acima, então essa primeira chamada é ignorada
+    if(PUL.montando) return;
+    PUL.period=st; await pulmaoCarregar(); pulmaoRefresh();
+  }, PUL.period);
+  PUL.montando=false;
   ['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoRefresh; });
   document.getElementById('ceLimpar').onclick=()=>{
@@ -3360,7 +3747,18 @@ async function renderRuptura(){
      {label:'Dias cobertura',get:d=>d.meses_cobertura==null?'':Math.round(diasCob(d))}], PUL.vis);
   pulmaoRefresh();
 }
-const PUL={raw:[],vis:[],eixo:'grupo'};
+const PUL={raw:[],vis:[],eixo:'grupo',meses:[],period:{},montando:false};
+// Busca a cobertura no ritmo do periodo escolhido. O estoque e sempre o de hoje;
+// o periodo muda apenas a venda usada como referencia.
+async function pulmaoCarregar(){
+  const st=PUL.period||{};
+  const {data,error}=await fetchRpc('estoque_cobertura',
+    {p_ini: st.aIni||null, p_fim: st.aFim||null});
+  if(error) return error.message;
+  PUL.raw=data||[];
+  return true;
+}
+
 // Estoque e da rede, nao do associado: o pulmao e central e nao se rateia por loja.
 // O agregado responde "onde a rede esta descoberta", que o item a item nao mostra.
 function pulmaoResumo(){
@@ -3387,6 +3785,8 @@ function pulmaoResumo(){
   const cor=d=>d==null?'var(--ink-faint)':(d<30?'#c0392b':(d<90?'var(--amber)':'#1f9d55'));
   el.innerHTML=`<div class="panel" style="margin-bottom:12px"><div class="panel-head">
       <h2>Cobertura da rede</h2>
+      <span style="font-size:12px;color:var(--ink-faint);margin-left:10px">ritmo de ${periodLabel(PUL.period)}${
+        PUL.raw[0]&&PUL.raw[0].meses_periodo?` · ${PUL.raw[0].meses_periodo} ${PUL.raw[0].meses_periodo>1?'meses':'mês'}`:''}</span>
       <span style="margin-left:auto;display:flex;gap:6px">
         ${['classe','grupo','linha','cor'].map(e=>`<button class="btn-tool${e===eixo?' pri':''}"
             onclick="PUL.eixo='${e}';pulmaoResumo()">${e==='classe'?'Classe ABC':e[0].toUpperCase()+e.slice(1)}</button>`).join('')}
@@ -3432,6 +3832,115 @@ function pulmaoDrill(eixo, valor, situacao){
   if(tab) tab.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// Duto de cobertura. Escala de 0 a 180 dias (6 meses de venda), com marcas
+// em 30 e 90 dias. Nao e barra de progresso: e um nivel — a faixa mostra
+// quanto do "tanque" resta ate romper, e onde comeca o excesso.
+// Pilula de cobertura. 100% = a meta, e a meta e o PROPRIO PERIODO do filtro:
+// 6 meses -> 180 d, 3 meses -> 90 d, 1 mes -> 30 d. Ou seja, "tenho estoque
+// para atravessar de novo a janela que acabei de analisar?".
+// Faixas: 0 rompido (preto) · ate 33% vermelho · ate 66% ambar · ate 100% verde
+// · acima de 100% azul (capital parado). A escala vai ate 150% da meta para o
+// excesso ter onde aparecer; passando disso, a seta marca que saiu da regua.
+const DUTO_ESCALA=1.5;
+function dutoMeses(){
+  const m = PUL.raw[0] && +PUL.raw[0].meses_periodo;
+  return m>0 ? m : 6;                            // 6 meses e o padrao de abertura
+}
+function dutoMeta(){ return dutoMeses()*30; }
+const DUTO_FAIXAS=[
+  {ate:1/3, cor:'#c0392b', fim:'#e05c4a'},    // vermelho
+  {ate:2/3, cor:'#d89020', fim:'#e8b04a'},    // ambar
+  {ate:1.00, cor:'#1f9d55', fim:'#38b96e'},   // verde
+  {ate:99,   cor:'#1f6fe0', fim:'#4a90ee'}    // azul: acima da meta
+];
+function dutoFaixa(f){ return DUTO_FAIXAS.find(x=>f<=x.ate) || DUTO_FAIXAS[3]; }
+// As marcas separam as faixas (30, 60 e 90 dias) e ficam ATRAS do preenchimento:
+// assim nenhuma linha corta a cor, e o que se ve e so a regua ainda vazia.
+const DUTO_MARCAS = DUTO_FAIXAS.slice(0,3)
+  .map(x=>`<div class="duto-marca" style="left:${(100*x.ate/DUTO_ESCALA).toFixed(2)}%"></div>`).join('');
+// A regua inteira, sempre igual: as quatro faixas na mesma escala. O que muda de
+// linha para linha e so onde o marcador cai. Assim da para comparar dois itens de
+// relance — a barra de preenchimento nao permitia, cada uma terminava num lugar.
+const DUTO_BLEND=3.4;   // meia-largura da transicao, em % da pista
+// Um unico gradiente para a pista inteira: cada faixa mantem seu miolo solido e
+// as cores se dissolvem uma na outra em volta dos cortes. As marcas de 33/66/100
+// continuam por cima, senao o degrade apagaria justamente onde estao os limites.
+function dutoRegua(tom){
+  const st=[];
+  DUTO_FAIXAS.forEach((x,i)=>{
+    const ini=i ? 100*DUTO_FAIXAS[i-1].ate/DUTO_ESCALA : 0;
+    const fim=Math.min(100, 100*x.ate/DUTO_ESCALA);
+    st.push(`${x.cor} ${(i?ini+DUTO_BLEND:0).toFixed(2)}%`);
+    st.push(`${x.fim} ${(fim<100?fim-DUTO_BLEND:100).toFixed(2)}%`);
+  });
+  const t = tom==null ? 1 : tom;
+  return `<div style="position:absolute;left:0;right:0;top:0;bottom:0;opacity:${t}${
+    t<1?';filter:saturate(.5)':''};background:linear-gradient(90deg,${st.join(',')})"></div>`;
+}
+// trecho ja percorrido em cor cheia. A camada interna e recortada pela externa,
+// entao ela precisa voltar a medir a pista inteira: 100/pos.
+function dutoAceso(pos){
+  if(pos<=0.4) return '';
+  return `<div class="duto-ate" style="width:${pos.toFixed(2)}%">
+    <div style="position:absolute;left:0;top:0;bottom:0;width:${(10000/pos).toFixed(2)}%">${
+      dutoRegua(1)}</div></div>`;
+}
+// Regua de referencia, mostrada uma vez acima da tabela. Os cortes trazem os
+// dois eixos: o percentual da meta (fixo) e quantos dias aquilo representa
+// no periodo escolhido (muda junto com o filtro).
+function dutoLegenda(){
+  const meta=dutoMeta(), mm=dutoMeses();
+  const stop=f=>(100*f/DUTO_ESCALA).toFixed(2)+'%';
+  const faixas=DUTO_FAIXAS.map((x,i)=>{
+    const ini=i?DUTO_FAIXAS[i-1].ate:0;
+    return `<div style="position:absolute;left:${stop(ini)};width:${
+      (100*(Math.min(x.ate,DUTO_ESCALA)-ini)/DUTO_ESCALA).toFixed(2)}%;top:0;bottom:0;
+      background:linear-gradient(90deg,${x.cor},${x.fim})"></div>`;}).join('');
+  const rot=(f,txt,cls)=>`<div class="${cls||''}" style="position:absolute;left:${
+    stop(f)};transform:translateX(-50%)">${txt}</div>`;
+  const dia=f=>fmtInt(Math.round(meta*f));
+  return `<div class="duto-legenda">
+    <span class="dl-tit">Cobertura</span>
+    <div class="dl-regua">
+      <div class="dl-pct">${rot(1/3,'33%')}${rot(2/3,'66%')}${rot(1,'<b>100%</b>')}</div>
+      <div class="duto" style="height:12px">${faixas}${DUTO_MARCAS}</div>
+      <div class="dl-rot">${rot(0,'0')}${rot(1/3,dia(1/3))}${rot(2/3,dia(2/3))}${
+        rot(1,`<b>${dia(1)} d</b>`)}${rot(DUTO_ESCALA,'+')}</div>
+    </div>
+    <span class="dl-nota"><b>100% = ${fmtInt(meta)} dias</b>, que é o período do filtro
+      (${mm} ${mm>1?'meses':'mês'}). Mudou o filtro, a régua toda se move junto.</span>
+  </div>`;
+}
+
+function dutoHTML(dias, rompido){
+  const cel=(barra,txt,cor,dica)=>`<div class="duto-cel" title="${dica}">${barra}
+    <span class="duto-num" style="color:${cor}">${txt}</span></div>`;
+
+  if(rompido) return cel(
+    `<div class="duto-wrap">
+       <div class="duto duto-pista">${dutoRegua(.18)}${DUTO_MARCAS}</div>
+       <div class="duto-pin zero"><i></i></div></div>`,
+    'rompido', '#20262e', 'Sem saldo no Pulmão SP · 0% da meta');
+
+  if(dias==null) return cel('<div class="duto semgiro"></div>',
+    'sem giro', 'var(--ink-faint)', 'Item sem venda no período');
+
+  const f = dias/dutoMeta();                    // 1,0 = uma janela inteira de venda
+  const faixa = dutoFaixa(f);
+  const pos = Math.min(99.2, 100*f/DUTO_ESCALA);
+  const alem = f > DUTO_ESCALA;                 // saiu da regua: encosta na ponta
+  const meses=(dias/30).toFixed(1).replace('.',',');
+  // o pino fica FORA da pilula: dentro, o overflow:hidden cortaria a seta
+  const barra = `<div class="duto-wrap">
+      <div class="duto duto-pista">${dutoRegua(.22)}${dutoAceso(pos)}${DUTO_MARCAS}
+</div>
+      <div class="duto-pin" style="left:${pos.toFixed(2)}%"><i></i></div>
+    </div>`;
+  return cel(barra, (alem?'+':'')+Math.round(100*f)+'%', faixa.cor,
+    `${fmtInt(Math.round(dias))} dias · ${meses} meses de venda · ${
+      Math.round(100*f)}% da meta de ${fmtInt(dutoMeta())} dias`);
+}
+
 // Cobertura em dias: mais legivel que fracao de mes para decidir reposicao.
 function diasCob(d){
   return d.meses_cobertura==null ? null : (+d.meses_cobertura)*30;
@@ -3474,19 +3983,19 @@ function pulmaoPinta(){
     <h2>Itens${(()=>{const r=[valOf('ceClasse',''),valOf('ceGrupo',''),valOf('ceLinha',''),valOf('ceCor','')]
         .filter(Boolean); return r.length?` — ${r.join(' · ')}`:'';})()}</h2>
     <span class="count">${fmtInt(l.length)} itens · ${fmtInt(tot)} peças</span></div>
-    <div class="tbl-scroll"><table class="densa"><thead><tr><th>Código</th><th>Descrição</th><th>Linha</th><th>Cor</th>
-      <th>Classe</th><th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
+    ${dutoLegenda()}
+    <div class="tbl-scroll"><table class="densa"><thead><tr><th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th>
+      <th>Classe</th><th class="num">Estoque</th><th class="num">Venda/mês</th>
+      <th style="width:210px;min-width:210px">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
       const dias=diasCob(d), rompido=Number(d.estoque)===0;
-      const cor=dias==null?'var(--ink-faint)':(dias<30?'#c0392b':(dias<90?'var(--amber)':'#1f9d55'));
       return `<tr${rompido?' class="rompido"':''}><td>${d.sku}</td>
         <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
         <td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
         <td><span class="pill ${d.classe||'D'}">${d.classe||'D'}</span></td>
         <td class="num"${rompido?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(d.estoque)}</td>
         <td class="num">${(+d.venda_media_mes||0).toFixed(1)}</td>
-        <td class="num" style="color:${cor};font-weight:700">${
-          rompido?'rompido':(dias==null?'sem giro':fmtInt(Math.round(dias))+' d')}</td></tr>`;}).join('')}
+        <td>${dutoHTML(dias, rompido)}</td></tr>`;}).join('')}
     </tbody></table></div>
   </div>`;
 }
