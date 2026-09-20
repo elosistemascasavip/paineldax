@@ -533,6 +533,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 .chat-seguir>span{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;
   letter-spacing:.04em;font-weight:700}
 .chat-seguir .chip{font-size:12px;padding:6px 11px;background:#fff}
+.chat-escolher{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chat-escolher .pc-box{flex-wrap:wrap}
+.chat-escolher .pc-cmp{display:none}
 .chat-lista{margin:8px 0 2px;padding:0;list-style:none;font-size:12.5px}
 .chat-lista li{padding:3px 0;border-bottom:1px dashed #dfe6f0;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
@@ -1017,7 +1020,8 @@ async function fetchRpc(fn, args){
 function inPeriod(comp,ini,fim){ comp=String(comp); return (!ini||comp>=ini)&&(!fim||comp<=fim); }
 function periodLabel(st){
   if(!st||!st.aIni) return 'todo o histórico';
-  const a=mesLabel(st.aIni)+'–'+mesLabel(st.aFim);
+  // um mes so nao precisa de intervalo: "ago/26" em vez de "ago/26-ago/26"
+  const a=(st.aIni===st.aFim) ? mesLabel(st.aIni) : mesLabel(st.aIni)+'–'+mesLabel(st.aFim);
   if(st.mode==='compare') return 'A '+a+' × B '+mesLabel(st.bIni)+'–'+mesLabel(st.bFim);
   return a;
 }
@@ -4163,7 +4167,7 @@ const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
   <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={meses:[],period:{},lojas:[],loja:'',minha:'',tema:'',ocupado:false,n:0};
+const CHAT={meses:[],period:{},periodoEscolhido:false,lojas:[],loja:'',minha:'',tema:'',ocupado:false,n:0};
 
 // O chat mora em dois lugares — a aba inteira e o painel flutuante — mas e um
 // so. Os ids sao fixos porque nunca existem os dois ao mesmo tempo: abrir a aba
@@ -4195,21 +4199,21 @@ async function chatDados(){
   CHAT_CARREGADO=true;
 }
 
-const CHAT_ATALHOS=[[3,'3 meses'],[6,'6 meses'],[12,'12 meses'],[0,'Todo o histórico']];
-function chatPeriodoAtual(){
-  const n=CHAT.meses.length, st=CHAT.period||{};
-  if(!st.aIni) return 0;
-  return n - CHAT.meses.indexOf(st.aIni);
+// opcoes montadas sobre a base real: nao oferece 12 meses se so existem 8
+function chatOpcoesPeriodo(){
+  const n=CHAT.meses.length, o=[];
+  o.push([1, 'Último mês · '+mesLabel(CHAT.meses[n-1])]);
+  [3,6,12,24].forEach(k=>{ if(k<n) o.push([k, 'Últimos '+k+' meses']); });
+  o.push([0, `Todo o histórico · ${n} ${pl(n,'mês','meses')}`]);
+  return o;
 }
 function chatMarkup(dock){
   const seletor=`<select class="selin" id="pgLoja"${dock?' style="flex:1;min-width:0"':' style="min-width:190px"'}>
       <option value="">Rede — todas as lojas</option>
       ${CHAT.lojas.map(l=>`<option${l===CHAT.loja?' selected':''}>${l}</option>`).join('')}
     </select>`;
-  const atual=chatPeriodoAtual();
-  const atalho=`<select class="selin" id="pgMeses"${dock?' style="flex:0 0 auto"':''}>
-      ${CHAT_ATALHOS.map(([n,r])=>`<option value="${n}"${n===atual?' selected':''}>${r}</option>`).join('')}
-    </select>`;
+  const atalho=`<button class="btn-tool" id="pgPer" title="Trocar o período">${
+      periodLabel(CHAT.period)} ▾</button>`;
   const conversa=`<div class="chat-fio" id="pgFio"></div>
     <div id="pgChips"></div>
     <div class="chat-barra">
@@ -4247,18 +4251,16 @@ function chatWire(){
     wirePeriod(cx, CHAT.meses, st=>{
       if(CHAT.montando) return;
       CHAT.period={aIni:st.aIni, aFim:st.aFim};
+      CHAT.periodoEscolhido=true;
       chatAvisoPeriodo();
     }, CHAT.period);
     CHAT.montando=false;
   }
-  const at=document.getElementById('pgMeses');
-  if(at) at.onchange=e=>{
-    const n=+e.target.value;
-    CHAT.period = n ? ultimosMeses(CHAT.meses,n) : {};
-    chatAvisoPeriodo();
-  };
+  const bp=document.getElementById('pgPer');
+  if(bp) bp.onclick=()=>chatPerguntarPeriodo(null);
   document.getElementById('pgLimpar').onclick=()=>{
-    document.getElementById('pgFio').innerHTML=''; CHAT.n=0; chatAbertura(); };
+    document.getElementById('pgFio').innerHTML=''; CHAT.n=0;
+    CHAT_PENDENTE=null; chatAbertura(); };
   document.getElementById('pgEnviar').onclick=()=>chatEnviar();
   document.getElementById('pgTxt').onkeydown=e=>{ if(e.key==='Enter') chatEnviar(); };
   chatAbertura(); chatChips();
@@ -4292,7 +4294,7 @@ async function dockAbrir(){
   corpo.innerHTML='<div class="empty">Carregando…</div>';
   await chatDados();
   const daTela=periodoDaTela();                  // pergunta olhando a tela: mesma janela
-  if(daTela) CHAT.period=daTela;
+  if(daTela){ CHAT.period=daTela; CHAT.periodoEscolhido=true; }
   CHAT.tema=CHAT_TEMA_TELA[current]||'';         // e o assunto acompanha a tela
   document.getElementById('dkPer').textContent=periodLabel(CHAT.period);
   corpo.innerHTML=chatMarkup(true);
@@ -4303,9 +4305,9 @@ function dockToggle(){ dockAberto() ? dockFechar() : dockAbrir(); }
 
 function chatAbertura(){
   const quem = CHAT.loja || 'a rede';
-  chatBolha('bot',`<p>Pergunte com suas palavras sobre <b>${quem}</b>, no período
-    <b>${periodLabel(CHAT.period)}</b>. Eu respondo com os números das telas —
-    se não souber, digo que não sei.</p>`);
+  chatBolha('bot',`<p>Pergunte com suas palavras sobre <b>${quem}</b>${
+    CHAT.periodoEscolhido?`, no período <b>${periodLabel(CHAT.period)}</b>`:''}.
+    Eu respondo com os números das telas — se não souber, digo que não sei.</p>`);
 }
 // Trocar o periodo no meio da conversa muda o significado do que ja foi dito.
 // Em vez de reescrever o passado, o chat marca a virada na propria conversa.
@@ -4419,7 +4421,10 @@ function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
   if(!fio.dataset.wired){                        // delegacao: os chips nascem depois
     fio.dataset.wired='1';
-    fio.onclick=ev=>{ const b=ev.target.closest('.chip[data-q]'); if(!b) return;
+    fio.onclick=ev=>{
+      const per=ev.target.closest('.chip[data-per]');
+      if(per) return chatPeriodoClique(per);
+      const b=ev.target.closest('.chip[data-q]'); if(!b) return;
       document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
   }
   const d=document.createElement('div');
@@ -4430,15 +4435,66 @@ function chatBolha(quem, html){
   return d;
 }
 
-async function chatEnviar(){
+// Pergunta o periodo e guarda a pergunta que ficou esperando. As opcoes vem da
+// base; "escolher meses" abre o mesmo seletor das telas, que cobre qualquer
+// intervalo — inclusive 4, 2 ou 1 mes.
+let CHAT_PENDENTE=null;
+function chatPerguntarPeriodo(pendente){
+  CHAT_PENDENTE=pendente;
+  const ops=chatOpcoesPeriodo();
+  chatBolha('bot',`<p>${pendente
+      ? 'Antes de responder: <b>qual período</b> você quer considerar?'
+      : 'Sobre <b>qual período</b> eu respondo?'}</p>
+    <div class="chat-seguir" style="border:none;padding:0;margin-top:8px">
+      ${ops.map(([n,r])=>`<button class="chip" data-per="${n}">${r}</button>`).join('')}
+      <button class="chip" data-per="escolher">Escolher meses…</button>
+    </div>`);
+}
+// um clique nas opcoes de periodo: delegado igual aos chips de pergunta
+function chatPeriodoClique(el){
+  const v=el.dataset.per;
+  const bolha=el.closest('.chat-msg');
+  if(v==='escolher'){
+    bolha.innerHTML=`<p>Escolha o intervalo:</p><div id="pgEscolher" class="chat-escolher"></div>`;
+    const cx=bolha.querySelector('#pgEscolher');
+    cx.innerHTML=periodControlHTML(CHAT.meses, CHAT.period);
+    const ler=()=>{ const st=readPeriod(cx);
+      CHAT.period={aIni:st.aIni, aFim:st.aFim}; chatPeriodoPronto(bolha); };
+    cx.querySelectorAll('[data-k]').forEach(x=>{ if(x.dataset.k!=='cmp') x.onchange=ler; });
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent='Usar este período'; b.style.marginTop='9px';
+    b.onclick=ler; bolha.appendChild(b);
+    return;
+  }
+  const n=+v;
+  CHAT.period = n ? ultimosMeses(CHAT.meses,n) : {};
+  chatPeriodoPronto(bolha);
+}
+function chatPeriodoPronto(bolha){
+  CHAT.periodoEscolhido=true;
+  const dk=document.getElementById('dkPer');
+  if(dk) dk.textContent=periodLabel(CHAT.period);
+  const bp=document.getElementById('pgPer');
+  if(bp) bp.textContent=periodLabel(CHAT.period)+' ▾';
+  if(bolha) bolha.innerHTML=`<p>Respondendo sobre <b>${periodLabel(CHAT.period)}</b>.</p>`;
+  if(CHAT_PENDENTE){ const q=CHAT_PENDENTE; CHAT_PENDENTE=null; chatEnviar(q); }
+}
+
+async function chatEnviar(forcado){
   const inp=document.getElementById('pgTxt');
-  const txt=(inp.value||'').trim();
+  const txt=forcado || (inp.value||'').trim();
   if(!txt || CHAT.ocupado) return;
-  inp.value=''; CHAT.ocupado=true;
-  chatBolha('eu', `<p>${txt.replace(/</g,'&lt;')}</p>`);
+  if(!forcado){ inp.value=''; chatBolha('eu', `<p>${txt.replace(/</g,'&lt;')}</p>`); }
+  CHAT.ocupado=true;
   const esp=chatBolha('bot','<p class="pensando">consultando os dados…</p>');
   try{
     const alvo = chatRegras(txt) || await chatModelo(txt);
+    // periodo ainda nao definido nesta conversa: pergunta antes de responder
+    if(alvo && !CHAT.periodoEscolhido && !(alvo.params&&alvo.params.meses)){
+      esp.remove(); CHAT.ocupado=false;
+      chatLog(txt,alvo.intencao,alvo.origem,true);
+      return chatPerguntarPeriodo(txt);
+    }
     if(!alvo){
       esp.innerHTML=`<p>Ainda não sei responder isso. Anotei a pergunta —
         se ela aparecer mais vezes, vira uma resposta.</p>
