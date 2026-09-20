@@ -163,7 +163,6 @@ th.cls{text-align:center}
 .empty .big{font-size:15.5px;color:var(--ink-soft);font-weight:600;margin-bottom:5px}
 .rot-input{width:160px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-family:inherit;font-size:13px}
 .rot-input:focus{outline:none;border-color:var(--blue)}
-.mini{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 11px;font-weight:600;font-size:12.5px}
 .mini.pri{background:var(--blue);color:#fff;border-color:var(--blue)}
 
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -507,52 +506,29 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 .chat-msg.bot b{color:var(--ink)}
 .chat-msg .pensando{color:var(--ink-faint)}
 .chat-msg .erro{color:#c0392b}
-.chat-dica{font-size:12px;color:var(--ink-faint);border-top:1px solid #e3e9f2;padding-top:6px;margin-top:8px}
-.chat-ver{margin-top:8px}
-.chat-ver a{color:var(--blue);font-weight:700;text-decoration:none;font-size:12.5px}
-.chat-tab{margin:9px 0;background:#fff;border:1px solid var(--line);border-radius:9px;overflow:auto;max-height:260px}
-.chat-tab table{font-size:12.5px}
-.chat-tab th{background:#fbfcfe}
-.chat-barra{display:flex;gap:9px;padding:11px 14px;border-top:1px solid var(--line);background:#fbfcfe;
-  border-radius:0 0 14px 14px}
-.chat-inp{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 13px;
-  font-family:inherit;font-size:14px;background:#fff}
-.chat-inp:focus{outline:none;border-color:var(--blue)}
-.chat-sug{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chat-sug .rot{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
-.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;
-  font-size:12.5px;color:var(--ink-soft);font-weight:600;cursor:pointer;font-family:inherit}
-.chip:hover{border-color:var(--blue);color:var(--blue);background:#f4f8ff}
-.chip.trocar{padding:7px 11px;font-size:14px;line-height:1;color:var(--ink-faint)}
 .chat-dock-topo #pgLimpar{font-size:11.5px}
-.chat-rodape{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px;
-  padding-top:8px;border-top:1px solid #e3e9f2;font-size:11px;color:var(--ink-faint)}
+.bot-ops{display:flex;flex-direction:column;gap:5px;margin-top:9px}
+.bot-op{display:block;width:100%;text-align:left;border:1px solid #d9e2ee;background:#fff;
+  border-radius:9px;padding:9px 12px;font-family:inherit;font-size:13px;font-weight:600;
+  color:var(--blue);cursor:pointer;transition:border-color .12s,background .12s,transform .1s}
+.bot-op:hover{border-color:var(--blue);background:#eef5ff}
+.bot-op:active{transform:scale(.99)}
+.bot-op.curto{width:auto;display:inline-block;margin:0;padding:6px 12px}
+.chat-msg.bot .bot-op:last-child{color:var(--ink-faint);font-weight:500;
+  border-style:dashed}
+.chat-msg.bot .bot-op:last-child:hover{color:var(--blue);border-style:solid}
+/* "digitando…" — sem isso a conversa aparece pronta e vira tela, nao dialogo */
+.digita{display:inline-flex;gap:4px;padding:3px 2px}
+.digita i{width:6px;height:6px;border-radius:50%;background:#a9b6c9;
+  animation:dig 1.1s infinite ease-in-out}
+.digita i:nth-child(2){animation-delay:.18s}
+.digita i:nth-child(3){animation-delay:.36s}
+@keyframes dig{0%,60%,100%{opacity:.35;transform:translateY(0)}
+  30%{opacity:1;transform:translateY(-3px)}}
 .chat-rodape .per{white-space:nowrap}
 .chat-rodape .grow{flex:1}
 .mini{border:none;background:transparent;font-family:inherit;font-size:11px;
   color:var(--blue);font-weight:600;padding:3px 6px;border-radius:6px;cursor:pointer}
-.mini:hover{background:#e9f0fb}
-.mini.av{font-size:13px;padding:2px 5px;filter:grayscale(1);opacity:.55}
-.mini.av:hover{filter:none;opacity:1;background:transparent}
-.mini.alt{border:1px solid var(--line);background:#fff;color:var(--ink-soft)}
-.mini.alt:hover{border-color:var(--blue);color:var(--blue)}
-.mini-sel{padding:3px 6px;font-size:11.5px}
-.chat-seguir{margin-top:10px;padding-top:9px;border-top:1px solid #e3e9f2;
-  display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-.chat-seguir>span{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;
-  letter-spacing:.04em;font-weight:700}
-.chat-seguir .chip{font-size:12px;padding:6px 11px;background:#fff}
-.chat-per{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px}
-.chat-per .selin{padding:5px 8px;font-size:12.5px}
-.chat-per .ate{font-size:12px;color:var(--ink-faint)}
-.chat-per .chip{font-size:12px;padding:6px 11px;background:#fff}
-.chat-per .chip.pri{background:var(--blue);border-color:var(--blue);color:#fff}
-.chat-per .chip.pri:hover{background:var(--blue);color:#fff}
-.chat-lista{margin:8px 0 2px;padding:0;list-style:none;font-size:12.5px}
-.chat-lista li{padding:3px 0;border-bottom:1px dashed #dfe6f0;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis}
-.chat-lista li:last-child{border-bottom:none}
-.chat-lista .mais{color:var(--ink-faint);font-style:italic}
 
 .duto-num{font-variant-numeric:tabular-nums;font-size:11.5px;font-weight:700;
   white-space:nowrap;min-width:48px;text-align:right}
@@ -1934,7 +1910,7 @@ async function opoCarregar(){
 }
 async function renderOportunidades(){
   view.innerHTML=head(ICO_OPO,'Oportunidades',
-    'Onde a loja vende abaixo do próprio porte, onde vende acima e onde o preço deixa dinheiro na mesa.','Análise','vendas')
+    'Onde a loja vende abaixo do próprio porte, onde vende acima e onde o preço pode render mais.','Análise','vendas')
     +'<div id="opBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('opBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
@@ -4157,21 +4133,12 @@ function pulmaoPinta(){
 }
 
 /* ============================================================
-   Tela: Perguntar — chat sobre os dados da rede
+   Tela: Perguntar — assistente em construção
    ------------------------------------------------------------
-   Como funciona, e por que assim:
-
-   1. A pergunta vira uma INTENÇÃO (um item de uma lista fechada). Primeiro
-      por regras, aqui no navegador — a maioria das perguntas resolve sem sair
-      da máquina. Só o que as regras não pegam vai para a Edge Function
-      chat-intencao, que usa o modelo.
-   2. A intenção vira uma chamada às MESMAS RPCs que as telas já usam, com a
-      sessão do próprio usuário e o RLS de sempre.
-   3. A resposta é MONTADA com os números que voltaram. O modelo nunca escreve
-      a resposta e nunca vê um dado de venda, estoque ou faturamento.
-
-   Consequência prática: o chat pode não entender uma pergunta, mas não tem
-   como inventar um número. É o erro que dá para conviver.
+   Por ora ele não responde com dados: só apresenta as telas e leva até elas.
+   É pouco de propósito. Um assistente que erra a resposta perde o usuário na
+   terceira tentativa; um que só indica o caminho nunca erra, e já poupa quem
+   ainda não decorou onde cada coisa fica.
    ============================================================ */
 const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <rect x="3.5" y="5" width="25" height="17.5" rx="7.6" fill="#1f6fe0"/>
@@ -4180,269 +4147,40 @@ const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
   <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={meses:[],period:{},periodoEscolhido:false,lojas:[],loja:'',minha:'',tema:'',
-  ultimo:null,ocupado:false,n:0};
+const CHAT={minha:'', carregado:false};
 
-// O chat mora em dois lugares — a aba inteira e o painel flutuante — mas e um
-// so. Os ids sao fixos porque nunca existem os dois ao mesmo tempo: abrir a aba
-// fecha o painel, e o botao flutuante nao abre painel quando a aba esta aberta.
-let CHAT_CARREGADO=false;
-// Periodo da tela aberta. Perguntar olhando a Cobertura filtrada em 3 meses e
-// receber resposta de 6 seria a pior armadilha possivel: dois numeros certos,
-// de janelas diferentes, lado a lado.
-function periodoDaTela(){
-  let st=null;
-  if(current==='ruptura'||current==='pulmao') st=PUL.period;
-  else if(current==='oportunidades')          st=OPO.period;
-  else if(current==='precomedio')             st=PM.period;
-  else if(current==='vendas')                 st=VEN.period;
-  return (st && st.aIni) ? {aIni:st.aIni, aFim:st.aFim} : null;
-}
-async function chatDados(){
-  if(CHAT_CARREGADO) return;
-  const {data:mm}=await sb.from('vw_vendas_por_loja').select('competencia')
-    .order('competencia',{ascending:true});
-  CHAT.meses=uniq((mm||[]).map(x=>x.competencia));
-  CHAT.period=ultimosMeses(CHAT.meses,6);
-  const {data:pt}=await fetchRpc('loja_porte',{p_ini:CHAT.period.aIni,p_fim:CHAT.period.aFim});
-  CHAT.lojas=uniq((pt||[]).map(x=>x.loja));
-  CHAT.minha=resolverMinhaLoja(CHAT.lojas)||'';
-  CHAT.loja=CHAT.minha;
-  const {data:pg}=await fetchAll('vw_produtos','grupo',['sku']);
-  CHAT_GRUPOS=uniq((pg||[]).map(x=>x.grupo).filter(Boolean));
-  // se o catalogo nao vier, os grupos reais de hoje seguram a conversa
-  if(!CHAT_GRUPOS.length) CHAT_GRUPOS=['Banheiro','Acessórios','Chuveiro','Complementos','Gourmet'];
-  CHAT_CARREGADO=true;
-}
-
-// opcoes montadas sobre a base real: nao oferece 12 meses se so existem 8
-function chatOpcoesPeriodo(){
-  const n=CHAT.meses.length, o=[];
-  o.push([1, mesLabel(CHAT.meses[n-1])]);
-  [3,6,12,24].forEach(k=>{ if(k<n) o.push([k, k+' meses']); });
-  o.push([0, `tudo · ${n}`]);
-  return o;
-}
-function chatMarkup(dock){
-  const conversa=`<div class="chat-fio" id="pgFio"></div>
-    <div id="pgChips"></div>
-    <div class="chat-barra">
-      <input id="pgTxt" class="chat-inp" maxlength="300" autocomplete="off"
-        placeholder="Pergunte com suas palavras…">
-      <button class="btn-tool pri" id="pgEnviar">Perguntar</button>
-    </div>`;
-  if(dock) return conversa;
-  return `<div class="tools" style="justify-content:flex-end">
-      <button class="btn-tool" id="pgLimpar">Limpar conversa</button></div>
-    <div class="panel" style="margin-bottom:12px">${conversa}</div>`;
-}
-
-function chatLimpar(){
-  const fio=document.getElementById('pgFio'); if(!fio) return;
-  fio.innerHTML=''; CHAT.n=0; CHAT_PENDENTE=null; CHAT_FORCADO=''; CHAT.ultimo=null;
-  CHAT.loja=CHAT.minha; CHAT.escopo='';
-  chatAbertura(); chatChips();
-}
-function chatWire(){
-  const bl=document.getElementById('pgLimpar');
-  if(bl) bl.onclick=chatLimpar;
-  document.getElementById('pgEnviar').onclick=()=>chatEnviar();
-  document.getElementById('pgTxt').onkeydown=e=>{ if(e.key==='Enter') chatEnviar(); };
-  chatAbertura(); chatChips();
-}
-
-async function renderPerguntar(){
-  dockFechar();
-  view.innerHTML=head(ICO_CHAT,'Perguntar',
-    'Pergunte com suas palavras. A resposta vem dos mesmos números das telas.','Análise')
-    +'<div id="pgBody"><div class="empty">Carregando…</div></div>';
-  const body=document.getElementById('pgBody');
-  if(!session){ body.innerHTML=loginWall('O assistente é restrito à equipe.'); return; }
-  await chatDados();
-  body.innerHTML=chatMarkup(false);
-  chatWire();
-}
-
-/* ---------- painel flutuante: perguntar sem sair da tela ---------- */
-function dockAberto(){ const d=document.getElementById('chatDock'); return d && !d.classList.contains('esconde'); }
-function dockFechar(){
-  const d=document.getElementById('chatDock'), b=document.getElementById('chatBolha');
-  if(d){ d.classList.add('esconde'); d.querySelector('#dkCorpo').innerHTML=''; }
-  if(b) b.classList.remove('aberto');
-}
-async function dockAbrir(){
-  if(current==='perguntar'){ const t=document.getElementById('pgTxt'); if(t) t.focus(); return; }
-  const d=document.getElementById('chatDock'), b=document.getElementById('chatBolha');
-  if(!d || !session) return;
-  d.classList.remove('esconde'); b.classList.add('aberto');
-  const corpo=d.querySelector('#dkCorpo');
-  corpo.innerHTML='<div class="empty">Carregando…</div>';
-  await chatDados();
-  const daTela=periodoDaTela();                  // pergunta olhando a tela: mesma janela
-  if(daTela){ CHAT.period=daTela; CHAT.periodoEscolhido=true; }
-  CHAT.tema=CHAT_TEMA_TELA[current]||'';         // e o assunto acompanha a tela
-  corpo.innerHTML=chatMarkup(true);
-  chatWire();
-  document.getElementById('pgTxt').focus();
-}
-function dockToggle(){ dockAberto() ? dockFechar() : dockAbrir(); }
-
-function chatAbertura(){
-  const quem = CHAT.loja || 'a rede';
-  chatBolha('bot',`<p>Pergunte com suas palavras sobre <b>${quem}</b>${
-    CHAT.periodoEscolhido?`, no período <b>${periodLabel(CHAT.period)}</b>`:''}.
-    Eu respondo com os números das telas — se não souber, digo que não sei.</p>`);
-}
-// Trocar o periodo no meio da conversa muda o significado do que ja foi dito.
-// Em vez de reescrever o passado, o chat marca a virada na propria conversa.
-function chatAvisoPeriodo(){
-  chatBolha('bot',`<p class="chat-dica" style="border:none;padding:0;margin:0">
-    Daqui para frente respondo sobre <b>${periodLabel(CHAT.period)}</b>.</p>`);
-}
-
-/* ---------- sugestões: a tela nunca abre em branco ---------- */
-// Ninguem digita numa caixa vazia. As sugestoes sao o cardapio — organizadas por
-// assunto, abrindo no assunto da tela em que a pessoa estava, e com um passo
-// seguinte no fim de cada resposta. A ideia e conduzir, nao sortear.
-const CHAT_TEMAS=[
-  {id:'loja', rot:'Minha loja', loja:true, perguntas:[
-    'Como está minha loja?',
-    'O que estou deixando de vender?',
-    'Onde eu vou bem?',
-    'Meus itens abaixo do porte na classe A',
-    'O que estou deixando de vender em Banheiro?',
-    'O que estou deixando de vender em Chuveiro?',
-    'Onde eu vou bem em Acessórios?',
-    'Como estou em Complementos?',
-    'E no grupo Gourmet?',
-    'Como eu fico no ranking da rede?',
-    'Como está minha loja nos últimos 3 meses?',
-    'O que eu deixo de vender que tem saldo no Pulmão SP?']},
-  {id:'estoque', rot:'Estoque', perguntas:[
-    'O que está rompido no Pulmão SP?',
-    'Quais itens de classe A estão rompidos?',
-    'O que está rompido em Banheiro?',
-    'O que está rompido em Chuveiro?',
-    'Onde tem capital parado?',
-    'Onde tem estoque demais na classe A?',
-    'Tem excesso de estoque na classe C?',
-    'Quais itens têm estoque e não giram?',
-    'Itens parados em Acessórios',
-    'Itens parados em Complementos',
-    'Como está o estoque nos últimos 3 meses?',
-    'O que está rompido em Gourmet?']},
-  {id:'preco', rot:'Preço', perguntas:[
-    'Meu preço está acima ou abaixo da rede?',
-    'Quanto eu deixo na mesa no preço?',
-    'Quem vende mais caro na rede?',
-    'Como está o preço médio da rede?',
-    'Meu preço nos últimos 3 meses',
-    'Meu preço nos últimos 12 meses']},
-  {id:'rede', rot:'Rede', perguntas:[
-    'Quem vende mais na rede?',
-    'Quanto a rede vendeu nos últimos 3 meses?',
-    'Quanto a rede vendeu nos últimos 12 meses?',
-    'Como está a Vilarejo?',
-    'Como está a Viveza?',
-    'O que a rede está deixando de vender?',
-    'Quem vende mais caro na rede?',
-    'O que está rompido na rede?']},
+// Cada tela com uma frase que diz o que ela responde — não o que ela contém.
+// adm:true = só o administrador enxerga.
+const GUIA=[
+  {rota:'abc', rot:'Curva ABC',
+   txt:'Quais itens concentram a venda. Classe A é o que não pode faltar; C é o que quase não gira. Dá para ver a rede inteira ou uma loja, por grupo, linha e cor.'},
+  {rota:'oportunidades', rot:'Oportunidades',
+   txt:'Onde a loja vende menos do que o tamanho dela sugere, onde ela vai melhor que a rede, e como está o preço médio dela. Compara cada loja com a rede, no mesmo período.'},
+  {rota:'vendas', rot:'Vendas por loja',
+   txt:'A evolução mês a mês, da rede e de cada loja. Serve para ver tendência e comparar dois períodos.'},
+  {rota:'pulmao', rot:'Estoque Pulmão',
+   txt:'O saldo disponível no Pulmão SP, item a item. Consulta pura: código, descrição, cor, linha e quanto tem.'},
+  {rota:'ruptura', rot:'Cobertura de estoque',
+   txt:'Cruza o saldo do Pulmão SP com a venda da rede: quantos dias aquele estoque cobre. Mostra o que está rompido, o que está apertado e o que está sobrando.'},
+  {rota:'precomedio', rot:'Preço médio',
+   txt:'Faturamento dividido por peças, loja a loja, contra a média da rede. Mostra a posição de cada uma, não julga o preço.'},
+  {rota:'presenca', rot:'Presença Casa VIP',
+   txt:'O mapa das lojas por região e estado.'},
+  {rota:'produtos', rot:'Produtos',
+   txt:'O catálogo completo, com grupo, linha e cor de cada item.'},
+  {rota:'cobertura', rot:'Cobertura da base', adm:true,
+   txt:'Quais lojas enviaram venda em cada mês do ano. É aqui que se confirma se um zero é venda zero ou planilha que não chegou.'},
+  {rota:'importar', rot:'Importar planilhas', adm:true,
+   txt:'A carga das duas planilhas: vendas da rede e estoque do Pulmão SP. A leitura é conferida antes de gravar.'},
+  {rota:'historico', rot:'Histórico de cargas', adm:true,
+   txt:'Tudo que já foi importado: quando, por quem, quantas linhas.'},
+  {rota:'usuarios', rot:'Usuários', adm:true,
+   txt:'Quem tem acesso e com qual perfil.'},
 ];
-// a tela aberta escolhe o assunto: quem esta na Cobertura quer falar de estoque
-const CHAT_TEMA_TELA={ruptura:'estoque', pulmao:'estoque', oportunidades:'loja',
-  precomedio:'preco', vendas:'rede', abc:'rede', presenca:'rede', cobertura:'rede'};
-let CHAT_SUG_DE=0;
-function chatTema(){
-  const t=CHAT_TEMAS.find(x=>x.id===CHAT.tema);
-  if(t && (!t.loja || CHAT.loja)) return t;
-  return CHAT_TEMAS.find(x=>x.id===(CHAT.loja?'loja':'rede'));
-}
-// Enquanto a conversa esta vazia, tres exemplos do assunto da tela. Depois da
-// primeira resposta eles somem: quem conduz dali em diante sao os "em seguida",
-// que nascem do que acabou de ser respondido.
-function chatChips(){
-  const cx=document.getElementById('pgChips'); if(!cx) return;
-  const tema=chatTema(); CHAT.tema=tema.id;
-  const pool=tema.perguntas.filter(q=>CHAT.loja || !/\b(meu|minha|meus|eu|estou)\b/i.test(q));
-  if(!pool.length) return cx.innerHTML='';
-  cx.innerHTML=`<div class="chat-sug">${pool.slice(0,3)
-    .map(t=>`<button class="chip" data-q="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}</div>`;
-  cx.querySelectorAll('.chip[data-q]').forEach(b=>{
-    b.onclick=()=>{ document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
-  });
-}
-// O passo seguinte natural de cada resposta. E o que transforma uma consulta
-// avulsa numa investigacao — a pessoa nao precisa saber o que perguntar depois.
-const CHAT_SEGUIR={
-  rompidos:['Quais itens de classe A estão rompidos?','Onde tem capital parado?','Quais itens têm estoque e não giram?'],
-  excesso_estoque:['Quais itens têm estoque e não giram?','O que está rompido no Pulmão SP?','Tem excesso de estoque na classe C?'],
-  sem_giro:['Onde tem capital parado?','O que está rompido no Pulmão SP?'],
-  itens_abaixo_porte:['Onde eu vou bem?','Meu preço está acima ou abaixo da rede?','Como está minha loja?'],
-  destaques:['O que estou deixando de vender?','Como está minha loja?'],
-  preco_medio:['Quem vende mais caro na rede?','Como está minha loja?','O que estou deixando de vender?'],
-  resumo_loja:['O que estou deixando de vender?','Onde eu vou bem?','Meu preço está acima ou abaixo da rede?'],
-  ranking_lojas:['Quem vende mais caro na rede?','O que está rompido no Pulmão SP?','Onde tem capital parado?'],
-};
-// O rodape reune o que so faz sentido depois da resposta: em que janela ela
-// foi calculada, o atalho para trocar, e se ela serviu.
-function chatRodape(alvo){
-  const pr=alvo.params||{};
-  const per=periodLabel(chatPer(pr));
-  const rec=[pr.loja, pr.classe&&('classe '+pr.classe), pr.grupo, pr.linha].filter(Boolean);
-  return `<div class="chat-rodape">
-      <span class="per">${per}${rec.length?' · '+rec.join(' · '):''}</span>
-      <button class="mini" data-troca="1">trocar período</button>
-      <span class="grow"></span>
-      <button class="mini av" data-util="1" title="Essa resposta ajudou">&#128077;</button>
-      <button class="mini av" data-util="0" title="Essa resposta não ajudou">&#128078;</button>
-    </div>`;
-}
-function chatTrocaPeriodo(el){
-  const bolha=el.closest('.chat-msg');
-  const ops=chatOpcoesPeriodo();
-  const cx=el.parentElement;
-  cx.innerHTML=`<span class="per">trocar para</span>${
-    ops.map(([n,r])=>`<button class="mini alt" data-per="${n}">${r}</button>`).join('')}
-    <button class="mini alt" data-per="escolher">outro…</button>`;
-  cx.dataset.refaz='1';
-}
-// avaliacao: grava no log e agradece sem alarde
-async function chatUtil(el){
-  const bolha=el.closest('.chat-msg');
-  const id=bolha && bolha.dataset.log;
-  const bom=el.dataset.util==='1';
-  el.parentElement.innerHTML=`<span class="per">${bom
-    ? 'Obrigado!' : 'Anotado — vou usar isso para melhorar.'}</span>`;
-  if(!id) return;
-  try{ await sb.from('chat_perguntas').update({util:bom}).eq('id',+id); }catch{}
-}
-function chatSeguir(intencao){
-  const l=(CHAT_SEGUIR[intencao]||[]).filter(q=>CHAT.loja || !/\bmeu|minha|eu\b/i.test(q));
-  if(!l.length) return '';
-  return `<div class="chat-seguir"><span>Em seguida</span>${
-    l.slice(0,3).map(q=>`<button class="chip" data-q="${q.replace(/"/g,'&quot;')}">${q}</button>`).join('')}</div>`;
-}
 
+const espera=ms=>new Promise(r=>setTimeout(r,ms));
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
-  if(!fio.dataset.wired){                        // delegacao: os chips nascem depois
-    fio.dataset.wired='1';
-    fio.onclick=ev=>{
-      const per=ev.target.closest('.chip[data-per]');
-      if(per) return chatPeriodoClique(per);
-      const lj=ev.target.closest('.chip[data-loja]');
-      if(lj) return chatLojaEscolhida(lj.dataset.loja, lj.closest('.chat-msg'));
-      const esc=ev.target.closest('.chip[data-esc]');
-      if(esc) return chatEscopoClique(esc);
-      const tr=ev.target.closest('[data-troca]');
-      if(tr) return chatTrocaPeriodo(tr);
-      const uv=ev.target.closest('[data-util]');
-      if(uv) return chatUtil(uv);
-      const mp=ev.target.closest('.mini[data-per]');
-      if(mp) return chatPeriodoNoRodape(mp);
-      const b=ev.target.closest('.chip[data-q]'); if(!b) return;
-      document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
-  }
   const d=document.createElement('div');
   d.className='chat-msg '+quem;
   d.innerHTML=html;
@@ -4450,566 +4188,109 @@ function chatBolha(quem, html){
   fio.scrollTop=fio.scrollHeight;
   return d;
 }
-
-// Pergunta o periodo e guarda a pergunta que ficou esperando. As opcoes vem da
-// base; "escolher meses" abre o mesmo seletor das telas, que cobre qualquer
-// intervalo — inclusive 4, 2 ou 1 mes.
-let CHAT_PENDENTE=null;
-const PRECISA_LOJA=['resumo_loja','itens_abaixo_porte','destaques','preco_medio'];
-let CHAT_FORCADO='';
-// "qual a venda?" pode ser da rede ou de uma loja. Em vez de escolher por ele,
-// o chat pergunta — e so depois, se for loja, pergunta qual.
-function chatPerguntarEscopo(pendente){
-  CHAT_PENDENTE=pendente;
-  chatBolha('bot',`<p><b>Da rede toda ou de uma loja?</b></p>
-    <div class="chat-per">
-      <button class="chip pri" data-esc="rede">Toda a rede</button>
-      ${CHAT.minha?`<button class="chip" data-esc="minha">${CHAT.minha}</button>`:''}
-      <button class="chip" data-esc="loja">Uma loja…</button>
-    </div>`);
+async function botDiz(html, ms){
+  const t=chatBolha('bot','<span class="digita"><i></i><i></i><i></i></span>');
+  await espera(ms==null?520:ms);
+  if(!t) return null;
+  t.innerHTML=html;
+  const fio=document.getElementById('pgFio'); if(fio) fio.scrollTop=1e9;
+  return t;
 }
-function chatEscopoClique(el){
-  const v=el.dataset.esc, bolha=el.closest('.chat-msg'), q=CHAT_PENDENTE;
-  if(v==='loja'){ CHAT_FORCADO='resumo_loja'; CHAT.loja=''; bolha.remove(); return chatPerguntarLoja(q); }
-  if(v==='minha'){ CHAT.loja=CHAT.minha; CHAT_FORCADO='resumo_loja'; }
-  else { CHAT.loja=''; CHAT_FORCADO='ranking_lojas'; }
-  bolha.innerHTML=`<p>${v==='minha'?`Certo, <b>${CHAT.minha}</b>.`:'Certo, <b>toda a rede</b>.'}</p>`;
-  CHAT_PENDENTE=null; chatEnviar(q);
-}
-// Pergunta de qual loja, com a propria loja da pessoa em primeiro lugar.
-function chatPerguntarLoja(pendente){
-  CHAT_PENDENTE=pendente;
-  const minha=CHAT.minha;
-  chatBolha('bot',`<p><b>De qual loja?</b></p>
-    <div class="chat-per">
-      ${minha?`<button class="chip pri" data-loja="${minha}">${minha} (minha)</button>`:''}
-      <select class="selin" id="pgQualLoja">
-        ${CHAT.lojas.filter(l=>l!==minha).map(l=>`<option>${l}</option>`).join('')}
-      </select>
-      <button class="chip" id="pgVerLoja">Ver</button>
-    </div>`);
-  const b=document.getElementById('pgVerLoja');
-  if(b) b.onclick=()=>chatLojaEscolhida(document.getElementById('pgQualLoja').value, b.closest('.chat-msg'));
-}
-function chatLojaEscolhida(nome, bolha){
-  CHAT.loja=nome;
-  if(bolha) bolha.innerHTML=`<p>Certo, <b>${nome}</b>.</p>`;
-  if(CHAT_PENDENTE){ const q=CHAT_PENDENTE; CHAT_PENDENTE=null; chatEnviar(q); }
-}
-function chatPerguntarPeriodo(pendente){
-  CHAT_PENDENTE=pendente;
-  const ops=chatOpcoesPeriodo();
-  chatBolha('bot',`<p><b>Qual período?</b></p>
-    <div class="chat-per">
-      ${ops.map(([n,r])=>`<button class="chip" data-per="${n}">${r}</button>`).join('')}
-      <button class="chip" data-per="escolher">outro…</button>
-    </div>`);
-}
-// um clique nas opcoes de periodo: delegado igual aos chips de pergunta
-function chatPeriodoClique(el){
-  const v=el.dataset.per;
-  const bolha=el.closest('.chat-msg');
-  if(v==='escolher'){
-    // um select por ponta, com o mes ja escrito: cabe numa linha so
-    const st=CHAT.period||{}, m=CHAT.meses;
-    const op=(sel)=>m.map(x=>`<option value="${x}"${x===sel?' selected':''}>${mesLabel(x)}</option>`).join('');
-    bolha.innerHTML=`<p><b>De quando até quando?</b></p>
-      <div class="chat-per">
-        <select class="selin" id="pgDe">${op(st.aIni||m[0])}</select>
-        <span class="ate">até</span>
-        <select class="selin" id="pgAte">${op(st.aFim||m[m.length-1])}</select>
-        <button class="chip pri" id="pgUsar">Usar</button>
-      </div>`;
-    const de=bolha.querySelector('#pgDe'), ate=bolha.querySelector('#pgAte');
-    de.onchange=()=>{ if(de.value>ate.value) ate.value=de.value; };
-    ate.onchange=()=>{ if(ate.value<de.value) de.value=ate.value; };
-    bolha.querySelector('#pgUsar').onclick=()=>{
-      CHAT.period={aIni:de.value, aFim:ate.value}; chatPeriodoPronto(bolha); };
-    return;
-  }
-  const n=+v;
-  CHAT.period = n ? ultimosMeses(CHAT.meses,n) : {};
-  chatPeriodoPronto(bolha);
-}
-// trocou o periodo no rodape: refaz a mesma pergunta na janela nova
-function chatPeriodoNoRodape(el){
-  const v=el.dataset.per;
-  if(v==='escolher'){
-    const m=CHAT.meses, st=CHAT.period||{};
-    const op=(sel)=>m.map(x=>`<option value="${x}"${x===sel?' selected':''}>${mesLabel(x)}</option>`).join('');
-    el.parentElement.innerHTML=`<select class="selin mini-sel" id="pgDe">${op(st.aIni||m[0])}</select>
-      <span class="per">até</span>
-      <select class="selin mini-sel" id="pgAte">${op(st.aFim||m[m.length-1])}</select>
-      <button class="mini alt" id="pgUsar">ok</button>`;
-    const de=document.getElementById('pgDe'), ate=document.getElementById('pgAte');
-    de.onchange=()=>{ if(de.value>ate.value) ate.value=de.value; };
-    ate.onchange=()=>{ if(ate.value<de.value) de.value=ate.value; };
-    document.getElementById('pgUsar').onclick=()=>{
-      CHAT.period={aIni:de.value, aFim:ate.value}; CHAT.periodoEscolhido=true; chatRefazer(); };
-    return;
-  }
-  const n=+v;
-  CHAT.period = n ? ultimosMeses(CHAT.meses,n) : {};
-  CHAT.periodoEscolhido=true;
-  chatRefazer();
-}
-function chatRefazer(){
-  if(!CHAT.ultimo) return;
-  const u=CHAT.ultimo;
-  const p={...u.params}; delete p.meses; delete p.ini; delete p.fim;
-  CHAT_FORCADO=u.intencao;
-  chatEnviar(u.texto);
-}
-function chatPeriodoPronto(bolha){
-  CHAT.periodoEscolhido=true;
-  if(bolha) bolha.innerHTML=`<p>Respondendo sobre <b>${periodLabel(CHAT.period)}</b>.</p>`;
-  if(CHAT_PENDENTE){ const q=CHAT_PENDENTE; CHAT_PENDENTE=null; chatEnviar(q); }
+function botOfereceu(bolha, ops, aoEscolher){
+  if(!bolha) return;
+  const cx=document.createElement('div');
+  cx.className='bot-ops';
+  cx.innerHTML=ops.map((o,i)=>`<button class="bot-op" data-i="${i}">${o.rot}</button>`).join('');
+  bolha.appendChild(cx);
+  cx.querySelectorAll('.bot-op').forEach(b=>{
+    b.onclick=()=>{
+      const o=ops[+b.dataset.i];
+      cx.remove();
+      chatBolha('eu',`<p>${o.rot}</p>`);
+      aoEscolher(o);
+    };
+  });
+  const fio=document.getElementById('pgFio'); if(fio) fio.scrollTop=1e9;
 }
 
-const AGORA=()=>new Date();
-const DIAS=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
-// Papo curto nao e pergunta de dado: resolve aqui, na hora, de graca.
-const CHAT_PAPO=[
-  {re:/^(oi|ola|opa|eae|e ai|bom dia|boa tarde|boa noite|fala)\b/, r:()=>{
-    const h=AGORA().getHours();
-    const cump = h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
-    return `<p>${cump}! Pergunte sobre <b>${CHAT.loja||'a rede'}</b> — estoque, preço,
-      o que está rompido, onde a loja vende abaixo do porte.</p>`;}},
-  {re:/^(obrigad|valeu|show|otimo|legal|perfeito|bacana)/, r:()=>
-    `<p>Por nada. Se precisar de mais alguma coisa, é só perguntar.</p>`},
-  {re:/^(tchau|ate logo|ate mais|falou)\b/, r:()=>`<p>Até logo!</p>`},
-  {re:/\b(que dia e hoje|qual a data|data de hoje|que horas sao|hora agora)\b/, r:()=>{
-    const d=AGORA();
-    return `<p>Hoje é <b>${DIAS[d.getDay()]}, ${d.toLocaleDateString('pt-BR')}</b>,
-      ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}.</p>`;}},
-  {re:/\b(tudo bem|como vai voce|como voce esta)\b/, r:()=>
-    `<p>Tudo certo por aqui. E aí, o que você quer olhar hoje?</p>`},
-  {re:/\b(quem e voce|o que voce faz|voce e um rob|voce e uma ia|como funciona|o que voce sabe|me ajuda|ajuda)\b/, r:()=>
-    `<p>Eu sou o assistente do elo Sistemas. Respondo com os mesmos números das
-      telas — nunca invento valor. Sei falar de <b>estoque</b> (rompidos, excesso,
-      itens parados), <b>preço médio</b>, <b>oportunidades da loja</b> e
-      <b>números da rede</b>.</p>
-     <div class="chat-seguir" style="border:none;padding:0;margin-top:8px">
-       <button class="chip" data-q="O que está rompido no Pulmão SP?">O que está rompido?</button>
-       <button class="chip" data-q="Quem vende mais na rede?">Quem vende mais?</button>
-     </div>`},
-];
-function chatPapo(t){ const h=CHAT_PAPO.find(x=>x.re.test(t)); return h?h.r():null; }
-const CHAT_ASSUNTO={
-  estoque:['O que está rompido no Pulmão SP?','Onde tem capital parado?','Quais itens têm estoque e não giram?'],
-  preco:  ['Quem vende mais caro na rede?','Meu preço está acima ou abaixo da rede?','Quanto eu deixo na mesa no preço?'],
-  venda:  ['Quem vende mais na rede?','Quanto a rede vendeu?','Como está minha loja?'],
-  oportunidade:['O que estou deixando de vender?','Onde eu vou bem?','Meu preço está acima ou abaixo da rede?'],
-};
-// uma ou duas palavras soltas: o assunto esta claro, o recorte nao
-function chatAssunto(t){
-  const p=t.replace(/[?!.]/g,'').trim();
-  if(p.split(/\s+/).length>2) return null;
-  const chave = /estoqu|pulmao|ruptura|rompid/.test(p) ? 'estoque'
-              : /preco|margem|ticket/.test(p)          ? 'preco'
-              : /venda|faturament|abc|curva/.test(p)   ? 'venda'
-              : /oportunidad|gap|porte/.test(p)        ? 'oportunidade' : null;
-  if(!chave) return null;
-  const l=CHAT_ASSUNTO[chave].filter(q=>CHAT.loja || !/\b(meu|minha|eu|estou)\b/i.test(q));
-  return `<p>Sobre <b>${p}</b>, o que você quer saber?</p>
-    <div class="chat-seguir" style="border:none;padding:0;margin-top:8px">
-      ${l.map(q=>`<button class="chip" data-q="${q.replace(/"/g,'&quot;')}">${q}</button>`).join('')}
-    </div>`;
-}
-async function chatEnviar(forcado){
-  const inp=document.getElementById('pgTxt');
-  const txt=forcado || (inp.value||'').trim();
-  if(!txt || CHAT.ocupado) return;
-  // pergunta nova escrita pela pessoa: esquece o escopo da anterior
-  if(!forcado){ CHAT_FORCADO=''; inp.value=''; chatBolha('eu', `<p>${txt.replace(/</g,'&lt;')}</p>`); }
-  CHAT.ocupado=true;
-  const esp=chatBolha('bot','<p class="pensando">consultando os dados…</p>');
+async function chatDados(){
+  if(CHAT.carregado) return;
   try{
-    const papo=chatPapo(deacc(txt)) || chatAssunto(deacc(txt));
-    if(papo){
-      esp.innerHTML=papo;
-      CHAT.n++; CHAT.ocupado=false; chatChips();
-      return document.getElementById('pgFio').scrollTop=1e9;
-    }
-    let alvo = chatRegras(txt) || await chatModelo(txt);
-    if(CHAT_FORCADO && alvo) alvo={...alvo, intencao:CHAT_FORCADO};
-    if(alvo && alvo.intencao==='venda_ambigua'){
-      esp.remove(); CHAT.ocupado=false;
-      chatLog(txt,'venda_ambigua',alvo.origem,true);
-      return chatPerguntarEscopo(txt);
-    }
-    if(alvo){
-      // falta saber de quem, ou de quando: perguntar em vez de chutar
-      if(PRECISA_LOJA.includes(alvo.intencao) && !chatLoja(alvo.params||{})){
-        esp.remove(); CHAT.ocupado=false;
-        chatLog(txt,alvo.intencao,alvo.origem,true);
-        return chatPerguntarLoja(txt);
-      }
-    }
-    if(!alvo){
-      const base=CHAT_MOTIVO.split(' ')[0];
-      const diag = (isAdmin()&&CHAT_MOTIVO)
-        ? `<p class="chat-dica">diagnóstico: ${CHAT_MOTIVO_TXT[base]||base} ${
-            CHAT_MOTIVO.includes('(')?CHAT_MOTIVO.slice(CHAT_MOTIVO.indexOf('(')):''}</p>` : '';
-      esp.innerHTML=`<p>Ainda não sei responder isso. Anotei a pergunta —
-        se ela aparecer mais vezes, vira uma resposta.</p>
-        <p class="chat-dica">Coisas que eu entendo hoje: itens abaixo do porte, destaques,
-        preço médio, rompidos, excesso de estoque, itens sem giro, ranking das lojas
-        e um resumo da loja.</p>${diag}`;
-      chatLog(txt,null,CHAT_MOTIVO?('modelo:'+CHAT_MOTIVO):'nenhuma',false);
-    }else{
-      CHAT.ultimo={intencao:alvo.intencao, params:{...(alvo.params||{})}, texto:txt};
-      esp.innerHTML=await chatResponder(alvo.intencao, alvo.params||{})
-        + chatRodape(alvo) + chatSeguir(alvo.intencao);
-      chatLog(txt,alvo.intencao,alvo.origem,true).then(id=>{ if(id) esp.dataset.log=id; });
-    }
-  }catch(e){
-    esp.innerHTML=`<p class="erro">Não consegui buscar os dados agora. ${String(e.message||e)}</p>`;
-  }
-  CHAT.n++; CHAT.ocupado=false;
-  chatChips();
-  document.getElementById('pgFio').scrollTop=1e9;
+    const {data}=await fetchAll('vw_lojas','id,nome');
+    CHAT.minha=resolverMinhaLoja(uniq((data||[]).map(x=>x.nome)))||'';
+  }catch{}
+  CHAT.carregado=true;
 }
+function chatMarkup(){ return `<div class="chat-fio" id="pgFio"></div>`; }
 
-/* ---------- 1. intenção por regras (roda aqui, sem sair) ---------- */
-const CHAT_REGRAS=[
-  {i:'rompidos',        re:/\b(rompid|zerad|falta|faltando|sem saldo|em falta|acabou|esgotad)/},
-  {i:'sem_giro',        re:/\b(sem giro|nao vende|nao gira|nao girou|parad[oa]s? no estoque|encalhad)/},
-  {i:'excesso_estoque', re:/\b(excesso|capital parado|estoque demais|sobrando|sobra de estoque|muito estoque|cobertura alta)/},
-  {i:'preco_medio',     re:/\b(preco|preço|caro|barato|ticket|valor medio|margem)/},
-  {i:'destaques',       re:/\b(destaque|vou bem|vendo bem|forte|acima do porte|melhor que a rede|meus melhores)/},
-  {i:'itens_abaixo_porte', re:/\b(abaixo|deixando de vender|perdendo venda|oportunidade|gap|poderia vender|vendo pouco|nao vendo)/},
-  {i:'ranking_lojas',   re:/\b(ranking|quem vende mais|maiores lojas|comparar as lojas|posicao da rede|como esta a rede|melhores lojas|da rede|na rede)/},
-  {i:'venda_ambigua',   re:/\b(qual a venda|quanto vend|as vendas|a venda|faturament|quanto foi vendido)/},
-  {i:'resumo_loja',     re:/\b(como (eu )?est(ou|a)|resumo|panorama|visao geral|como vai|meu desempenho|como fui)/},
-  {i:'cobertura',       re:/\b(cobertura|quantos dias de estoque|dura quanto)/},
-];
-// Grupos reais, vindos da base. Antes era uma lista escrita a mao que tinha
-// "Cozinha" e "Ducha" (nao existem) e esquecia "Gourmet" — a pergunta casava com
-// um grupo inexistente e a resposta vinha vazia.
-let CHAT_GRUPOS=[];
-
-// tira da frase os recortes que ela cita: classe, grupo, loja, prazo
-function chatQualificadores(t){
-  const q={};
-  const cl=t.match(/\bclasse\s*([abc])\b/) || t.match(/\bcurva\s*([abc])\b/) || t.match(/^([abc])$/);
-  if(cl) q.classe=cl[1].toUpperCase();
-  const g=CHAT_GRUPOS.find(x=>t.includes(deacc(x)));
-  if(g) q.grupo=g;
-  const lj=CHAT.lojas.find(x=>t.includes(deacc(x)));
-  if(lj) q.loja=lj;
-  const m=t.match(/(\d{1,2})\s*(?:ultimos\s*)?(?:mes|meses)/) || t.match(/ultimos?\s*(\d{1,2})\s*(?:mes|meses)/);
-  if(m){ const n=+m[1]; if(n>=1&&n<=36) q.meses=n; }
-  if(/\bano\s*(todo|inteiro)|12\s*meses\b/.test(t)) q.meses=12;
-  return q;
+async function chatAbertura(){
+  const h=new Date().getHours();
+  const cump=h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
+  await botDiz(`<p>${cump}${CHAT.minha?`, <b>${CHAT.minha}</b>`:''}!</p>
+    <p>Estou em <b>fase de aprendizado</b> — em breve vou ajudar com as análises.</p>`, 450);
+  await botMenu(true);
 }
-function chatRegras(txt){
-  const t=deacc(txt);
-  const so=CHAT.lojas.find(l=>deacc(l)===t);      // so o nome da loja: quero ver essa loja
-  if(so) return {intencao:'resumo_loja', params:{loja:so}, origem:'regra'};
-  const hit=CHAT_REGRAS.find(r=>r.re.test(t));
-  if(!hit){
-    // "e classe A?" nao repete o assunto: herda o da pergunta anterior
-    const q=chatQualificadores(t);
-    if(CHAT.ultimo && Object.keys(q).length && t.split(/\s+/).length<=6){
-      return {intencao:CHAT.ultimo.intencao,
-              params:{...CHAT.ultimo.params, ...q}, origem:'regra'};
-    }
-    return null;
-  }
-  const params={};
-  const cl=t.match(/\bclasse\s*([abc])\b/) || t.match(/\bcurva\s*([abc])\b/);
-  if(cl) params.classe=cl[1].toUpperCase();
-  const g=CHAT_GRUPOS.find(x=>t.includes(deacc(x)));
-  if(g) params.grupo=g;
-  const lj=CHAT.lojas.find(x=>t.includes(deacc(x)));
-  if(lj) params.loja=lj;
-  const m=t.match(/(\d{1,2})\s*(?:ultimos\s*)?(?:mes|meses)/) || t.match(/ultimos?\s*(\d{1,2})\s*(?:mes|meses)/);
-  if(m){ const n=+m[1]; if(n>=1&&n<=36) params.meses=n; }
-  if(/\bano\s*(todo|inteiro)|12\s*meses\b/.test(t)) params.meses=12;
-  // "cobertura" sozinho e ambiguo: sem pista de excesso, mostro o quadro geral
-  const intencao = hit.i==='cobertura' ? 'excesso_estoque' : hit.i;
-  return {intencao, params, origem:'regra'};
+async function botMenu(primeira){
+  const lista=GUIA.filter(g=>!g.adm || isAdmin());
+  const b=await botDiz(`<p>${primeira
+    ? 'Por enquanto eu conheço bem as telas do sistema. Sobre qual delas quer saber?'
+    : 'Quer ver outra?'}</p>`, 380);
+  botOfereceu(b, lista.map(g=>({rot:g.rot, g})), o=>botTela(o.g));
 }
-
-/* ---------- 2. o que as regras não pegam vai para o modelo ---------- */
-let CHAT_MOTIVO='';
-async function chatModelo(txt){
-  CHAT_MOTIVO='';
+async function botTela(g){
+  const b=await botDiz(`<p>${g.txt}</p>`, 560);
+  botLog(g.rota);
+  botOfereceu(b, [{rot:`Abrir ${g.rot} →`, abrir:g.rota}, {rot:'Ver outra tela', outra:1}], o=>{
+    if(o.abrir){ dockFechar(); route(o.abrir); return; }
+    botMenu(false);
+  });
+}
+// registra qual tela foi procurada: diz o que as pessoas querem antes de eu
+// construir a resposta para isso
+async function botLog(rota){
   try{
-    const {data,error}=await sb.functions.invoke('chat-intencao',{body:{pergunta:txt}});
-    if(error){ CHAT_MOTIVO='erro_na_funcao'; return null; }
-    if(!data || !data.intencao){
-      CHAT_MOTIVO=(data&&data.motivo)||'sem_resposta';
-      if(data&&data.http) CHAT_MOTIVO+=' ('+data.http+')';
-      return null;
-    }
-    return {intencao:data.intencao, params:data.params||{}, origem:'modelo'};
-  }catch{ CHAT_MOTIVO='sem_conexao'; return null; }
+    await sb.from('chat_perguntas').insert({
+      usuario: session.user.id, papel: perfil?.papel || null,
+      loja: CHAT.minha || null, pergunta: 'tela: '+rota,
+      intencao: 'guia_tela', origem:'guia', respondida:true });
+  }catch{}
 }
-// so o administrador ve o diagnostico; para o lojista o chat apenas nao sabe
-const CHAT_MOTIVO_TXT={
-  sem_modelo:'a chave do Gemini não está configurada nesta função',
-  modelo_indisponivel:'o Google recusou a chamada (chave inválida ou API não ativada)',
-  fora_do_catalogo:'o modelo entendeu, mas fora dos oito assuntos',
-  resposta_invalida:'o modelo respondeu num formato inesperado',
-  falha_na_chamada:'a chamada ao Google falhou',
-  erro_na_funcao:'a função chat-intencao não respondeu',
-  sem_conexao:'não consegui falar com a função',
-};
 
-/* ---------- 3. a intenção vira consulta, e os números viram texto ---------- */
-function chatLoja(params){
-  if(params.loja){
-    const k=chaveLoja(params.loja);
-    const hit=CHAT.lojas.find(l=>chaveLoja(l)===k)
-          || CHAT.lojas.find(l=>deacc(l).includes(deacc(params.loja)));
-    if(hit) return hit;
-  }
-  return CHAT.loja;
-}
-function chatPer(params){
-  // o filtro manda. A pergunta so o sobrepoe quando cita o prazo — em meses
-  // ("ultimos 3 meses") ou em intervalo ("de marco a junho"). A resposta sempre
-  // diz qual janela usou, entao nunca fica ambiguo.
-  const mes=x=>{ const v=String(x||'').slice(0,7); return /^\d{4}-\d{2}$/.test(v)?v+'-01':null; };
-  const a=mes(params.ini), b=mes(params.fim);
-  if(a||b){
-    const ini=CHAT.meses.includes(a)?a:CHAT.meses[0];
-    const fim=CHAT.meses.includes(b)?b:CHAT.meses[CHAT.meses.length-1];
-    if(ini<=fim) return {aIni:ini, aFim:fim};
-  }
-  if(params.meses>0) return ultimosMeses(CHAT.meses, params.meses);
-  return CHAT.period || {};
-}
-// O link nao leva so para a tela: leva para a tela com os mesmos filtros da
-// pergunta. Sem isso a pessoa cai numa lista de 443 itens e perde o que achou.
-const CHAT_IR={}; let CHAT_IR_N=0;
-function chatVer(rota, rotulo, cfg){
-  const id='ir'+(++CHAT_IR_N);
-  // a conversa pode ficar longa; guardo so os ultimos destinos
-  Object.keys(CHAT_IR).slice(0,-40).forEach(k=>delete CHAT_IR[k]);
-  CHAT_IR[id]=cfg||{};
-  return `<p class="chat-ver"><a href="#" onclick="chatIr('${rota}','${id}');return false">${rotulo} →</a></p>`;
-}
-async function chatIr(rota, id){
-  const cfg=CHAT_IR[id]||{};
+async function renderPerguntar(){
   dockFechar();
-  await route(rota);
-  const set=(el,v)=>{ const e=document.getElementById(el); if(e&&v!=null){ e.value=v; return true; } return false; };
-  if(rota==='oportunidades'){
-    if(cfg.loja!=null){ OPO.loja=cfg.loja; set('opLoja',cfg.loja); }
-    if(cfg.aba) OPO.aba=cfg.aba;
-    if(typeof opoPinta==='function') opoPinta();
-  }
-  if(rota==='ruptura'){
-    set('ceFiltro',cfg.situacao||'');
-    set('ceClasse',cfg.classe||'');
-    set('ceGrupo',cfg.grupo||'');
-    if(typeof pulmaoRefresh==='function') pulmaoRefresh();
-  }
-}
-// No painel flutuante a tabela some: ela empurrava a conversa para fora da tela
-// e criava rolagem dentro de rolagem. Fica um resumo curto e o link para a tela
-// de verdade, ja filtrada. Na aba inteira a tabela aparece normalmente.
-function chatTab(cols, linhas){
-  if(!linhas.length) return '';
-  if(dockAberto()) return `<ul class="chat-lista">${linhas.slice(0,3).map(l=>
-    `<li><b>${cols[0].v(l)}</b> ${String(cols[1].v(l)).slice(0,42)}</li>`).join('')}${
-    linhas.length>3?`<li class="mais">e mais ${fmtInt(linhas.length-3)}…</li>`:''}</ul>`;
-  return `<div class="chat-tab"><table class="densa"><thead><tr>${
-    cols.map(c=>`<th${c.num?' class="num"':''}>${c.t}</th>`).join('')}</tr></thead><tbody>${
-    linhas.map(l=>`<tr>${cols.map(c=>`<td${c.num?' class="num"':''}>${c.v(l)}</td>`).join('')}</tr>`).join('')
-  }</tbody></table></div>`;
-}
-const chatDesc=x=>`<span title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.sku}</span>`;
-const pl=(n,um,varios)=>Number(n)===1?um:varios;
-const nItens=n=>`<b>${fmtInt(n)} ${pl(n,'item','itens')}</b>`;
-
-async function chatResponder(intencao, params){
-  const per=chatPer(params), loja=chatLoja(params);
-  const a={p_ini:per.aIni,p_fim:per.aFim}, aPM={p_comp_ini:per.aIni,p_comp_fim:per.aFim};
-  const quando=periodLabel(per);
-  const precisaLoja = ['resumo_loja','itens_abaixo_porte','destaques','preco_medio'].includes(intencao);
-  if(precisaLoja && !loja)
-    return `<p>Essa pergunta é sobre uma loja específica — me diga qual.</p>`;
-
-  if(intencao==='ranking_lojas'){
-    const {data}=await fetchRpc('loja_porte',a);
-    const r=(data||[]).sort((x,y)=>y.unidades-x.unidades);
-    const tot=r.reduce((t,x)=>t+(+x.unidades||0),0);
-    return `<p>Em ${quando} a rede vendeu <b>${fmtInt(tot)} peças</b> em ${r.length} lojas.
-      As maiores:</p>${chatTab(
-      [{t:'Loja',v:x=>x.loja},{t:'Peças',num:1,v:x=>fmtInt(x.unidades)},
-       {t:'Participação',num:1,v:x=>fmtPct(100*(x.participacao||0))},
-       {t:'SKUs',num:1,v:x=>fmtInt(x.skus_ativos)}], r.slice(0,8))
-      }${chatVer('vendas','Ver vendas por loja')}`;
-  }
-
-  if(intencao==='rompidos'){
-    const {data}=await fetchRpc('estoque_cobertura',a);
-    let r=(data||[]).filter(x=>Number(x.estoque)===0 && (+x.venda_media_mes||0)>0);
-    if(params.classe) r=r.filter(x=>x.classe===params.classe);
-    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
-    r.sort((x,y)=>y.venda_media_mes-x.venda_media_mes);
-    if(!r.length) return `<p>Nenhum item com venda no período está sem saldo no Pulmão SP${
-      params.classe?' na classe '+params.classe:''}${params.grupo?' em '+params.grupo:''}.
-      Bom sinal.</p>${chatVer('ruptura','Ver cobertura de estoque',
-      {situacao:'rompido', classe:params.classe, grupo:params.grupo})}`;
-    const emA=r.filter(x=>x.classe==='A').length;
-    const perdaMes=r.reduce((t,x)=>t+(+x.venda_media_mes||0),0);
-    // a nota sobre classe A so faz sentido quando a pergunta NAO filtrou por classe
-    const notaA = (!params.classe && emA)
-      ? `<b>${emA}</b> ${pl(emA,'é','são')} de classe A. ` : '';
-    return `<p>${nItens(r.length)} ${pl(r.length,'está rompido','estão rompidos')} no Pulmão SP e
-      ${pl(r.length,'tinha','tinham')} venda em ${quando}${
-      params.classe?` (classe ${params.classe})`:''}. ${notaA}
-      ${pl(r.length,'Girava','Juntos giravam')} <b>${fmtInt(Math.round(perdaMes))} peças por mês</b> na rede.</p>${chatTab(
-      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
-       {t:'Venda/mês',num:1,v:x=>(+x.venda_media_mes||0).toFixed(1)}], r.slice(0,10))
-      }${(!dockAberto()&&r.length>10)?`<p class="chat-dica">Mostrando os 10 de maior giro, de ${fmtInt(r.length)}.</p>`:''}
-      ${chatVer('ruptura', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} na tela`,
-        {situacao:'rompido', classe:params.classe, grupo:params.grupo})}`;
-  }
-
-  if(intencao==='excesso_estoque'){
-    const {data}=await fetchRpc('estoque_cobertura',a);
-    const meta=(data&&data[0]&&+data[0].meses_periodo)||6;
-    let r=(data||[]).filter(x=>x.meses_cobertura!=null && +x.meses_cobertura>meta);
-    if(params.classe) r=r.filter(x=>x.classe===params.classe);
-    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
-    r.sort((x,y)=>(y.estoque-x.estoque));
-    if(!r.length) return `<p>Nenhum item passa de ${meta*30} dias de cobertura no período.</p>${
-      chatVer('ruptura','Ver cobertura de estoque')}`;
-    const pecas=r.reduce((t,x)=>t+(+x.estoque||0),0);
-    return `<p>${nItens(r.length)} ${pl(r.length,'tem','têm')} mais de <b>${fmtInt(meta*30)} dias</b>
-      de cobertura — a meta do período. São <b>${fmtInt(pecas)} peças</b> paradas no Pulmão SP.</p>${chatTab(
-      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
-       {t:'Estoque',num:1,v:x=>fmtInt(x.estoque)},
-       {t:'Cobertura',num:1,v:x=>fmtInt(Math.round(30*x.meses_cobertura))+' d'}], r.slice(0,10))
-      }${chatVer('ruptura', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} na tela`,
-        {situacao:'excesso', classe:params.classe, grupo:params.grupo})}`;
-  }
-
-  if(intencao==='sem_giro'){
-    const {data}=await fetchRpc('estoque_cobertura',a);
-    let r=(data||[]).filter(x=>(+x.estoque||0)>0 && (+x.vendido_total||0)===0);
-    if(params.classe) r=r.filter(x=>x.classe===params.classe);
-    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
-    r.sort((x,y)=>y.estoque-x.estoque);
-    if(!r.length) return `<p>Todo item com saldo no Pulmão SP teve alguma venda em ${quando}.</p>`;
-    const pecas=r.reduce((t,x)=>t+(+x.estoque||0),0);
-    return `<p>${nItens(r.length)} ${pl(r.length,'tem','têm')} saldo no Pulmão SP e
-      <b>${pl(r.length,'não vendeu','não venderam')} nenhuma peça</b>
-      em ${quando}: ${fmtInt(pecas)} peças paradas.</p>${chatTab(
-      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
-       {t:'Estoque',num:1,v:x=>fmtInt(x.estoque)}], r.slice(0,10))
-      }${chatVer('ruptura', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} na tela`,
-        {situacao:'parado', classe:params.classe, grupo:params.grupo})}`;
-  }
-
-  if(intencao==='preco_medio'){
-    const {data}=await fetchRpc('preco_medio_loja',aPM);
-    const base=(data||[]).filter(x=>+x.unidades>0);
-    const eu=base.find(x=>x.loja===loja);
-    if(!eu) return `<p>Não há faturamento de ${loja} em ${quando}.</p>`;
-    const pmRede=+base[0].pm_rede, dif=pmRede-(+eu.preco_medio);
-    const posto=[...base].sort((x,y)=>y.preco_medio-x.preco_medio).findIndex(x=>x.loja===loja)+1;
-    const opo=Math.abs(dif*(+eu.unidades));
-    return `<p>Em ${quando}, <b>${loja}</b> vendeu ${fmtInt(eu.unidades)} peças a um preço médio de
-      <b>${fmtBRL(eu.preco_medio)}</b>. A rede está em ${fmtBRL(pmRede)} — ${
-      dif>0?`<b>${fmtPct(Math.abs(eu.vs_rede_pct))} abaixo</b>`:`<b>${fmtPct(Math.abs(eu.vs_rede_pct))} acima</b>`}.
-      É o <b>${posto}º</b> maior preço médio entre ${base.length} lojas.</p>
-      <p>${dif>0
-        ? `As mesmas ${fmtInt(eu.unidades)} peças teriam rendido <b>${fmtBRL(opo)}</b> a mais ao preço da rede.
-           Não é venda nova, é margem — e subir preço pode custar giro.`
-        : `Essas ${fmtInt(eu.unidades)} peças renderam <b>${fmtBRL(opo)}</b> a mais do que renderiam ao preço da rede.`}</p>
-      ${chatVer('oportunidades','Ver em Oportunidades',{loja, aba:'gap'})}`;
-  }
-
-  if(intencao==='itens_abaixo_porte'){
-    const {data}=await fetchRpc('oportunidade_gap',a);
-    let r=(data||[]).filter(x=>x.loja===loja);
-    if(params.classe) r=r.filter(x=>x.classe===params.classe);
-    if(params.grupo)  r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
-    if(params.linha)  r=r.filter(x=>deacc(x.linha||'')===deacc(params.linha));
-    r.sort((x,y)=>y.gap_atendivel-x.gap_atendivel||y.gap-x.gap);
-    if(!r.length) return `<p>Não encontrei itens abaixo do porte para ${loja} em ${quando}${
-      params.grupo?' em '+params.grupo:''}${params.classe?' na classe '+params.classe:''}.</p>`;
-    const emA=r.filter(x=>x.classe==='A').length;
-    const disp=r.reduce((t,x)=>t+(+x.gap_atendivel||0),0);
-    return `<p><b>${loja}</b> tem ${nItens(r.length)} que ${pl(r.length,'pesa','pesam')} menos na loja
-      do que na rede${(!params.classe&&emA)?`, ${emA} ${pl(emA,'dele','deles')} de classe A`:''}.
-      ${pl(r.length,'Dele','Desses')}, <b>${fmtInt(disp)} peças</b> têm saldo no Pulmão SP hoje.</p>${chatTab(
-      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
-       {t:'Índice',num:1,v:x=>Math.round(100*x.indice)+'%'},
-       {t:'Vendeu',num:1,v:x=>fmtInt(x.un_loja)},{t:'No porte',num:1,v:x=>fmtInt(x.esperado)},
-       {t:'No Pulmão',num:1,v:x=>fmtInt(x.estoque_cd)}], r.slice(0,10))
-      }<p class="chat-dica">O índice é o peso do item na loja dividido pelo peso dele na rede.
-      100% é vender no tamanho da própria loja. <b>Não é previsão de venda</b> — é diferença de
-      sortimento, para investigar exposição, preço ou demanda local.</p>
-      ${chatVer('oportunidades', `Ver ${pl(r.length,'o item','os '+fmtInt(r.length)+' itens')} em Oportunidades`,
-        {loja, aba:'gap'})}`;
-  }
-
-  if(intencao==='destaques'){
-    const {data}=await fetchRpc('oportunidade_destaque',a);
-    let r=(data||[]).filter(x=>x.loja===loja);
-    if(params.grupo) r=r.filter(x=>deacc(x.grupo||'')===deacc(params.grupo));
-    r.sort((x,y)=>y.indice-x.indice);
-    if(!r.length) return `<p>Sem destaques para ${loja} em ${quando}.</p>`;
-    return `<p><b>${loja}</b> vende ${nItens(r.length)} acima do próprio porte em ${quando}${
-      r.length>1?'. Os mais fortes:':':'}</p>${chatTab(
-      [{t:'Item',v:chatDesc},{t:'Descrição',v:x=>x.descricao||'—'},{t:'Classe',v:x=>x.classe||'—'},
-       {t:'Índice',num:1,v:x=>Math.round(100*x.indice)+'%'},
-       {t:'Esta loja',num:1,v:x=>fmtInt(x.un_loja)},{t:'Rede',num:1,v:x=>fmtInt(x.un_rede)}], r.slice(0,10))
-      }${chatVer('oportunidades', `Ver ${pl(r.length,'o destaque','os '+fmtInt(r.length)+' destaques')}`,
-        {loja, aba:'dest'})}`;
-  }
-
-  if(intencao==='resumo_loja'){
-    const [pt,gp,pm]=await Promise.all([
-      fetchRpc('loja_porte',a), fetchRpc('oportunidade_gap',a), fetchRpc('preco_medio_loja',aPM)]);
-    const porte=(pt.data||[]).find(x=>x.loja===loja);
-    if(!porte) return `<p>Não há venda registrada para ${loja} em ${quando}.</p>`;
-    const ord=[...(pt.data||[])].sort((x,y)=>y.unidades-x.unidades);
-    const posto=ord.findIndex(x=>x.loja===loja)+1;
-    const g=(gp.data||[]).filter(x=>x.loja===loja);
-    const disp=g.reduce((t,x)=>t+(+x.gap_atendivel||0),0);
-    const emA=g.filter(x=>x.classe==='A').length;
-    const base=(pm.data||[]).filter(x=>+x.unidades>0);
-    const eu=base.find(x=>x.loja===loja);
-    return `<p>Em ${quando}, <b>${loja}</b> vendeu <b>${fmtInt(porte.unidades)} peças</b> —
-      ${fmtPct(100*(porte.participacao||0))} da rede, <b>${posto}º</b> de ${ord.length} em volume,
-      com ${fmtInt(porte.skus_ativos)} SKUs diferentes.</p>
-      ${eu?`<p>Preço médio de <b>${fmtBRL(eu.preco_medio)}</b>, ${
-        (+eu.vs_rede_pct)>=0?'acima':'abaixo'} da rede em ${fmtPct(Math.abs(eu.vs_rede_pct))}
-        (rede: ${fmtBRL(eu.pm_rede)}).</p>`:''}
-      <p>${nItens(g.length)} ${pl(g.length,'pesa','pesam')} menos aqui do que na rede${
-        emA?`, ${emA} de classe A`:''} — e <b>${fmtInt(disp)} peças</b> ${
-        pl(g.length,'desse item','desses itens')} estão disponíveis no Pulmão SP hoje.</p>
-      <p class="chat-dica">Quer detalhar? Pergunte "o que estou deixando de vender?",
-      "onde eu vou bem?" ou "meu preço está abaixo da rede?".</p>
-      ${chatVer('oportunidades','Ver em Oportunidades',{loja, aba:'gap'})}`;
-  }
-
-  return `<p>Entendi a pergunta, mas ainda não montei essa resposta.</p>`;
+  view.innerHTML=head(ICO_CHAT,'Perguntar',
+    'Assistente em construção. Por enquanto ele apresenta as telas e leva até elas.','Análise')
+    +'<div id="pgBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('pgBody');
+  if(!session){ body.innerHTML=loginWall('O assistente é restrito à equipe.'); return; }
+  await chatDados();
+  body.innerHTML=`<div class="tools" style="justify-content:flex-end">
+      <button class="btn-tool" id="pgLimpar">Recomeçar</button></div>
+    <div class="panel" style="margin-bottom:12px">${chatMarkup()}</div>`;
+  document.getElementById('pgLimpar').onclick=()=>{
+    document.getElementById('pgFio').innerHTML=''; chatAbertura(); };
+  chatAbertura();
 }
 
-/* ---------- 4. o log: roteiro do que construir, e medida de uso ---------- */
-async function chatLog(pergunta, intencao, origem, respondida){
-  try{
-    const {data}=await sb.from('chat_perguntas').insert({
-      usuario: session.user.id,
-      papel: perfil?.papel || null,
-      loja: CHAT.loja || null,
-      pergunta: pergunta.slice(0,500),
-      intencao, origem, respondida
-    }).select('id').single();
-    return data && data.id;
-  }catch{ /* log e melhor-esforco: nunca atrapalha a resposta */ }
-  return null;
+/* ---------- painel flutuante ---------- */
+function dockAberto(){ const d=document.getElementById('chatDock'); return d && !d.classList.contains('esconde'); }
+function dockFechar(){
+  const d=document.getElementById('chatDock'), b=document.getElementById('chatBolha');
+  if(d){ d.classList.add('esconde'); d.querySelector('#dkCorpo').innerHTML=''; }
+  if(b) b.classList.remove('aberto');
 }
+async function dockAbrir(){
+  if(current==='perguntar') return;
+  const d=document.getElementById('chatDock'), b=document.getElementById('chatBolha');
+  if(!d || !session) return;
+  d.classList.remove('esconde'); b.classList.add('aberto');
+  const corpo=d.querySelector('#dkCorpo');
+  corpo.innerHTML='<div class="empty">Carregando…</div>';
+  await chatDados();
+  corpo.innerHTML=chatMarkup();
+  chatAbertura();
+}
+function dockToggle(){ dockAberto() ? dockFechar() : dockAbrir(); }
 
 /* ============================================================
    Logos — tenta assets/, mesma pasta, images/; senão placeholder
