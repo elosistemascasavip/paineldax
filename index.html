@@ -524,18 +524,25 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   font-size:12.5px;color:var(--ink-soft);font-weight:600;cursor:pointer;font-family:inherit}
 .chip:hover{border-color:var(--blue);color:var(--blue);background:#f4f8ff}
 .chip.trocar{padding:7px 11px;font-size:14px;line-height:1;color:var(--ink-faint)}
-.chat-sug.temas{gap:6px;margin-bottom:7px}
-.chip.tema{font-size:11.5px;padding:5px 11px;border-radius:8px;background:#f4f6fa;border-color:transparent}
-.chip.tema.on{background:var(--blue);border-color:var(--blue);color:#fff}
-.chip.tema.on:hover{background:var(--blue);color:#fff}
+.chat-ctx{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line)}
+.chat-ctx .selin{border:none;background:transparent;font-weight:700;font-size:13px;
+  padding:3px 20px 3px 4px;color:var(--ink);max-width:170px}
+.chat-ctx .selin:hover{background:#f1f4f9;border-radius:7px}
+.chat-per-bt,.chat-lim{border:none;background:transparent;font-family:inherit;
+  font-size:12px;color:var(--ink-faint);padding:4px 7px;border-radius:7px}
+.chat-per-bt:hover,.chat-lim:hover{background:#f1f4f9;color:var(--ink-soft)}
+.chat-per-bt::after{content:' ▾'}
 .chat-seguir{margin-top:10px;padding-top:9px;border-top:1px solid #e3e9f2;
   display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .chat-seguir>span{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;
   letter-spacing:.04em;font-weight:700}
 .chat-seguir .chip{font-size:12px;padding:6px 11px;background:#fff}
-.chat-escolher{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chat-escolher .pc-box{flex-wrap:wrap}
-.chat-escolher .pc-cmp{display:none}
+.chat-per{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px}
+.chat-per .selin{padding:5px 8px;font-size:12.5px}
+.chat-per .ate{font-size:12px;color:var(--ink-faint)}
+.chat-per .chip{font-size:12px;padding:6px 11px;background:#fff}
+.chat-per .chip.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.chat-per .chip.pri:hover{background:var(--blue);color:#fff}
 .chat-lista{margin:8px 0 2px;padding:0;list-style:none;font-size:12.5px}
 .chat-lista li{padding:3px 0;border-bottom:1px dashed #dfe6f0;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
@@ -588,7 +595,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 <div class="chat-dock esconde" id="chatDock">
   <div class="chat-dock-topo">
     <b>Perguntar</b>
-    <span id="dkPer"></span>
+    <span class="grow"></span>
     <button class="chat-dock-x" id="dkTela" title="Abrir em tela cheia">⤢</button>
     <button class="chat-dock-x" id="dkFechar" title="Fechar">✕</button>
   </div>
@@ -4202,40 +4209,31 @@ async function chatDados(){
 // opcoes montadas sobre a base real: nao oferece 12 meses se so existem 8
 function chatOpcoesPeriodo(){
   const n=CHAT.meses.length, o=[];
-  o.push([1, 'Último mês · '+mesLabel(CHAT.meses[n-1])]);
-  [3,6,12,24].forEach(k=>{ if(k<n) o.push([k, 'Últimos '+k+' meses']); });
-  o.push([0, `Todo o histórico · ${n} ${pl(n,'mês','meses')}`]);
+  o.push([1, mesLabel(CHAT.meses[n-1])]);
+  [3,6,12,24].forEach(k=>{ if(k<n) o.push([k, k+' meses']); });
+  o.push([0, `tudo · ${n}`]);
   return o;
 }
 function chatMarkup(dock){
-  const seletor=`<select class="selin" id="pgLoja"${dock?' style="flex:1;min-width:0"':' style="min-width:190px"'}>
-      <option value="">Rede — todas as lojas</option>
-      ${CHAT.lojas.map(l=>`<option${l===CHAT.loja?' selected':''}>${l}</option>`).join('')}
-    </select>`;
-  const atalho=`<button class="btn-tool" id="pgPer" title="Trocar o período">${
-      periodLabel(CHAT.period)} ▾</button>`;
-  const conversa=`<div class="chat-fio" id="pgFio"></div>
+  const contexto=`<div class="chat-ctx">
+      <select class="selin" id="pgLoja">
+        <option value="">Toda a rede</option>
+        ${CHAT.lojas.map(l=>`<option${l===CHAT.loja?' selected':''}>${l}</option>`).join('')}
+      </select>
+      <button class="chat-per-bt" id="pgPer" title="Trocar o período">${periodLabel(CHAT.period)}</button>
+      <div class="grow"></div>
+      <button class="chat-lim" id="pgLimpar" title="Limpar conversa">limpar</button>
+    </div>`;
+  const conversa=`${contexto}
+    <div class="chat-fio" id="pgFio"></div>
     <div id="pgChips"></div>
     <div class="chat-barra">
       <input id="pgTxt" class="chat-inp" maxlength="300" autocomplete="off"
-        placeholder="Ex.: o que estou deixando de vender?">
+        placeholder="Pergunte com suas palavras…">
       <button class="btn-tool pri" id="pgEnviar">Perguntar</button>
     </div>`;
-  // no painel tudo divide 460px: barra de uma linha so e sugestoes dentro
-  if(dock) return `<div class="tools dock-tools">${seletor}${atalho}
-      <button class="btn-tool" id="pgLimpar">Limpar</button></div>${conversa}`;
-  return `<div class="notice" style="margin-bottom:12px">
-      <b>Novo por aqui.</b> Pergunte com suas palavras: eu respondo sobre
-      ${periodLabel(CHAT.period)} com os mesmos números das telas. Entendo oito assuntos hoje —
-      o que eu não souber fica anotado para virar resposta depois.</div>
-    <div class="tools" style="margin-bottom:10px">
-      <div id="pgPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
-    </div>
-    <div class="tools">${seletor}
-      <div class="grow"></div>
-      <button class="btn-tool" id="pgLimpar">Limpar conversa</button>
-    </div>
-    <div class="panel" style="margin-bottom:12px">${conversa}</div>`;
+  if(dock) return conversa;
+  return `<div class="panel" style="margin-bottom:12px">${conversa}</div>`;
 }
 
 function chatWire(){
@@ -4245,22 +4243,11 @@ function chatWire(){
     if(!CHAT.loja && CHAT.tema==='loja') CHAT.tema='rede';
     CHAT_SUG_DE=0; chatChips();
   };
-  const cx=document.getElementById('pgPeriod');
-  if(cx){                                        // aba inteira: o filtro do sistema
-    CHAT.montando=true;
-    wirePeriod(cx, CHAT.meses, st=>{
-      if(CHAT.montando) return;
-      CHAT.period={aIni:st.aIni, aFim:st.aFim};
-      CHAT.periodoEscolhido=true;
-      chatAvisoPeriodo();
-    }, CHAT.period);
-    CHAT.montando=false;
-  }
   const bp=document.getElementById('pgPer');
   if(bp) bp.onclick=()=>chatPerguntarPeriodo(null);
   document.getElementById('pgLimpar').onclick=()=>{
     document.getElementById('pgFio').innerHTML=''; CHAT.n=0;
-    CHAT_PENDENTE=null; chatAbertura(); };
+    CHAT_PENDENTE=null; chatAbertura(); chatChips(); };
   document.getElementById('pgEnviar').onclick=()=>chatEnviar();
   document.getElementById('pgTxt').onkeydown=e=>{ if(e.key==='Enter') chatEnviar(); };
   chatAbertura(); chatChips();
@@ -4296,7 +4283,6 @@ async function dockAbrir(){
   const daTela=periodoDaTela();                  // pergunta olhando a tela: mesma janela
   if(daTela){ CHAT.period=daTela; CHAT.periodoEscolhido=true; }
   CHAT.tema=CHAT_TEMA_TELA[current]||'';         // e o assunto acompanha a tela
-  document.getElementById('dkPer').textContent=periodLabel(CHAT.period);
   corpo.innerHTML=chatMarkup(true);
   chatWire();
   document.getElementById('pgTxt').focus();
@@ -4314,6 +4300,8 @@ function chatAbertura(){
 function chatAvisoPeriodo(){
   const dk=document.getElementById('dkPer');
   if(dk) dk.textContent=periodLabel(CHAT.period);
+  const bp=document.getElementById('pgPer');
+  if(bp) bp.textContent=periodLabel(CHAT.period);
   chatBolha('bot',`<p class="chat-dica" style="border:none;padding:0;margin:0">
     Daqui para frente respondo sobre <b>${periodLabel(CHAT.period)}</b>.</p>`);
 }
@@ -4375,28 +4363,21 @@ function chatTema(){
   if(t && (!t.loja || CHAT.loja)) return t;
   return CHAT_TEMAS.find(x=>x.id===(CHAT.loja?'loja':'rede'));
 }
+// Enquanto a conversa esta vazia, tres exemplos do assunto da tela. Depois da
+// primeira resposta eles somem: quem conduz dali em diante sao os "em seguida",
+// que nascem do que acabou de ser respondido.
 function chatChips(){
   const cx=document.getElementById('pgChips'); if(!cx) return;
+  const fio=document.getElementById('pgFio');
+  if(fio && fio.querySelectorAll('.chat-msg.eu').length) return cx.innerHTML='';
   const tema=chatTema(); CHAT.tema=tema.id;
   const pool=tema.perguntas.filter(q=>CHAT.loja || !/\b(meu|minha|meus|eu|estou)\b/i.test(q));
   if(!pool.length) return cx.innerHTML='';
-  const n = dockAberto() ? 3 : 5;
-  const sug = Array.from({length:Math.min(n,pool.length)},(_,i)=>pool[(CHAT_SUG_DE+i)%pool.length]);
-  const abas=CHAT_TEMAS.filter(t=>!t.loja||CHAT.loja)
-    .map(t=>`<button class="chip tema${t.id===tema.id?' on':''}" data-tema="${t.id}">${t.rot}</button>`).join('');
-  cx.innerHTML=`<div class="chat-sug temas">${abas}</div>
-    <div class="chat-sug">
-      ${sug.map(t=>`<button class="chip" data-q="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}
-      ${pool.length>n?'<button class="chip trocar" id="pgOutras" title="Outras sugestões">↻</button>':''}
-    </div>`;
-  cx.querySelectorAll('.chip[data-tema]').forEach(b=>{
-    b.onclick=()=>{ CHAT.tema=b.dataset.tema; CHAT_SUG_DE=0; chatChips(); };
-  });
+  cx.innerHTML=`<div class="chat-sug">${pool.slice(0,3)
+    .map(t=>`<button class="chip" data-q="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('')}</div>`;
   cx.querySelectorAll('.chip[data-q]').forEach(b=>{
     b.onclick=()=>{ document.getElementById('pgTxt').value=b.dataset.q; chatEnviar(); };
   });
-  const out=cx.querySelector('#pgOutras');
-  if(out) out.onclick=()=>{ CHAT_SUG_DE=(CHAT_SUG_DE+n)%pool.length; chatChips(); };
 }
 // O passo seguinte natural de cada resposta. E o que transforma uma consulta
 // avulsa numa investigacao — a pessoa nao precisa saber o que perguntar depois.
@@ -4442,12 +4423,10 @@ let CHAT_PENDENTE=null;
 function chatPerguntarPeriodo(pendente){
   CHAT_PENDENTE=pendente;
   const ops=chatOpcoesPeriodo();
-  chatBolha('bot',`<p>${pendente
-      ? 'Antes de responder: <b>qual período</b> você quer considerar?'
-      : 'Sobre <b>qual período</b> eu respondo?'}</p>
-    <div class="chat-seguir" style="border:none;padding:0;margin-top:8px">
+  chatBolha('bot',`<p><b>Qual período?</b></p>
+    <div class="chat-per">
       ${ops.map(([n,r])=>`<button class="chip" data-per="${n}">${r}</button>`).join('')}
-      <button class="chip" data-per="escolher">Escolher meses…</button>
+      <button class="chip" data-per="escolher">outro…</button>
     </div>`);
 }
 // um clique nas opcoes de periodo: delegado igual aos chips de pergunta
@@ -4455,15 +4434,21 @@ function chatPeriodoClique(el){
   const v=el.dataset.per;
   const bolha=el.closest('.chat-msg');
   if(v==='escolher'){
-    bolha.innerHTML=`<p>Escolha o intervalo:</p><div id="pgEscolher" class="chat-escolher"></div>`;
-    const cx=bolha.querySelector('#pgEscolher');
-    cx.innerHTML=periodControlHTML(CHAT.meses, CHAT.period);
-    const ler=()=>{ const st=readPeriod(cx);
-      CHAT.period={aIni:st.aIni, aFim:st.aFim}; chatPeriodoPronto(bolha); };
-    cx.querySelectorAll('[data-k]').forEach(x=>{ if(x.dataset.k!=='cmp') x.onchange=ler; });
-    const b=document.createElement('button');
-    b.className='chip'; b.textContent='Usar este período'; b.style.marginTop='9px';
-    b.onclick=ler; bolha.appendChild(b);
+    // um select por ponta, com o mes ja escrito: cabe numa linha so
+    const st=CHAT.period||{}, m=CHAT.meses;
+    const op=(sel)=>m.map(x=>`<option value="${x}"${x===sel?' selected':''}>${mesLabel(x)}</option>`).join('');
+    bolha.innerHTML=`<p><b>De quando até quando?</b></p>
+      <div class="chat-per">
+        <select class="selin" id="pgDe">${op(st.aIni||m[0])}</select>
+        <span class="ate">até</span>
+        <select class="selin" id="pgAte">${op(st.aFim||m[m.length-1])}</select>
+        <button class="chip pri" id="pgUsar">Usar</button>
+      </div>`;
+    const de=bolha.querySelector('#pgDe'), ate=bolha.querySelector('#pgAte');
+    de.onchange=()=>{ if(de.value>ate.value) ate.value=de.value; };
+    ate.onchange=()=>{ if(ate.value<de.value) de.value=ate.value; };
+    bolha.querySelector('#pgUsar').onclick=()=>{
+      CHAT.period={aIni:de.value, aFim:ate.value}; chatPeriodoPronto(bolha); };
     return;
   }
   const n=+v;
@@ -4475,7 +4460,7 @@ function chatPeriodoPronto(bolha){
   const dk=document.getElementById('dkPer');
   if(dk) dk.textContent=periodLabel(CHAT.period);
   const bp=document.getElementById('pgPer');
-  if(bp) bp.textContent=periodLabel(CHAT.period)+' ▾';
+  if(bp) bp.textContent=periodLabel(CHAT.period);
   if(bolha) bolha.innerHTML=`<p>Respondendo sobre <b>${periodLabel(CHAT.period)}</b>.</p>`;
   if(CHAT_PENDENTE){ const q=CHAT_PENDENTE; CHAT_PENDENTE=null; chatEnviar(q); }
 }
@@ -4489,19 +4474,15 @@ async function chatEnviar(forcado){
   const esp=chatBolha('bot','<p class="pensando">consultando os dados…</p>');
   try{
     const alvo = chatRegras(txt) || await chatModelo(txt);
-    // periodo ainda nao definido nesta conversa: pergunta antes de responder
-    if(alvo && !CHAT.periodoEscolhido && !(alvo.params&&alvo.params.meses)){
-      esp.remove(); CHAT.ocupado=false;
-      chatLog(txt,alvo.intencao,alvo.origem,true);
-      return chatPerguntarPeriodo(txt);
-    }
     if(!alvo){
+      const diag = (isAdmin()&&CHAT_MOTIVO)
+        ? `<p class="chat-dica">diagnóstico: ${CHAT_MOTIVO_TXT[CHAT_MOTIVO]||CHAT_MOTIVO}</p>` : '';
       esp.innerHTML=`<p>Ainda não sei responder isso. Anotei a pergunta —
         se ela aparecer mais vezes, vira uma resposta.</p>
         <p class="chat-dica">Coisas que eu entendo hoje: itens abaixo do porte, destaques,
         preço médio, rompidos, excesso de estoque, itens sem giro, ranking das lojas
-        e um resumo da loja.</p>`;
-      chatLog(txt,null,'nenhuma',false);
+        e um resumo da loja.</p>${diag}`;
+      chatLog(txt,null,CHAT_MOTIVO?('modelo:'+CHAT_MOTIVO):'nenhuma',false);
     }else{
       esp.innerHTML=await chatResponder(alvo.intencao, alvo.params||{})+chatSeguir(alvo.intencao);
       chatLog(txt,alvo.intencao,alvo.origem,true);
@@ -4510,6 +4491,7 @@ async function chatEnviar(forcado){
     esp.innerHTML=`<p class="erro">Não consegui buscar os dados agora. ${String(e.message||e)}</p>`;
   }
   CHAT.n++; CHAT.ocupado=false;
+  chatChips();
   document.getElementById('pgFio').scrollTop=1e9;
 }
 
@@ -4550,13 +4532,26 @@ function chatRegras(txt){
 }
 
 /* ---------- 2. o que as regras não pegam vai para o modelo ---------- */
+let CHAT_MOTIVO='';
 async function chatModelo(txt){
+  CHAT_MOTIVO='';
   try{
     const {data,error}=await sb.functions.invoke('chat-intencao',{body:{pergunta:txt}});
-    if(error || !data || !data.intencao) return null;
+    if(error){ CHAT_MOTIVO='erro_na_funcao'; return null; }
+    if(!data || !data.intencao){ CHAT_MOTIVO=(data&&data.motivo)||'sem_resposta'; return null; }
     return {intencao:data.intencao, params:data.params||{}, origem:'modelo'};
-  }catch{ return null; }
+  }catch{ CHAT_MOTIVO='sem_conexao'; return null; }
 }
+// so o administrador ve o diagnostico; para o lojista o chat apenas nao sabe
+const CHAT_MOTIVO_TXT={
+  sem_modelo:'a chave do Gemini não está configurada nesta função',
+  modelo_indisponivel:'o Google recusou a chamada (chave inválida ou API não ativada)',
+  fora_do_catalogo:'o modelo entendeu, mas fora dos oito assuntos',
+  resposta_invalida:'o modelo respondeu num formato inesperado',
+  falha_na_chamada:'a chamada ao Google falhou',
+  erro_na_funcao:'a função chat-intencao não respondeu',
+  sem_conexao:'não consegui falar com a função',
+};
 
 /* ---------- 3. a intenção vira consulta, e os números viram texto ---------- */
 function chatLoja(params){
@@ -4569,8 +4564,16 @@ function chatLoja(params){
   return CHAT.loja;
 }
 function chatPer(params){
-  // o filtro manda. A pergunta so o sobrepoe quando cita o prazo em palavras
-  // ("nos ultimos 3 meses"), e nesse caso a resposta diz qual janela usou.
+  // o filtro manda. A pergunta so o sobrepoe quando cita o prazo — em meses
+  // ("ultimos 3 meses") ou em intervalo ("de marco a junho"). A resposta sempre
+  // diz qual janela usou, entao nunca fica ambiguo.
+  const mes=x=>{ const v=String(x||'').slice(0,7); return /^\d{4}-\d{2}$/.test(v)?v+'-01':null; };
+  const a=mes(params.ini), b=mes(params.fim);
+  if(a||b){
+    const ini=CHAT.meses.includes(a)?a:CHAT.meses[0];
+    const fim=CHAT.meses.includes(b)?b:CHAT.meses[CHAT.meses.length-1];
+    if(ini<=fim) return {aIni:ini, aFim:fim};
+  }
   if(params.meses>0) return ultimosMeses(CHAT.meses, params.meses);
   return CHAT.period || {};
 }
