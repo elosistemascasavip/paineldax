@@ -257,7 +257,7 @@ tr.clicavel:hover{background:var(--blue-tint)}
 .scope.outra .mk{background:#fff;color:var(--amber);border:1px solid #f0d9ad}
 .kv2{display:grid;grid-template-columns:118px 1fr;gap:7px 12px;font-size:13.5px;align-items:baseline}
 .kv2>span{font-variant-numeric:tabular-nums}
-td.per{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+td.per{font-variant-numeric:tabular-nums;font-size:12.5px;
   letter-spacing:-.01em;white-space:nowrap;color:var(--ink-soft)}
 .kv2>b{color:var(--ink-soft);font-weight:600;font-size:13px;white-space:nowrap}
 .vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -399,17 +399,17 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
 .cob-tbl th{font-size:11.5px;padding:7px 13px}
 .cob-tbl th.lj,.cob-tbl td.lj{text-align:left;white-space:nowrap;font-weight:600;position:sticky;left:0;background:#fff;z-index:1}
 .cob-tbl thead th.lj{background:#fbfcfe;z-index:3}
-.cob-tbl td.cb{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+.cob-tbl td.cb{text-align:right;font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;
   padding:6px 13px;border-radius:5px;min-width:54px;background-clip:padding-box;
   border-left:2px solid #fff;border-right:2px solid #fff}
 .cob-tbl th{text-align:right}
 .cob-tbl tfoot td{background:#f7f9fc;font-weight:700;border-top:2px solid var(--line);
-  text-align:right;font-family:'IBM Plex Mono',monospace}
+  text-align:right;font-variant-numeric:tabular-nums}
 .cob-tbl tfoot td.lj{text-align:left;background:#f7f9fc}
 .cob-tbl td.cb.cli{cursor:pointer;outline:1px dashed rgba(0,0,0,.18);outline-offset:-3px}
 .cob-tbl td.cb.cli:hover{filter:brightness(.94)}
 .cob-tbl td.lj,.cob-tbl th.lj{padding-right:16px}
-.cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap}
+.cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .c-ok{background:#f4f7fb;color:var(--ink)}
 .c-ver{background:#fff2df;color:#9a6100}
 .c-conf{background:#f2f3f6;color:#697588}
@@ -446,7 +446,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   text-transform:uppercase;padding-bottom:3px}
 .dl-regua{width:230px;position:relative}
 .dl-rot,.dl-pct{position:relative;height:14px;font-size:10px;color:var(--ink-faint);
-  font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+  font-variant-numeric:tabular-nums;white-space:nowrap}
 .dl-rot{margin-top:3px}
 .dl-pct{margin-bottom:2px}
 .dl-pct b{color:var(--ink-soft)}
@@ -462,7 +462,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #16202f}
 .duto-pin.zero{left:0;margin-left:0}
 .opo-rot{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em}
-.duto-num{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;
+.duto-num{font-variant-numeric:tabular-nums;font-size:11.5px;font-weight:700;
   white-space:nowrap;min-width:48px;text-align:right}
 .duto-cel{padding:0 3px}
 .duto.semgiro{background:repeating-linear-gradient(45deg,#f1f4f8,#f1f4f8 3px,#e6eaf1 3px,#e6eaf1 6px)}
@@ -1823,8 +1823,8 @@ async function renderOportunidades(){
       +'Importe a planilha de vendas para calcular as oportunidades.</div></div>'; return; }
 
   const lojas=uniq(OPO.porte.map(x=>x.loja));
-  // associado cai na propria loja; gestor comeca na visao da rede
-  OPO.loja=resolverMinhaLoja(lojas)||'';
+  OPO.loja='';                                  // todos abrem na visao da rede
+  const minha=resolverMinhaLoja(lojas)||'';
   body.innerHTML=`
     <div class="tools" style="margin-bottom:10px">
       <div id="opPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
@@ -1834,11 +1834,15 @@ async function renderOportunidades(){
         <option value="">Rede — todas as lojas</option>
         ${lojas.map(l=>`<option${l===OPO.loja?' selected':''}>${l}</option>`).join('')}
       </select>
+      ${minha?`<button class="btn-tool" id="opMinha">Minha loja</button>`:''}
       <div class="grow"></div>
       <button class="btn-tool" id="opCSV">Exportar CSV</button>
     </div>
     <div id="opConteudo"></div>`;
   document.getElementById('opLoja').onchange=e=>{ OPO.loja=e.target.value; OPO.aba='gap'; opoPinta(); };
+  const bm=document.getElementById('opMinha');
+  if(bm) bm.onclick=()=>{ OPO.loja=minha; OPO.aba='gap';
+    document.getElementById('opLoja').value=minha; opoPinta(); };
   document.getElementById('opCSV').onclick=opoExportar;
   OPO.montando=true;
   wirePeriod(document.getElementById('opPeriod'), OPO.meses, async(st)=>{
@@ -3891,11 +3895,6 @@ function dutoAceso(pos){
 function dutoLegenda(){
   const meta=dutoMeta(), mm=dutoMeses();
   const stop=f=>(100*f/DUTO_ESCALA).toFixed(2)+'%';
-  const faixas=DUTO_FAIXAS.map((x,i)=>{
-    const ini=i?DUTO_FAIXAS[i-1].ate:0;
-    return `<div style="position:absolute;left:${stop(ini)};width:${
-      (100*(Math.min(x.ate,DUTO_ESCALA)-ini)/DUTO_ESCALA).toFixed(2)}%;top:0;bottom:0;
-      background:linear-gradient(90deg,${x.cor},${x.fim})"></div>`;}).join('');
   const rot=(f,txt,cls)=>`<div class="${cls||''}" style="position:absolute;left:${
     stop(f)};transform:translateX(-50%)">${txt}</div>`;
   const dia=f=>fmtInt(Math.round(meta*f));
@@ -3903,7 +3902,7 @@ function dutoLegenda(){
     <span class="dl-tit">Cobertura</span>
     <div class="dl-regua">
       <div class="dl-pct">${rot(1/3,'33%')}${rot(2/3,'66%')}${rot(1,'<b>100%</b>')}</div>
-      <div class="duto" style="height:12px">${faixas}${DUTO_MARCAS}</div>
+      <div class="duto" style="height:12px">${dutoRegua(1)}${DUTO_MARCAS}</div>
       <div class="dl-rot">${rot(0,'0')}${rot(1/3,dia(1/3))}${rot(2/3,dia(2/3))}${
         rot(1,`<b>${dia(1)} d</b>`)}${rot(DUTO_ESCALA,'+')}</div>
     </div>
