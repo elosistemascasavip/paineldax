@@ -779,6 +779,9 @@ const isAdmin  = () => perfil && perfil.papel === 'admin';
 const podeVendas = () => perfil && ['admin','casavip_vendas'].includes(perfil.papel);
 
 /* ---------- normalização (espelha as funções do banco) ---------- */
+// A referencia como ela aparece na planilha, no pedido e na nota.
+const PREFIXO_REF='DAX-';
+function ref(s){ return s ? PREFIXO_REF+s : '—'; }
 function normSku(s){ if(!s) return ''; return String(s).replace(/^\s*DAX\s*-?\s*/i,'').toUpperCase().replace(/\s+/g,''); }
 function fmtInt(n){ return (n==null)?'—':Number(n).toLocaleString('pt-BR'); }
 function fmtBRL(n){ return (n==null)?'—':Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
@@ -917,7 +920,7 @@ function paretoMove(ev,id){
   cur.setAttribute('x1',m.cx.toFixed(1)); cur.setAttribute('x2',m.cx.toFixed(1)); cur.setAttribute('opacity','0.5');
   const tip=document.getElementById(id+'tip');
   const svg=document.getElementById(id), r=svg.getBoundingClientRect();
-  tip.innerHTML=`<b>${m.sku}</b> <span class="pill ${m.cls}">${m.cls}</span><br>
+  tip.innerHTML=`<b>${ref(m.sku)}</b> <span class="pill ${m.cls}">${m.cls}</span><br>
     <span class="d">${m.desc||'—'}</span><br>
     ${fmtInt(m.qtd)} un · acumulado ${m.acum.toFixed(1)}%`;
   tip.style.opacity='1';
@@ -940,7 +943,7 @@ const PARETO_LEG=`<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11.
   <span style="color:#8794a7">Clique numa barra para ver o item.</span></div>`;
 function abcItemDetail(sku){
   const d=(ABC.data||[]).find(x=>x.sku===sku); if(!d)return;
-  openModal('Item — '+sku, `<div class="kv" style="grid-template-columns:auto 1fr;gap:6px 14px">
+  openModal('Item — '+ref(sku), `<div class="kv" style="grid-template-columns:auto 1fr;gap:6px 14px">
      <b>Descrição</b><span>${d.descricao||'—'}</span>
      <b>Linha</b><span>${d.linha||'—'}</span><b>Cor</b><span>${d.cor||'—'}</span>
      <b>Grupo</b><span>${d.grupo||'—'}</span>
@@ -2248,7 +2251,7 @@ function opoTabelaGap(g){
       <th class="num">Esta loja</th><th class="num">Esperado</th>
       <th class="num">Diferença</th><th class="num">Pulmão SP</th></tr></thead>
     <tbody>${g.map(x=>`<tr${x.estoque_cd===0?' class="rompido"':''}>
-      <td>${x.sku}</td>
+      <td>${ref(x.sku)}</td>
       <td class="desc" title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.descricao||'—'}</td>
       <td>${rotuloLinha(x)}</td>
       <td><span class="pill ${x.classe}">${x.classe}</span></td>
@@ -2272,7 +2275,7 @@ function opoTabelaDest(d){
       <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num" title="peso na loja ÷ peso na rede · 100% = no porte">Índice</th>
       <th class="num">Rede</th><th class="num">Esta loja</th><th class="num">% do item</th></tr></thead>
     <tbody>${d.map(x=>`<tr>
-      <td>${x.sku}</td>
+      <td>${ref(x.sku)}</td>
       <td class="desc" title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.descricao||'—'}</td>
       <td>${rotuloLinha(x)}</td>
       <td><span class="pill ${x.classe}">${x.classe}</span></td>
@@ -2440,7 +2443,7 @@ function opoLinhaRede(){
 function opoExportar(){
   if(!OPO.loja){
     return exportCSV('oportunidades_rede',
-      [{label:'Loja',key:'loja'},{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},
+      [{label:'Loja',key:'loja'},{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},
        {label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},{label:'Un loja',key:'un_loja'},
        {label:'Esperado',key:'esperado'},{label:'Diferenca',key:'gap'},
        {label:'Pulmao SP',key:'estoque_cd'}], OPO.gap);
@@ -2454,13 +2457,13 @@ function opoExportar(){
       OPO.linha.filter(x=>x.loja===OPO.loja).sort((a,b)=>b.faltam-a.faltam));
   if(OPO.aba==='gap')
     return exportCSV('oportunidades_'+OPO.loja,
-      [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+      [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
        {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},
        {label:'Un loja',key:'un_loja'},{label:'Esperado',key:'esperado'},
        {label:'Diferenca',key:'gap'},{label:'Pulmao SP',key:'estoque_cd'}],
       OPO.gap.filter(x=>x.loja===OPO.loja));
   return exportCSV('destaques_'+OPO.loja,
-    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+    [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
      {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},
      {label:'Un loja',key:'un_loja'},{label:'Pct da rede',key:'concentracao_pct'},
      {label:'Indice %',get:x=>Math.round((+x.indice||0)*100)}], OPO.dest.filter(x=>x.loja===OPO.loja));
@@ -2686,7 +2689,7 @@ function abcRefresh(){
   let rows=ABC.data.filter(d=>
     (!f.g||d.grupo===f.g)&&(!f.l||d.linha===f.l)&&(!f.c||d.cor===f.c)&&
     (!f.cl|| (grupoSel? d.classe_grupo===f.cl : d.classe===f.cl))&&
-    (!f.q||(d.sku+' '+(d.descricao||'')+' '+(d.linha||'')+' '+(d.grupo||'')).toLowerCase().includes(f.q)));
+    (!f.q||(ref(d.sku)+' '+(d.descricao||'')+' '+(d.linha||'')+' '+(d.grupo||'')).toLowerCase().includes(f.q)));
   rows.sort((a,b)=> grupoSel ? (a.posicao_grupo-b.posicao_grupo) : (a.posicao-b.posicao));
   ABC.filtered=rows;
   const tit=document.getElementById('abcTit');
@@ -2796,7 +2799,7 @@ function abcRefresh(){
     const pos=grupoSel?d.posicao_grupo:d.posicao;
     const pac=grupoSel?d.pct_acum_grupo:d.pct_acumulado;
     return `<tr>
-      <td class="num">${pos}</td><td>${d.sku}</td><td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
+      <td class="num">${pos}</td><td>${ref(d.sku)}</td><td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
       <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
       ${cmp? `<td class="num">${fmtInt(d.qtd_a)}</td><td class="num">${fmtInt(d.qtd_b)}</td><td class="num">${deltaHTML(d.var_pct)}</td>`
             : `<td class="num">${fmtInt(d.qtd_janela)}</td>`}
@@ -2879,7 +2882,7 @@ function abcColsExport(){
   const g=document.getElementById('fGrupo').value;
   const loja=document.getElementById('fLojaAbc')?document.getElementById('fLojaAbc').value:'';
   const cols=[
-    {label:'Posicao',get:d=>g?d.posicao_grupo:d.posicao},{label:'SKU',key:'sku'},
+    {label:'Posicao',get:d=>g?d.posicao_grupo:d.posicao},{label:'SKU',get:d=>ref(d.sku)},
     {label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},
     {label:'Grupo',key:'grupo'},{label:'Qtd',key:'qtd_janela'},
     {label:'% acumulado',get:d=>(g?d.pct_acum_grupo:d.pct_acumulado)},
@@ -3085,13 +3088,13 @@ function prodFilter(){
   const g=document.getElementById('pGrupo').value,l=document.getElementById('pLinha').value,c=document.getElementById('pCor').value;
   const bate=(v,f)=> !f || (f==='__sem__' ? !v : v===f);
   return PROD.data.filter(d=>bate(d.grupo,g)&&bate(d.linha,l)&&bate(d.cor,c)&&
-    (!q||(d.sku+' '+(d.descricao||'')+' '+(d.linha||'')+' '+(d.grupo||'')).toLowerCase().includes(q)));
+    (!q||(ref(d.sku)+' '+(d.descricao||'')+' '+(d.linha||'')+' '+(d.grupo||'')).toLowerCase().includes(q)));
 }
-function prodCols(){return [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'}];}
+function prodCols(){return [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'}];}
 function prodRefresh(){
   const rows=prodFilter(); document.getElementById('pCount').textContent=fmtInt(rows.length)+' SKUs';
   document.getElementById('pRows').innerHTML=rows.slice(0,600).map(d=>`<tr>
-    <td>${d.sku}</td>
+    <td>${ref(d.sku)}</td>
     <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
     <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
     ${PROD.canEdit?`<td class="mini-actions"><button class="iconbtn" onclick="editarProduto('${d.sku}')">Editar</button></td>`:''}
@@ -3110,7 +3113,7 @@ async function editarProduto(sku){
       ${opts.map(v=>`<option value="${esc(v)}"${v===atual?' selected':''}>${v}</option>`).join('')}
     </select>`;
   };
-  openModal('Editar produto — '+sku, `
+  openModal('Editar produto — '+ref(sku), `
     <div class="field"><label>Descrição</label><input id="epDesc" value="${esc(d.descricao)}"></div>
     <div class="field"><label>Linha</label>${sel('epLinha',PROD.opts.linha,d.linha,'Sem linha')}</div>
     <div class="field"><label>Cor</label>${sel('epCor',PROD.opts.cor,d.cor,'Sem cor')}</div>
@@ -3581,7 +3584,7 @@ function presExport(){
   const ctx=presCtx();
   exportCSV('presenca_'+(PRES.loja||PRES.uf||PRES.regiao||'brasil'),
     [{label:'Regiao',key:'regiao'},{label:'UF',key:'uf'},{label:'Loja',key:'loja'},
-     {label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Grupo',key:'grupo'},
+     {label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Grupo',key:'grupo'},
      {label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Unidades',key:'quantidade'}], ctx);
 }
 
@@ -3751,10 +3754,10 @@ async function renderPendencias(){
     <tbody id="peRows"></tbody></table></div></div>`;
   ['peSearch','peTipo'].forEach(id=>{const el=document.getElementById(id); el.oninput=el.onchange=pendRefresh;});
   document.getElementById('peCSV').onclick=()=>exportCSV('pendencias_cadastro',
-    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+    [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
      {label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'},{label:'Falta',get:pendFalta}],pendFiltrar());
   document.getElementById('pePrint').onclick=()=>printTabela('Pendências do cadastro',
-    [{label:'SKU',key:'sku'},{label:'Descrição',key:'descricao'},{label:'Falta',get:pendFalta}],pendFiltrar());
+    [{label:'SKU',get:d=>ref(d.sku)},{label:'Descrição',key:'descricao'},{label:'Falta',get:pendFalta}],pendFiltrar());
   pendRefresh();
 }
 function pendFalta(d){ const f=[]; if(!d.grupo)f.push('grupo'); if(!d.linha)f.push('linha'); if(!d.cor)f.push('cor'); return f.join(', '); }
@@ -3763,13 +3766,13 @@ function pendFiltrar(){
   const t=document.getElementById('peTipo').value;
   return PEND.data.filter(d=>
     (t==='todos' || (t==='grupo'&&!d.grupo) || (t==='linha'&&!d.linha) || (t==='cor'&&!d.cor)) &&
-    (!q||(d.sku+' '+(d.descricao||'')).toLowerCase().includes(q)));
+    (!q||(ref(d.sku)+' '+(d.descricao||'')).toLowerCase().includes(q)));
 }
 function pendRefresh(){
   const rows=pendFiltrar();
   document.getElementById('peCount').textContent=fmtInt(rows.length)+' produtos';
   document.getElementById('peRows').innerHTML=rows.slice(0,600).map(d=>`<tr>
-    <td>${d.sku}</td><td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
+    <td>${ref(d.sku)}</td><td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
     <td>${d.linha||'<span style="color:#c0392b">—</span>'}</td>
     <td>${d.cor||'<span style="color:#c0392b">—</span>'}</td>
     <td>${d.grupo||'<span style="color:#c0392b">—</span>'}</td>
@@ -4116,7 +4119,7 @@ async function renderPulmaoConsulta(){
   ['pcBusca','pcGrupo','pcLinha','pcCor','pcSoCom'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoConsultaPinta; });
   document.getElementById('pcCSV').onclick=()=>exportCSV('estoque_pulmao',
-    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+    [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
      {label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'},{label:'Estoque',key:'estoque'}],
     pulmaoConsultaFiltra());
   pulmaoConsultaPinta();
@@ -4126,7 +4129,7 @@ function pulmaoConsultaFiltra(){
   const g=valOf('pcGrupo',''), li=valOf('pcLinha',''), co=valOf('pcCor','');
   const so=document.getElementById('pcSoCom') && document.getElementById('pcSoCom').checked;
   return PCO.raw.filter(d=>
-       (!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q))
+       (!q || (ref(d.sku)+' '+(d.descricao||'')).toLowerCase().includes(q))
     && (!g||d.grupo===g) && (!li||d.linha===li) && (!co||d.cor===co)
     && (!so || Number(d.estoque)>0));
 }
@@ -4141,7 +4144,7 @@ function pulmaoConsultaPinta(){
       <th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>
       <th class="num">Estoque</th></tr></thead>
     <tbody>${l.map(d=>{const zero=Number(d.estoque)===0;
-      return `<tr${zero?' class="rompido"':''}><td>${d.sku}</td>
+      return `<tr${zero?' class="rompido"':''}><td>${ref(d.sku)}</td>
       <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
       <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
       <td class="num"${zero?' style="color:#c0392b;font-weight:700"':' style="font-weight:700"'}>${
@@ -4209,7 +4212,7 @@ async function renderRuptura(){
     const el=document.getElementById(id); if(el) el.oninput=el.onchange=pulmaoRefresh; });
   document.getElementById('ceLimpar').onclick=ceLimparFiltros;
   document.getElementById('ceCSV').onclick=()=>exportCSV('estoque_pulmao',
-    [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
+    [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
      {label:'Cor',key:'cor'},{label:'Classe',key:'classe'},{label:'Estoque',key:'estoque'},
      {label:'Venda media mes',get:d=>(+d.venda_media_mes||0).toFixed(1)},
      {label:'Dias cobertura',get:d=>d.meses_cobertura==null?'':Math.round(diasCob(d))}], PUL.vis);
@@ -4418,7 +4421,7 @@ function pulmaoRefresh(){
   const q=(valOf('ceBusca')||'').trim().toLowerCase(), f=valOf('ceFiltro','');
   const g=valOf('ceGrupo',''), li=valOf('ceLinha',''), co=valOf('ceCor',''), cl=valOf('ceClasse','');
   let l=PUL.raw.filter(d=>
-       (!q || (d.sku+' '+(d.descricao||'')).toLowerCase().includes(q))
+       (!q || (ref(d.sku)+' '+(d.descricao||'')).toLowerCase().includes(q))
     && (!g  || d.grupo===g) && (!li || d.linha===li) && (!co || d.cor===co)
     && (!cl || d.classe===cl));
   if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0);
@@ -4480,7 +4483,7 @@ function pulmaoPinta(){
       <th style="width:210px;min-width:210px">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
       const dias=diasCob(d), rompido=Number(d.estoque)===0;
-      return `<tr${rompido?' class="rompido"':''}><td>${d.sku}</td>
+      return `<tr${rompido?' class="rompido"':''}><td>${ref(d.sku)}</td>
         <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
         <td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
         <td><span class="pill ${d.classe||'D'}">${d.classe||'D'}</span></td>
@@ -5026,7 +5029,7 @@ async function botGap(){
     <p><b>${fmtInt(meus.length)}</b> itens abaixo do próprio porte · <b>${fmtInt(atend)}</b> peças com estoque no Pulmão SP hoje.</p>
     <p><b>Os 5 maiores</b></p>
     <ol class="bot-lista">${meus.slice(0,5).map(x=>
-      `<li><code>${x.sku}</code> ${x.descricao||''}<br><span class="fraco">vendeu ${fmtInt(x.un_loja)} · esperado ${fmtInt(x.esperado)} · faltam <b>${fmtInt(x.gap)}</b></span></li>`).join('')}</ol>
+      `<li><code>${ref(x.sku)}</code> ${x.descricao||''}<br><span class="fraco">vendeu ${fmtInt(x.un_loja)} · esperado ${fmtInt(x.esperado)} · faltam <b>${fmtInt(x.gap)}</b></span></li>`).join('')}</ol>
     <p class="fraco">Não é previsão de venda: é a diferença de sortimento em relação à rede.</p>`;
   botDepois(b,'oportunidades',botGap);
 }
@@ -5116,7 +5119,7 @@ async function botRuptura(){
     </ul>
     ${rompA.length? `<p><b>Classe A rompida — os 5 de maior giro</b></p>
       <ol class="bot-lista">${[...rompA].sort((a,c)=>c.venda_media_mes-a.venda_media_mes).slice(0,5)
-        .map(x=>`<li><code>${x.sku}</code> ${x.descricao||''}<br><span class="fraco">${(+x.venda_media_mes||0).toFixed(1)} peças/mês na rede</span></li>`).join('')}</ol>`
+        .map(x=>`<li><code>${ref(x.sku)}</code> ${x.descricao||''}<br><span class="fraco">${(+x.venda_media_mes||0).toFixed(1)} peças/mês na rede</span></li>`).join('')}</ol>`
       : '<p>Nenhum item de classe A está rompido. 👏</p>'}`;
   botDepois(b,'ruptura',botRuptura);
 }
