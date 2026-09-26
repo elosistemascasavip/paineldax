@@ -237,6 +237,11 @@ tr.lg-off td b{font-weight:600;color:var(--ink-soft)}
 .eixo:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
 .eixo.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .eixo:disabled{opacity:.4;cursor:not-allowed}
+/* ---------- Oportunidade por linha ---------- */
+.linha-foco{padding:10px 0;border-bottom:1px solid #f1f3f8}
+.linha-foco:last-child{border-bottom:none}
+.linha-foco .tp{display:flex;align-items:center;gap:9px;margin-bottom:3px;font-size:14.5px}
+.linha-foco .tx{font-size:13px;color:var(--ink-soft);line-height:1.55}
 /* ---------- Listas dentro da bolha do bot ---------- */
 .chat-msg .bot-lista{margin:6px 0 8px;padding-left:20px;font-size:13px;line-height:1.5}
 .chat-msg .bot-lista li{margin-bottom:5px}
@@ -541,7 +546,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 .chat-msg.bot b{color:var(--ink)}
 .chat-msg .pensando{color:var(--ink-faint)}
 .chat-msg .erro{color:#c0392b}
-.chat-dock-topo #pgLimpar{font-size:11.5px}
+.chat-dock-topo #dkMenu,.chat-dock-topo #dkLimpar{font-size:11.5px}
 .bot-ops{display:flex;flex-direction:column;gap:5px;margin-top:9px}
 .bot-op{display:block;width:100%;text-align:left;border:1px solid #d9e2ee;background:#fff;
   border-radius:9px;padding:9px 12px;font-family:inherit;font-size:13px;font-weight:600;
@@ -612,7 +617,8 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   <div class="chat-dock-topo">
     <b>Perguntar</b>
     <span class="grow"></span>
-    <button class="chat-dock-x" id="pgLimpar" title="Limpar conversa">limpar</button>
+    <button class="chat-dock-x" id="dkMenu" title="Voltar ao menu inicial">menu</button>
+    <button class="chat-dock-x" id="dkLimpar" title="Recomeçar a conversa">limpar</button>
     <button class="chat-dock-x" id="dkTela" title="Abrir em tela cheia">⤢</button>
     <button class="chat-dock-x" id="dkFechar" title="Fechar">✕</button>
   </div>
@@ -808,7 +814,7 @@ async function fetchAll(tabela, colunas, ordem){
   }
   return {data:todos,error:null};
 }
-function fmtPct(v){ return (Number(v)||0).toFixed(2)+'%'; }
+function fmtPct(v){ return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
 let _toastT;
 function toast(msg){
   let el=document.getElementById('toast');
@@ -1341,6 +1347,8 @@ function aplicarVisibilidade(){
 }
 document.getElementById('chatBolha').onclick=dockToggle;
 document.getElementById('dkFechar').onclick=dockFechar;
+document.getElementById('dkMenu').onclick=()=>botMenu(false);
+document.getElementById('dkLimpar').onclick=chatRecomecar;
 document.getElementById('dkTela').onclick=()=>{ dockFechar(); route('perguntar'); };
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && dockAberto()) dockFechar(); });
 // Data da ultima carga de cada planilha. Depois que a pessoa sai da tela de
@@ -2038,20 +2046,47 @@ function indiceHTML(v){
   return `<span style="font-weight:700;color:${cor}" title="índice ${n.toFixed(2)}">${
     Math.round(n*100)}%</span>`;
 }
-const OPO={gap:[],dest:[],porte:[],pm:[],loja:'',aba:'gap',meses:[],period:{},montando:false};
+const OPO={gap:[],dest:[],porte:[],pm:[],linha:[],loja:'',aba:'gap',meses:[],period:{},montando:false};
+/* Cortes da leitura por linha. Sem eles sao 17 lojas x 14 linhas na tela, e
+   ninguem lê 238 avisos. Entra so linha que pesa na rede e diferenca que
+   muda alguma coisa. */
+const LINHA_PESO_MIN = 5;    // % da rede
+const LINHA_FALTAM_MIN = 50; // peças no período
+const LINHA_INDICE_MIN = 0.85;
+function linhaSituacao(x){
+  if(Number(x.un_loja)===0) return {cls:'D', rot:'não trabalha', alerta:true};
+  if(+x.indice >= 1.05)              return {cls:'B', rot:'acima do padrão'};
+  if(+x.indice >= LINHA_INDICE_MIN)  return {cls:'C', rot:'no padrão'};
+  return {cls:'warn', rot:'abaixo do padrão', alerta:true};
+}
+// O que merece aparecer como oportunidade de verdade.
+function linhaFoco(l){
+  return (l||[]).filter(x=> +x.peso_rede_pct >= LINHA_PESO_MIN
+                         && +x.faltam >= LINHA_FALTAM_MIN
+                         && +x.indice < LINHA_INDICE_MIN)
+                .sort((a,b)=> b.faltam - a.faltam);
+}
+const LINHA_PERGUNTAS = `<div class="notice" style="margin:12px 0 0">
+  <b>O número diz onde olhar, não o que houve.</b> O sistema não conhece o preço
+  praticado nem o que está no mostruário. Antes de decidir, três perguntas:
+  a linha <b>está exposta</b>? o <b>preço</b> está na faixa que a rede pratica?
+  a <b>equipe conhece</b> a linha? Se a resposta for "a praça não pede", também é
+  uma resposta — e é bom saber.</div>`;
 // porte e peso do item vem da MESMA janela: comparar venda de um mes com o
 // porte do ano inteiro daria indice sem sentido
 async function opoCarregar(){
   const st=OPO.period||{};
   const a={p_ini: st.aIni||null, p_fim: st.aFim||null};
-  const [g,d,pt,pm]=await Promise.all([
+  const [g,d,pt,pm,ln]=await Promise.all([
     fetchRpc('oportunidade_gap',a),
     fetchRpc('oportunidade_destaque',a),
     fetchRpc('loja_porte',a),
-    fetchRpc('preco_medio_loja',{p_comp_ini:a.p_ini, p_comp_fim:a.p_fim})
+    fetchRpc('preco_medio_loja',{p_comp_ini:a.p_ini, p_comp_fim:a.p_fim}),
+    fetchRpc('oportunidade_linha',a)
   ]);
   if(g.error) return g.error.message;
   OPO.gap=g.data||[]; OPO.dest=d.data||[]; OPO.porte=pt.data||[]; OPO.pm=pm.data||[];
+  OPO.linha=ln.data||[];
   return null;
 }
 async function renderOportunidades(){
@@ -2118,6 +2153,7 @@ function opoPinta(){
   const atend=g.reduce((a,x)=>a+x.gap_atendivel,0);
   const emA=g.filter(x=>x.classe==='A').length;
   const prc=opoPreco(OPO.loja);
+  const lnLoja=OPO.linha.filter(x=>x.loja===OPO.loja);
 
   el.innerHTML=`
     <div class="voltar-linha">
@@ -2139,14 +2175,69 @@ function opoPinta(){
     <div class="tools" style="margin-bottom:0">
       <button class="btn-tool${OPO.aba==='gap'?' pri':''}" onclick="OPO.aba='gap';opoPinta()">Abaixo do porte (${g.length})</button>
       <button class="btn-tool${OPO.aba==='dest'?' pri':''}" onclick="OPO.aba='dest';opoPinta()">Destaques (${d.length})</button>
+      <button class="btn-tool${OPO.aba==='linha'?' pri':''}" onclick="OPO.aba='linha';opoPinta()">Por linha (${linhaFoco(lnLoja).length})</button>
     </div>
-    <div class="notice" style="margin:12px 0"><b>Índice</b> = quanto o item pesa nesta loja ÷ quanto pesa na rede.
+    ${OPO.aba==='linha' ? '' : `<div class="notice" style="margin:12px 0"><b>Índice</b> = quanto o item pesa nesta loja ÷ quanto pesa na rede.
       <b>100%</b> é vender esse item no tamanho da própria loja. ${OPO.aba==='gap'
       ? '68%, por exemplo, quer dizer que a loja vendeu 68% do que venderia se tratasse o item como a rede trata. <b>Não é previsão de venda</b> — é a diferença de sortimento, para investigar exposição, preço ou demanda local.'
-      : 'Acima de 100% a loja vende mais que o porte dela sugere. Vale entender o que dá certo aqui e levar para as outras.'}</div>
-    ${OPO.aba==='gap' ? opoTabelaGap(g) : opoTabelaDest(d)}`;
+      : 'Acima de 100% a loja vende mais que o porte dela sugere. Vale entender o que dá certo aqui e levar para as outras.'}</div>`}
+    ${OPO.aba==='gap' ? opoTabelaGap(g)
+      : OPO.aba==='dest' ? opoTabelaDest(d)
+      : opoTabelaLinha(lnLoja)}`;
 }
 
+function opoTabelaLinha(l){
+  if(!l.length) return `<div class="panel"><div class="empty">
+    <div class="big">Sem leitura por linha</div>
+    Não há venda com linha identificada nesta loja no período.</div></div>`;
+  const foco=linhaFoco(l);
+  const ord=[...l].sort((a,b)=> b.peso_rede_pct - a.peso_rede_pct);
+  const pecas=foco.reduce((t,x)=>t+(+x.faltam||0),0);
+  return `
+    ${foco.length? `<div class="panel" style="margin-bottom:14px">
+      <div class="panel-head"><h2>Onde reforçar</h2>
+        <span class="count">${fmtInt(pecas)} peças até o padrão da rede</span></div>
+      <div style="padding:12px 16px">
+        ${foco.slice(0,4).map(x=>{
+          const tem=+x.saldo_pulmao>0;
+          return `<div class="linha-foco">
+            <div class="tp"><b>${x.linha}</b>
+              <span class="pill warn">índice ${pctRedondo(100*(+x.indice||0))}</span></div>
+            <div class="tx">Pesa <b>${fmtPct(+x.peso_rede_pct)}</b> na rede e
+              <b>${fmtPct(+x.peso_loja_pct)}</b> aqui — <b>${fmtInt(x.faltam)} peças</b> de diferença no período.
+              ${tem? `O Pulmão SP tem <b>${fmtInt(x.saldo_pulmao)}</b> peças em ${fmtInt(x.skus_com_saldo)} itens.`
+                   : `<span style="color:var(--amber)">Sem saldo no Pulmão SP hoje — reforçar esta linha depende de reposição.</span>`}</div>
+          </div>`;}).join('')}
+      </div>
+      ${LINHA_PERGUNTAS}
+    </div>` : `<div class="notice" style="margin-bottom:14px">
+      Nenhuma linha relevante está abaixo do padrão da rede nesta loja. 👏</div>`}
+    <div class="panel"><div class="panel-head"><h2>Todas as linhas</h2>
+      <span class="count">${l.length} linhas</span></div>
+      <div class="tbl-scroll"><table><thead><tr>
+        <th>Linha</th><th class="num">Peças</th><th class="num">Nesta loja</th>
+        <th class="num">Na rede</th><th class="num">Índice</th><th class="num">Faltam</th>
+        <th class="num">Pulmão SP</th><th>Situação</th>
+      </tr></thead><tbody>${ord.map(x=>{
+        const st=linhaSituacao(x);
+        return `<tr${st.alerta&&+x.peso_rede_pct>=LINHA_PESO_MIN?' style="background:#fffaf2"':''}>
+          <td style="font-weight:600">${x.linha}</td>
+          <td class="num">${fmtInt(x.un_loja)}</td>
+          <td class="num">${fmtPct(+x.peso_loja_pct)}</td>
+          <td class="num">${fmtPct(+x.peso_rede_pct)}</td>
+          <td class="num">${indiceHTML(+x.indice)}</td>
+          <td class="num"${+x.faltam>=LINHA_FALTAM_MIN?' style="font-weight:700;color:var(--amber)"':''}>${
+            +x.faltam? fmtInt(x.faltam):'—'}</td>
+          <td class="num">${fmtInt(x.saldo_pulmao)}</td>
+          <td><span class="pill ${st.cls}">${st.rot}</span></td></tr>`;}).join('')}
+      </tbody></table></div>
+      <div style="padding:10px 16px;font-size:12px;color:var(--ink-faint)">
+        <b>Índice</b> = quanto a linha pesa nesta loja ÷ quanto pesa na rede.
+        <b>Faltam</b> = peças que a loja venderia no período se tratasse a linha como a rede trata.
+        Entram como oportunidade as linhas com pelo menos ${LINHA_PESO_MIN}% de peso na rede
+        e ${LINHA_FALTAM_MIN} peças de diferença.</div>
+    </div>`;
+}
 function opoTabelaGap(g){
   if(!g.length) return '<div class="panel"><div class="empty">Nenhum item abaixo do porte nesta loja.</div></div>';
   return `<div class="panel"><div class="panel-head"><h2>Abaixo do porte</h2>
@@ -2312,7 +2403,38 @@ function opoRede(){
         <td class="num">${fmtInt(tot.gap)}</td>
         <td class="num">${fmtInt(tot.atend)}</td><td class="num"></td></tr>
     </tbody></table></div></div>
+    ${opoLinhaRede()}
     ${opoPreco('')}`;
+}
+// Na rede a pergunta e outra: quais pares loja+linha valem uma conversa.
+function opoLinhaRede(){
+  const foco=linhaFoco(OPO.linha).slice(0,12);
+  if(!foco.length) return '';
+  const pecas=linhaFoco(OPO.linha).reduce((t,x)=>t+(+x.faltam||0),0);
+  return `<div class="panel" style="margin-top:14px">
+    <div class="panel-head"><h2>Linhas para reforçar</h2>
+      <span class="count">${fmtInt(pecas)} peças na rede</span></div>
+    <div class="tbl-scroll"><table><thead><tr>
+      <th>Loja</th><th>Linha</th><th class="num">Peças na loja</th>
+      <th class="num">Nesta loja</th><th class="num">Na rede</th>
+      <th class="num">Índice</th><th class="num">Faltam</th><th class="num">Pulmão SP</th>
+    </tr></thead><tbody>${foco.map(x=>`
+      <tr class="drill" title="Ver esta loja" onclick="OPO.loja='${x.loja.replace(/'/g,"\\'")}';OPO.aba='linha';
+          document.getElementById('opLoja').value='${x.loja.replace(/'/g,"\\'")}';opoPinta()">
+        <td style="font-weight:600">${x.loja}</td>
+        <td>${x.linha}</td>
+        <td class="num">${fmtInt(x.un_loja)}</td>
+        <td class="num">${fmtPct(+x.peso_loja_pct)}</td>
+        <td class="num">${fmtPct(+x.peso_rede_pct)}</td>
+        <td class="num">${indiceHTML(+x.indice)}</td>
+        <td class="num" style="font-weight:700;color:var(--amber)">${fmtInt(x.faltam)}</td>
+        <td class="num">${fmtInt(x.saldo_pulmao)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div style="padding:10px 16px;font-size:12px;color:var(--ink-faint)">
+      Linha que pesa ${LINHA_PESO_MIN}% ou mais na rede e em que a loja está pelo menos
+      ${Math.round(100*(1-LINHA_INDICE_MIN))}% abaixo do padrão, com ${LINHA_FALTAM_MIN} peças ou mais de diferença.
+      Clique para abrir a loja.</div>
+  </div>`;
 }
 
 function opoExportar(){
@@ -2323,6 +2445,13 @@ function opoExportar(){
        {label:'Esperado',key:'esperado'},{label:'Diferenca',key:'gap'},
        {label:'Pulmao SP',key:'estoque_cd'}], OPO.gap);
   }
+  if(OPO.aba==='linha')
+    return exportCSV('linhas_'+OPO.loja,
+      [{label:'Linha',key:'linha'},{label:'Pecas na loja',key:'un_loja'},
+       {label:'Peso na loja %',key:'peso_loja_pct'},{label:'Peso na rede %',key:'peso_rede_pct'},
+       {label:'Indice',key:'indice'},{label:'Faltam',key:'faltam'},
+       {label:'Pulmao SP',key:'saldo_pulmao'}],
+      OPO.linha.filter(x=>x.loja===OPO.loja).sort((a,b)=>b.faltam-a.faltam));
   if(OPO.aba==='gap')
     return exportCSV('oportunidades_'+OPO.loja,
       [{label:'SKU',key:'sku'},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},
@@ -4667,6 +4796,8 @@ const GUIA=[
 // Na bolha o valor entra no meio da frase: o formato contábil, que alinha
 // coluna, aqui só abriria um buraco entre o R$ e o número.
 const botMoeda=n=>'<b>R$ '+fmtNum2(n)+'</b>';
+// O indice se le de relance; duas casas decimais aqui so atrapalham.
+const pctRedondo=v=>Math.round(Number(v)||0)+'%';
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
@@ -4678,6 +4809,10 @@ function chatBolha(quem, html){
   return d;
 }
 async function botDiz(html, ms){
+  // A conversa so aceita clique no que esta em cima da mesa agora. Sem isto,
+  // voltar ao menu deixa os botoes da resposta anterior ainda funcionando.
+  const fio0=document.getElementById('pgFio');
+  if(fio0) fio0.querySelectorAll('.bot-ops').forEach(x=>x.remove());
   const t=chatBolha('bot','<span class="digita"><i></i><i></i><i></i></span>');
   await espera(ms==null?520:ms);
   if(!t) return null;
@@ -4775,6 +4910,12 @@ function chatAvisoSemLoja(b){
 function chatMarkup(){ return `<div class="chat-fio" id="pgFio"></div>`; }
 
 /* ---------- abertura e menu ---------- */
+function chatRecomecar(){
+  const fio=document.getElementById('pgFio');
+  if(!fio) return;
+  fio.innerHTML='';
+  chatAbertura();
+}
 async function chatAbertura(){
   const h=new Date().getHours();
   const cump=h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
@@ -4789,6 +4930,7 @@ function botOpcoes(){
     {rot: rede?'📊 Resumo da rede':'📊 Minha loja no período', faz:botResumo},
     {rot: rede?'🎯 Oportunidades por loja':'🎯 Onde posso vender mais', faz:botGap},
     {rot: rede?'💲 Preço médio da rede':'💲 Meu preço médio', faz:botPreco},
+    {rot:'📐 Linhas para reforçar', faz:botLinhas},
     {rot:'📦 O que está rompido no Pulmão SP', faz:botRuptura},
     {rot:'🧭 Conhecer as telas', faz:botTelasMenu},
   ];
@@ -4814,7 +4956,9 @@ function botDepois(bolha, rota, refaz){
 }
 async function botPeriodo(refaz){
   const b=await botDiz(`<p>Estou usando <b>${chatPeriodoTxt()}</b>. Qual janela você quer?</p>`, 320);
-  botOfereceu(b, CHAT_PERIODOS.map(([n,r])=>({rot:r, n:n})), async o=>{
+  botOfereceu(b, CHAT_PERIODOS.map(([n,r])=>({rot:r, n:n})).concat([{rot:'‹ Voltar ao menu', menu:1}]),
+    async o=>{
+    if(o.menu) return botMenu(false);
     CHAT.meses=o.n;
     await chatJanela();
     if(refaz) return refaz();
@@ -4919,6 +5063,42 @@ async function botPreco(){
   botDepois(b,'precomedio',botPreco);
 }
 
+async function botLinhas(){
+  const b=await botEspera();
+  const {data,error}=await fetchRpc('oportunidade_linha',{p_ini:CHAT.ini, p_fim:CHAT.fim});
+  if(error) return botErro(b, error.message);
+  const tudo=data||[]; const per=chatPeriodoTxt();
+  if(botRede()){
+    const foco=linhaFoco(tudo);
+    if(!foco.length){ b.innerHTML=`<p>Nenhuma loja está abaixo do padrão da rede numa linha relevante em ${per}. 👏</p>`;
+                      return botDepois(b,'oportunidades',botLinhas); }
+    const pecas=foco.reduce((t,x)=>t+(+x.faltam||0),0);
+    b.innerHTML=`<p><b>Linhas para reforçar · ${per}</b></p>
+      <p><b>${fmtInt(pecas)} peças</b> em ${foco.length} pares de loja e linha.</p>
+      <ol class="bot-lista">${foco.slice(0,5).map(x=>
+        `<li><b>${x.loja}</b> · ${x.linha}<br><span class="fraco">índice ${pctRedondo(100*(+x.indice||0))} · faltam ${fmtInt(x.faltam)} peças${
+          +x.saldo_pulmao>0?'':' · sem saldo no Pulmão'}</span></li>`).join('')}</ol>`;
+    return botDepois(b,'oportunidades',botLinhas);
+  }
+  if(chatSemLoja()) return chatAvisoSemLoja(b);
+  const meus=chatFiltraMinhas(tudo);
+  if(!meus.length){ b.innerHTML=`<p>Não há venda com linha identificada para a <b>${chatQuemSou()}</b> em ${per}.</p>`;
+                    return botDepois(b,'oportunidades',botLinhas); }
+  const foco=linhaFoco(meus);
+  if(!foco.length){ b.innerHTML=`<p><b>${chatQuemSou()} · ${per}</b></p>
+      <p>Nenhuma linha relevante está abaixo do padrão da rede. 👏</p>`;
+                    return botDepois(b,'oportunidades',botLinhas); }
+  const pecas=foco.reduce((t,x)=>t+(+x.faltam||0),0);
+  b.innerHTML=`<p><b>${chatQuemSou()} · ${per}</b></p>
+    <p>${foco.length===1?'Uma linha está':`${foco.length} linhas estão`} abaixo do padrão da rede — <b>${fmtInt(pecas)} peças</b> de diferença no período.</p>
+    <ol class="bot-lista">${foco.slice(0,3).map(x=>
+      `<li><b>${x.linha}</b> — índice ${pctRedondo(100*(+x.indice||0))}<br>
+        <span class="fraco">pesa ${fmtPct(+x.peso_rede_pct)} na rede e ${fmtPct(+x.peso_loja_pct)} aqui · faltam ${fmtInt(x.faltam)} peças${
+        +x.saldo_pulmao>0? ` · Pulmão SP tem ${fmtInt(x.saldo_pulmao)}` : ' · sem saldo no Pulmão hoje'}</span></li>`).join('')}</ol>
+    <p class="fraco">O número diz onde olhar, não o que houve. Vale conferir: a linha está exposta?
+    o preço está na faixa da rede? a equipe conhece a linha?</p>`;
+  botDepois(b,'oportunidades',botLinhas);
+}
 async function botRuptura(){
   const b=await botEspera();
   const {data,error}=await fetchRpc('estoque_cobertura',{p_ini:CHAT.ini, p_fim:CHAT.fim});
@@ -4978,10 +5158,11 @@ async function renderPerguntar(){
   if(!session){ body.innerHTML=loginWall('O assistente é restrito à equipe.'); return; }
   await chatDados();
   body.innerHTML=`<div class="tools" style="justify-content:flex-end">
-      <button class="btn-tool" id="pgLimpar">Recomeçar</button></div>
+      <button class="btn-tool" id="pgMenu">‹ Menu inicial</button>
+      <button class="btn-tool" id="pgRecomecar">Recomeçar</button></div>
     <div class="panel" style="margin-bottom:12px">${chatMarkup()}</div>`;
-  document.getElementById('pgLimpar').onclick=()=>{
-    document.getElementById('pgFio').innerHTML=''; chatAbertura(); };
+  document.getElementById('pgMenu').onclick=()=>botMenu(false);
+  document.getElementById('pgRecomecar').onclick=chatRecomecar;
   chatAbertura();
 }
 
