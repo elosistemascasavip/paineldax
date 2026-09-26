@@ -4631,7 +4631,7 @@ const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
   <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={minha:'', lojaId:null, meses:6, ini:null, fim:null, carregado:false};
+const CHAT={minha:'', lojaId:null, achou:false, meses:6, ini:null, fim:null, carregado:false};
 const CHAT_PERIODOS=[[3,'Últimos 3 meses'],[6,'Últimos 6 meses'],[120,'Tudo o que tem na base']];
 
 // Cada tela com uma frase que diz o que ela responde — não o que ela contém.
@@ -4714,14 +4714,63 @@ function chatPeriodoTxt(){
 }
 async function chatDados(){
   if(CHAT.carregado) return;
-  try{
-    CHAT.lojaId = perfil && perfil.loja_id || null;
-    const {data}=await fetchAll('vw_lojas','id,nome');
-    const l=(data||[]).find(x=>x.id===CHAT.lojaId);
-    CHAT.minha = (l && l.nome) || resolverMinhaLoja(uniq((data||[]).map(x=>x.nome))) || '';
-  }catch(e){}
+  CHAT.lojaId = (perfil && perfil.loja_id!=null) ? Number(perfil.loja_id) : null;
+  let lojas=[];
+  try{ const {data}=await fetchAll('vw_lojas','id,nome'); lojas=data||[]; }catch(e){}
+  // 1º o cadastro, 2º o nome da conta contra a lista, 3º o proprio nome do perfil
+  const porId = CHAT.lojaId!=null ? lojas.find(x=>Number(x.id)===CHAT.lojaId) : null;
+  const porNome = porId ? null : resolverMinhaLoja(uniq(lojas.map(x=>x.nome)));
+  // achou = bateu com uma loja de verdade. O nome do perfil serve de rotulo,
+  // mas nao prova que a conta esta ligada a alguma loja.
+  CHAT.achou = !!(porId || porNome);
+  CHAT.minha = (porId && porId.nome) || porNome
+            || (!isGestor() && perfil && perfil.nome) || '';
+  if(CHAT.lojaId==null && porNome){
+    const l=lojas.find(x=>chaveLoja(x.nome)===chaveLoja(porNome));
+    if(l) CHAT.lojaId=Number(l.id);
+  }
   try{ await chatJanela(); }catch(e){}
-  CHAT.carregado=true;
+  // sem perfil nao vale guardar: tenta de novo na proxima abertura
+  CHAT.carregado = !!perfil;
+}
+// Como sou chamado, para a saudacao e para os titulos.
+function chatQuemSou(){
+  return CHAT.minha || (CONTA && CONTA.nome) || (perfil && perfil.nome) || '';
+}
+// A linha da minha loja num resultado: por id e, se faltar, pelo nome.
+function chatMinhaLinha(l){
+  if(!l || !l.length) return null;
+  if(CHAT.lojaId!=null){
+    const m=l.find(x=>Number(x.loja_id)===CHAT.lojaId);
+    if(m) return m;
+  }
+  if(CHAT.minha){
+    const k=chaveLoja(CHAT.minha);
+    const m=l.find(x=>chaveLoja(x.loja)===k);
+    if(m) return m;
+  }
+  return null;
+}
+function chatFiltraMinhas(l){
+  if(CHAT.lojaId!=null){
+    const r=l.filter(x=>Number(x.loja_id)===CHAT.lojaId);
+    if(r.length) return r;
+  }
+  if(CHAT.minha){
+    const k=chaveLoja(CHAT.minha);
+    return l.filter(x=>chaveLoja(x.loja)===k);
+  }
+  return [];
+}
+// Nao saber de qual loja se trata e um problema de cadastro, nao "sem venda".
+// Dizer a coisa certa aqui poupa o associado de achar que vendeu zero.
+function chatSemLoja(){ return !CHAT.achou && CHAT.lojaId==null; }
+function chatAvisoSemLoja(b){
+  b.innerHTML=`<p>Não consegui identificar qual é a sua loja nesta conta.</p>
+    <p class="fraco">É cadastro, não é venda zerada. Peça ao administrador para vincular
+    a loja ao seu usuário, em Cadastros › Usuários.</p>`;
+  botDepois(b, null, null);
+  return null;
 }
 function chatMarkup(){ return `<div class="chat-fio" id="pgFio"></div>`; }
 
@@ -4729,7 +4778,8 @@ function chatMarkup(){ return `<div class="chat-fio" id="pgFio"></div>`; }
 async function chatAbertura(){
   const h=new Date().getHours();
   const cump=h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
-  await botDiz(`<p>${cump}${CHAT.minha?`, <b>${CHAT.minha}</b>`:''}!</p>
+  const eu=chatQuemSou();
+  await botDiz(`<p>${cump}${eu?`, <b>${eu}</b>`:''}!</p>
     <p>Eu respondo pelos botões — é só escolher.</p>`, 420);
   await botMenu(true);
 }
@@ -4754,7 +4804,7 @@ async function botMenu(primeira){
 function botDepois(bolha, rota, refaz){
   const ops=[];
   if(rota) ops.push({rot:`Abrir ${rotaLabel(rota)} →`, abrir:rota});
-  ops.push({rot:'📅 Trocar o período', per:1});
+  if(refaz) ops.push({rot:'📅 Trocar o período', per:1});
   ops.push({rot:'‹ Voltar ao menu', menu:1});
   botOfereceu(bolha, ops, async o=>{
     if(o.abrir){ dockFechar(); route(o.abrir); return; }
@@ -4789,11 +4839,12 @@ async function botResumo(){
       <ol class="bot-lista">${top.map(x=>`<li>${x.loja} — ${fmtInt(x.unidades)} un · ${fmtPct(100*x.participacao)}</li>`).join('')}</ol>`;
     return botDepois(b,'vendas',botResumo);
   }
-  const m=tudo.find(x=>x.loja_id===CHAT.lojaId);
-  if(!m){ b.innerHTML=`<p>Ainda não há venda registrada para a <b>${CHAT.minha}</b> em ${per}.</p>`;
+  if(chatSemLoja()) return chatAvisoSemLoja(b);
+  const m=chatMinhaLinha(tudo);
+  if(!m){ b.innerHTML=`<p>Ainda não há venda registrada para a <b>${chatQuemSou()}</b> em ${per}.</p>`;
           return botDepois(b,'vendas',botResumo); }
-  const pos=[...tudo].sort((a,c)=>c.unidades-a.unidades).findIndex(x=>x.loja_id===CHAT.lojaId)+1;
-  b.innerHTML=`<p><b>${CHAT.minha} · ${per}</b></p>
+  const pos=[...tudo].sort((a,c)=>c.unidades-a.unidades).findIndex(x=>x===m)+1;
+  b.innerHTML=`<p><b>${chatQuemSou()} · ${per}</b></p>
     <ul class="bot-lista">
       <li>Peças vendidas: <b>${fmtInt(m.unidades)}</b></li>
       <li>Participação na rede: <b>${fmtPct(100*m.participacao)}</b></li>
@@ -4821,12 +4872,13 @@ async function botGap(){
         `<li>${l} — <b>${fmtInt(v.un)}</b> peças · ${v.n} itens</li>`).join('')}</ol>`;
     return botDepois(b,'oportunidades',botGap);
   }
-  const meus=tudo.filter(x=>x.loja_id===CHAT.lojaId)
+  if(chatSemLoja()) return chatAvisoSemLoja(b);
+  const meus=chatFiltraMinhas(tudo)
     .sort((a,c)=>c.gap_atendivel-a.gap_atendivel || c.gap-a.gap);
-  if(!meus.length){ b.innerHTML=`<p>Nenhum item da <b>${CHAT.minha}</b> está abaixo do porte em ${per}. 👏</p>`;
+  if(!meus.length){ b.innerHTML=`<p>Nenhum item da <b>${chatQuemSou()}</b> está abaixo do porte em ${per}. 👏</p>`;
                     return botDepois(b,'oportunidades',botGap); }
   const atend=meus.reduce((s,x)=>s+(+x.gap_atendivel||0),0);
-  b.innerHTML=`<p><b>${CHAT.minha} · ${per}</b></p>
+  b.innerHTML=`<p><b>${chatQuemSou()} · ${per}</b></p>
     <p><b>${fmtInt(meus.length)}</b> itens abaixo do próprio porte · <b>${fmtInt(atend)}</b> peças com estoque no Pulmão SP hoje.</p>
     <p><b>Os 5 maiores</b></p>
     <ol class="bot-lista">${meus.slice(0,5).map(x=>
@@ -4852,11 +4904,12 @@ async function botPreco(){
       <ul class="bot-lista">${ord.slice(-3).reverse().map(x=>`<li>${x.loja} — ${botMoeda(x.preco_medio)}</li>`).join('')}</ul>`;
     return botDepois(b,'precomedio',botPreco);
   }
-  const m=tudo.find(x=>x.loja_id===CHAT.lojaId);
-  if(!m){ b.innerHTML=`<p>Sem faturamento registrado para a <b>${CHAT.minha}</b> em ${per}.</p>`;
+  if(chatSemLoja()) return chatAvisoSemLoja(b);
+  const m=chatMinhaLinha(tudo);
+  if(!m){ b.innerHTML=`<p>Sem faturamento registrado para a <b>${chatQuemSou()}</b> em ${per}.</p>`;
           return botDepois(b,'precomedio',botPreco); }
   const d=+m.vs_rede_pct||0;
-  b.innerHTML=`<p><b>${CHAT.minha} · ${per}</b></p>
+  b.innerHTML=`<p><b>${chatQuemSou()} · ${per}</b></p>
     <ul class="bot-lista">
       <li>Seu preço médio: ${botMoeda(m.preco_medio)} por peça</li>
       <li>Média da rede: ${botMoeda(m.pm_rede)}</li>
