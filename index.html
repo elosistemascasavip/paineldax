@@ -220,6 +220,14 @@ th.cls{text-align:center}
 .statbar{display:flex;gap:22px;flex-wrap:wrap;padding:12px 16px;background:#f7f9fc;border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
 .statbar .s .n{font-size:20px;font-weight:800;letter-spacing:-.02em}
 .statbar .s .l{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+/* ---------- Log do sistema ---------- */
+tr.lg-off td{color:var(--ink-faint)}
+tr.lg-off td b{font-weight:600;color:var(--ink-soft)}
+.lg-tipo{font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-faint)}
+.lg-tipo.ac{color:var(--blue)}
+.lg-hora{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:54px;margin-top:4px}
+.lg-hora i{display:block;background:var(--blue);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+.lg-hora-rot{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-faint);margin-top:3px}
 /* ---------- Oportunidades ---------- */
 .empty .resumo{margin-top:10px;max-width:560px;font-size:13px;line-height:1.55;color:var(--ink-soft);text-align:left}
 .empty .resumo b{color:var(--ink)}
@@ -229,6 +237,27 @@ th.cls{text-align:center}
 .eixo:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
 .eixo.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .eixo:disabled{opacity:.4;cursor:not-allowed}
+/* ---------- Ajuda de coluna ---------- */
+.ajuda{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
+  border:1px solid #cfd6e2;background:#fff;color:var(--ink-faint);font-family:Georgia,'Times New Roman',serif;
+  font-size:10.5px;font-weight:700;font-style:italic;line-height:1;margin-left:5px;
+  vertical-align:middle;cursor:pointer;padding:0;flex:0 0 auto}
+.ajuda:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-tint)}
+th .ajuda{position:relative;top:-1px}
+.ajuda-txt{font-size:13.5px;line-height:1.62;color:var(--ink-soft);max-width:540px}
+.ajuda-txt b{color:var(--ink)}
+.ajuda-txt p{margin:0 0 9px}
+.ajuda-txt p:last-child{margin-bottom:0}
+.ajuda-txt ul{margin:8px 0 10px;padding-left:18px}
+.ajuda-txt li{margin-bottom:5px}
+.ajuda-txt .exemplo{background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px}
+.voltar-linha{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.voltar-linha .onde{font-size:13px;color:var(--ink-faint)}
+.voltar-linha .onde b{color:var(--ink)}
+.btn-voltar{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 13px 8px 10px;
+  font-weight:600;font-size:13px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px}
+.btn-voltar:hover{border-color:var(--blue);color:var(--blue)}
+.btn-voltar svg{width:16px;height:16px}
 .trilha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}
 .trilha .tl{color:var(--ink-faint);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
 .trilha .tag{background:var(--blue-tint);border:1px solid var(--blue-line);color:var(--blue-ink);
@@ -645,6 +674,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
       <div class="nav-item" data-route="usuarios">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
         Usuários
+      </div>
+      <div class="nav-item so-adm esconde" data-route="log">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2.5-7 4 14 2.5-7h5"/></svg>
+        Log do Sistema
       </div>
       <div class="nav-item" data-route="pendencias">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
@@ -1097,6 +1130,10 @@ async function refreshAuth(){
     av.title = 'Entrar';
   }
   aplicarVisibilidade();
+  // Sessao do Supabase dura dias: sem isto quem nao faz logout de novo nunca
+  // mais apareceria no log. Uma marca por carregamento de pagina.
+  if(session && perfil && !LOGX.sessaoMarcada){ LOGX.sessaoMarcada=true; logEvento('abertura'); }
+  sessaoVigia(!!session);
   document.getElementById('whoNome').textContent = CONTA.nome;
   document.getElementById('whoPapel').textContent = CONTA.papel;
 }
@@ -1112,6 +1149,56 @@ document.getElementById('avatar').onclick = async ()=>{
   else openLogin();
 };
 function openLogin(){ document.getElementById('loginModal').classList.remove('hidden'); document.getElementById('liEmail').focus(); }
+/* ---------- Sessao: expira sozinha ----------
+   30 minutos parado derruba. Menos do que isso interrompe quem esta lendo uma
+   lista longa; muito mais e a loja que abriu de manha continua "dentro" a
+   semana inteira, e o registro de acesso deixa de dizer alguma coisa.
+   O teto de 12 h existe para o computador de loja que ninguem desliga. */
+const SESSAO={minutos:30, avisoEm:1, limiteHoras:12,
+              ultima:Date.now(), inicio:Date.now(), avisou:false, t:null};
+function sessaoToque(){ SESSAO.ultima=Date.now(); SESSAO.avisou=false; }
+// Nao derrubar no meio de uma importacao: o botao desabilitado e o sinal de
+// que a gravacao esta rodando.
+function sessaoOcupada(){
+  return ['btnAplicar','btnAplicarEstq'].some(id=>{
+    const b=document.getElementById(id); return b && b.disabled; });
+}
+async function sessaoEncerra(motivo){
+  if(SESSAO.t){ clearInterval(SESSAO.t); SESSAO.t=null; }
+  try{ await sb.auth.signOut(); }catch(e){}
+  await refreshAuth();
+  view.innerHTML='';
+  document.getElementById('liEmail').value='';
+  document.getElementById('liPass').value='';
+  openLogin();
+  const err=document.getElementById('liErr');
+  if(err){ err.style.color='var(--amber)'; err.textContent=motivo; }
+}
+function sessaoChecar(){
+  if(!session || !SESSAO.t) return;
+  if(sessaoOcupada()){ sessaoToque(); return; }
+  const parado=(Date.now()-SESSAO.ultima)/60000;
+  const horas =(Date.now()-SESSAO.inicio)/3600000;
+  if(horas>=SESSAO.limiteHoras)
+    return sessaoEncerra('Sessão encerrada por tempo de conexão. Entre novamente.');
+  if(parado>=SESSAO.minutos)
+    return sessaoEncerra('Sessão encerrada por inatividade. Entre novamente.');
+  if(!SESSAO.avisou && parado>=SESSAO.minutos-SESSAO.avisoEm){
+    SESSAO.avisou=true;
+    toast('Sua sessão vai encerrar em 1 minuto por inatividade.');
+  }
+}
+function sessaoVigia(ligar){
+  if(SESSAO.t){ clearInterval(SESSAO.t); SESSAO.t=null; }
+  if(!ligar) return;
+  SESSAO.inicio=Date.now(); sessaoToque();
+  SESSAO.t=setInterval(sessaoChecar, 15000);
+}
+['pointerdown','keydown','wheel','touchstart'].forEach(ev=>
+  document.addEventListener(ev, sessaoToque, {passive:true, capture:true}));
+// Aba em segundo plano tem o timer represado pelo navegador: ao voltar, conferir
+// na hora em vez de zerar o relogio.
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) sessaoChecar(); });
 function closeLogin(){ document.getElementById('loginModal').classList.add('hidden'); document.getElementById('liErr').textContent=''; }
 function mostrarLoginSeDeslogado(){ if(!session) openLogin(); else closeLogin(); }
 // Apelidos: aceita o nome como aparece na tela (ex.: "C. Marques", "M. Nobre").
@@ -1141,7 +1228,9 @@ async function doLogin(){
       : error.message;
     return;
   }
+  LOGX.sessaoMarcada=true;      // o login ja conta como acesso; nao marcar duas vezes
   await refreshAuth();
+  logEvento('login');
   if(perfil && perfil.papel==='pendente'){ err.textContent='Conta ainda sem permissão. Um administrador precisa liberar seu acesso.'; return; }
   closeLogin(); await loadStatus();
   route(isGestor()? 'importar' : 'abc');
@@ -1241,6 +1330,7 @@ function setActive(r){ document.querySelectorAll('.nav-item').forEach(el=>el.cla
 function aplicarVisibilidade(){
   const pode = !!session;
   document.querySelectorAll('.so-logado').forEach(el=>el.classList.toggle('esconde', !pode));
+  document.querySelectorAll('.so-adm').forEach(el=>el.classList.toggle('esconde', !(pode && isAdmin())));
   if(!pode) dockFechar();
 }
 document.getElementById('chatBolha').onclick=dockToggle;
@@ -1291,8 +1381,57 @@ function loginWall(msg){
   return `<div class="notice info">${msg} <a href="#" onclick="openLogin();return false" style="font-weight:700">Entrar</a>.</div>`;
 }
 
+/* ---------- Log de uso ----------
+   Duas perguntas justificam este registro: quem esta usando o sistema e o que
+   essa pessoa procura. Nada alem disso e gravado.
+   Regras de ouro: nunca esperar a resposta e nunca deixar um erro subir — um
+   log que quebra a navegacao custa mais do que o log vale. */
+const LOGX={rota:'', quando:0, sessaoMarcada:false};
+const ROTA_LABEL={importar:'Importar planilhas', historico:'Histórico de cargas',
+  cobertura:'Cobertura da base', abc:'Curva ABC', oportunidades:'Oportunidades',
+  vendas:'Vendas por loja', pulmao:'Estoque Pulmão', ruptura:'Cobertura de estoque',
+  precomedio:'Preço médio', presenca:'Presença Casa VIP', produtos:'Produtos',
+  lojas:'Lojas', usuarios:'Usuários', pendencias:'Pendências', grupos:'Grupos',
+  linhas:'Linhas', cores:'Cores', sobre:'Sobre', perguntar:'Perguntar',
+  log:'Log do Sistema'};
+function rotaLabel(r){ return ROTA_LABEL[r] || r || '—'; }
+/* ---------- Voltar ----------
+   Sem isto o botao voltar do navegador (e o do celular) sai do sistema, e o
+   unico caminho de volta e o menu lateral. Cada tela vira um passo no historico. */
+let VOLTANDO=false;
+function historiaMarca(r){
+  if(VOLTANDO) return;
+  try{
+    if(!history.state) history.replaceState({rota:r},'','#'+r);
+    else if(history.state.rota!==r) history.pushState({rota:r},'','#'+r);
+  }catch(e){}
+}
+window.addEventListener('popstate', ev=>{
+  const r=(ev.state&&ev.state.rota) || (location.hash||'').replace('#','') || 'importar';
+  if(!ROTA_LABEL[r]) return;
+  VOLTANDO=true; route(r); VOLTANDO=false;
+});
+function logEvento(tipo, rota){
+  if(!session || !perfil || perfil.papel==='pendente') return;
+  if(tipo==='tela'){
+    // F5 e vai-e-volta na mesma tela em segundos nao sao duas consultas
+    const t=Date.now();
+    if(rota===LOGX.rota && t-LOGX.quando<20000) return;
+    LOGX.rota=rota; LOGX.quando=t;
+  }
+  const login=(session.user.email||'').split('@')[0];
+  const nome=perfil.nome || login || null;
+  try{
+    sb.from('log_eventos').insert({
+      usuario: session.user.id, quem: nome, papel: perfil.papel || null,
+      loja: isGestor() ? null : nome, tipo: tipo, rota: rota || null
+    }).then(()=>{},()=>{});
+  }catch(e){}
+}
 async function route(r){
   current=r; setActive(r); aplicarVisibilidade(); view.scrollTop=0;
+  historiaMarca(r);
+  logEvento('tela', r);
   if(r==='importar') return renderImportar();
   if(r==='abc') return renderABC();
   if(r==='vendas') return renderVendas();
@@ -1312,6 +1451,7 @@ async function route(r){
   if(r==='perguntar') return renderPerguntar();
   if(r==='historico') return renderHistorico();
   if(r==='cobertura') return renderCobertura();
+  if(r==='log') return renderLog();
 }
 
 /* ============================================================
@@ -1957,6 +2097,12 @@ async function renderOportunidades(){
   opoPinta();
 }
 
+function opoVoltarRede(){
+  OPO.loja=''; OPO.aba='gap';
+  const sel=document.getElementById('opLoja'); if(sel) sel.value='';
+  opoPinta();
+  view.scrollTop=0;
+}
 function opoPinta(){
   const el=document.getElementById('opConteudo');
   if(!OPO.loja) return el.innerHTML=opoRede();
@@ -1968,6 +2114,12 @@ function opoPinta(){
   const prc=opoPreco(OPO.loja);
 
   el.innerHTML=`
+    <div class="voltar-linha">
+      <button class="btn-voltar" onclick="opoVoltarRede()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        Voltar para a rede</button>
+      <span class="onde">Oportunidades › <b>${OPO.loja}</b></span>
+    </div>
     <div class="statbar">
       <div class="s"><div class="n">${fmtInt(p.unidades)}</div><div class="l">Peças vendidas</div></div>
       <div class="s"><div class="n">${fmtPct(100*(p.participacao||0))}</div><div class="l">Participação na rede</div></div>
@@ -2451,10 +2603,60 @@ function abcRefresh(){
 
   document.getElementById('abcCount').textContent=fmtInt(rows.length)+' SKUs';
   const cmp=ABC.comparando;
+  // O rotulo da coluna de classe segue o recorte. "Classe", sozinho, nao dizia
+  // classe de que — e a resposta muda conforme o filtro de loja.
+  const nLojasRede=uniq(ABC.vendas.map(r=>r.loja)).length;
+  const rotEscopo = lojaSel ? 'Na loja' : 'Na rede';
+  const nomeEscopo = lojaSel ? lojaSel : 'rede';
   document.getElementById('abcHead').innerHTML = `<th class="num">#</th><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>`
     + (cmp? `<th class="num">Período A</th><th class="num">Período B</th><th class="num">Variação</th>` : `<th class="num">Qtd</th>`)
-    + `<th class="num">% acum.</th><th class="cls">Classe</th><th class="cls">No grupo</th>`
-    + (lojaSel? `<th class="cls">Na rede</th>` : '');
+    + `<th class="num">% acum.${ajuda('% acumulado',
+        `<p>A soma das peças, do item que mais vende até este, dentro
+         ${lojaSel? `da curva da <b>${lojaSel}</b>` : 'da <b>curva da rede</b>'}.</p>
+         <p class="exemplo">Se um item aparece com <b>80%</b>, ele e todos os que estão acima dele
+         respondem juntos por 80% de tudo o que saiu no período.</p>
+         <p>É essa soma que define onde termina o A e onde começa o B: os cortes são feitos
+         nessa coluna, não na quantidade de cada item.</p>
+         <p>Item sem saída no período fica sem acumulado.</p>`)}</th>`
+    + `<th class="cls">${rotEscopo}${ajuda(lojaSel? `Classe na loja ${lojaSel}` : 'Classe na rede',
+        (lojaSel
+          ? `<p>A classe do item <b>dentro da curva da ${lojaSel}</b> — calculada só com o que
+             essa loja vendeu no período.</p>`
+          : `<p>A classe do item <b>na curva da rede</b> — as ${nLojasRede} lojas somadas.</p>`)
+        + `<p>Os itens são ordenados do que mais vende para o que menos vende e a quantidade vai
+         sendo somada. Onde a soma cruza os cortes, muda a classe:</p>
+         <ul>
+           <li><b>A</b> — os primeiros itens, até somar ${A}% das peças. É o núcleo: faltar aqui dói.</li>
+           <li><b>B</b> — daí até ${B}%.</li>
+           <li><b>C</b> — todo o resto da cauda.</li>
+           <li><b>D</b> — não teve nenhuma saída no período.</li>
+         </ul>
+         <p>Os cortes de A e B são ajustáveis no topo da tela.</p>`
+        + (lojaSel
+          ? `<p>A coluna <b>Na rede</b>, ao lado, traz a classe do mesmo item no conjunto.
+             É a comparação entre as duas que mostra onde a loja foge da rede.</p>`
+          : `<p>Escolhendo uma loja no seletor acima, esta coluna passa a ser a daquela loja
+             (<b>Na loja</b>) e aparece uma coluna <b>Na rede</b> ao lado, para comparar.</p>`))}</th>`
+    + `<th class="cls">No grupo${ajuda('No grupo',
+        `<p>A mesma classificação, mas disputada só entre os itens do <b>mesmo grupo</b>
+         (Banheiro, Chuveiro, Acessórios, Complementos, Gourmet).</p>
+         <p>Vale o mesmo recorte da coluna <b>${rotEscopo}</b>: aqui é o grupo dentro
+         ${lojaSel? `da <b>${lojaSel}</b>` : 'da <b>rede</b>'}.</p>
+         <p class="exemplo">Um item pode ser <b>C</b> na curva geral — porque o grupo dele vende
+         pouco no total — e ser <b>A</b> dentro do próprio grupo. Ou seja: é o carro-chefe daquela
+         família, mesmo sem peso no total.</p>
+         <p>Serve para não desabastecer grupos pequenos. Quem compra olhando só a coluna
+         <b>${rotEscopo}</b> tende a deixar esses itens de fora.</p>`)}</th>`
+    + (lojaSel? `<th class="cls">Na rede${ajuda('Classe na rede',
+        `<p>A classe do mesmo item considerando as ${nLojasRede} lojas somadas.
+         Aparece só quando você está olhando uma loja.</p>
+         <p>Está aqui para ser comparada com a coluna <b>Na loja</b>:</p>
+         <ul>
+           <li><b>A</b> na rede e <b>C</b> na loja — item que a rede vende e a ${lojaSel} não.
+           Vale olhar exposição, estoque e preço.</li>
+           <li><b>C</b> na rede e <b>A</b> na loja — força local: algo que a ${lojaSel} vende
+           melhor que o conjunto.</li>
+         </ul>`)}</th>` : '');
   document.getElementById('abcRows').innerHTML = rows.slice(0,800).map(d=>{
     const pos=grupoSel?d.posicao_grupo:d.posicao;
     const pac=grupoSel?d.pct_acum_grupo:d.pct_acumulado;
@@ -2471,8 +2673,8 @@ function abcRefresh(){
   const leg=document.getElementById('abcLegenda');
   if(leg) leg.innerHTML = lojaSel
     ? `<div style="margin-top:10px;font-size:12px;color:var(--ink-faint);line-height:1.5">
-        <b>Na rede</b>: a classe do mesmo item considerando as ${uniq(ABC.vendas.map(r=>r.loja)).length} lojas juntas —
-        serve para ver onde ${lojaSel} diverge do conjunto.
+        <b>Na loja</b> é a classe dentro da curva da ${lojaSel}; <b>Na rede</b> é a do mesmo item
+        com as ${uniq(ABC.vendas.map(r=>r.loja)).length} lojas juntas — comparar as duas mostra onde ${lojaSel} diverge do conjunto.
         Item sem giro no período fica sem % acumulado e entra como classe D.</div>`
     : '';
 }
@@ -2546,7 +2748,8 @@ function abcColsExport(){
     {label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},
     {label:'Grupo',key:'grupo'},{label:'Qtd',key:'qtd_janela'},
     {label:'% acumulado',get:d=>(g?d.pct_acum_grupo:d.pct_acumulado)},
-    {label:'Classe geral',key:'classe'},{label:'Classe no grupo',key:'classe_grupo'}
+    {label: loja?('Classe na loja ('+loja+')'):'Classe na rede', key:'classe'},
+    {label:'Classe no grupo',key:'classe_grupo'}
   ];
   if(loja) cols.push(
     {label:'Qtd rede',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
@@ -2962,6 +3165,27 @@ function openModal(titulo, inner, onOk, okLabel){
   };
 }
 function closeModal(){ const m=document.getElementById('genModal'); if(m) m.classList.add('hidden'); }
+
+/* ---------- Ajuda de coluna ----------
+   ajuda(titulo, html) devolve o "i" e guarda o texto. Chamar dentro do template
+   do cabecalho mantem a explicacao ao lado da coluna que ela explica, em vez de
+   numa legenda solta no rodape que ninguem associa. */
+const AJUDA={}; let AJUDA_N=0;
+function ajuda(titulo, html){
+  if(AJUDA_N>400){ for(const k in AJUDA) delete AJUDA[k]; AJUDA_N=0; }  // cabecalho redesenha a cada filtro
+  const k='aj'+(++AJUDA_N);
+  AJUDA[k]={titulo:titulo, html:html};
+  return `<button type="button" class="ajuda" data-ajuda="${k}" aria-label="O que significa ${titulo}"
+    title="O que significa: ${titulo}">i</button>`;
+}
+// captura: o "i" pode estar dentro de uma linha clicavel, e ali o clique e dele
+document.addEventListener('click', ev=>{
+  const b=ev.target.closest && ev.target.closest('[data-ajuda]');
+  if(!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const a=AJUDA[b.dataset.ajuda]; if(!a) return;
+  openModal(a.titulo, `<div class="ajuda-txt">${a.html}</div>`, null, 'Entendi');
+}, true);
 
 /* ============================================================
    Módulo: Presença Casa VIP — Inteligência Comercial
@@ -4133,6 +4357,256 @@ function pulmaoPinta(){
 }
 
 /* ============================================================
+   Tela: Log do Sistema  (Cadastros — só administrador)
+   ------------------------------------------------------------
+   Duas perguntas: quem está usando e o que essa pessoa procura.
+   A contagem por conta vem do log; a coluna de último acesso das contas sem
+   movimento vem do próprio cadastro de autenticação, que é anterior ao log —
+   é o que impede a tela de dizer "nunca entrou" para quem entrou antes disto
+   existir.
+   ============================================================ */
+const ICO_LOGSIS=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 12h4l2.5-7 4 14 2.5-7h5"/></svg>`;
+const LOG={per:'30', de:'', ate:'', papel:'', conta:'', res:null, contas:[], ultimos:[], lim:60};
+const LOG_PERIODOS=[['hoje','Hoje'],['7','Últimos 7 dias'],['30','Últimos 30 dias'],
+  ['90','Últimos 90 dias'],['tudo','Desde o início'],['esp','Período específico']];
+const LOG_TIPO_ROT={login:'entrou', abertura:'abriu o sistema', tela:'abriu tela'};
+
+function logIsoDia(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// A janela é montada na hora local: quem lê o log pensa em "hoje", não em UTC.
+function logJanela(){
+  if(LOG.per==='tudo') return {ini:null, fim:null};
+  if(LOG.per==='esp'){
+    const de = LOG.de ? new Date(LOG.de+'T00:00:00') : null;
+    let at = LOG.ate ? new Date(LOG.ate+'T00:00:00') : null;
+    if(at){ at=new Date(at); at.setDate(at.getDate()+1); }   // a data final entra inteira
+    return {ini:de?de.toISOString():null, fim:at?at.toISOString():null};
+  }
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const n = LOG.per==='hoje' ? 1 : (+LOG.per||1);
+  const ini=new Date(hoje); ini.setDate(ini.getDate()-(n-1));
+  return {ini:ini.toISOString(), fim:null};
+}
+function logJanelaRot(){
+  if(LOG.per==='tudo') return 'desde o início do registro';
+  if(LOG.per==='esp'){
+    if(!LOG.de && !LOG.ate) return 'período específico (informe as datas)';
+    const f=v=>v? v.split('-').reverse().join('/') : '…';
+    return f(LOG.de)+' a '+f(LOG.ate);
+  }
+  return (LOG_PERIODOS.find(x=>x[0]===LOG.per)||['','']) [1].toLowerCase();
+}
+
+async function renderLog(){
+  view.innerHTML=head(ICO_LOGSIS,'Log do Sistema',
+    'Quem está usando o sistema, com que frequência, e quais telas cada conta abre.','Cadastros')
+    +'<div id="lgBody"></div>';
+  const body=document.getElementById('lgBody');
+  if(!session){ body.innerHTML=loginWall('O log é restrito ao administrador.'); return; }
+  if(!isAdmin()){
+    body.innerHTML=`<div class="notice warn">Esta tela é restrita ao administrador.
+      A conta conectada é <b>${CONTA.nome}</b> · ${CONTA.papel}.</div>`; return; }
+
+  body.innerHTML=`
+    <div class="tools">
+      <select class="selin" id="lgPer">${LOG_PERIODOS.map(([v,r])=>
+        `<option value="${v}"${v===LOG.per?' selected':''}>${r}</option>`).join('')}</select>
+      <span id="lgEsp"></span>
+      <select class="selin" id="lgPapel">
+        <option value="">Todos os papéis</option>
+        <option value="admin">Administrador</option>
+        <option value="associado">Associado</option>
+        <option value="jiwi_estoque">JIWI · Estoque</option>
+        <option value="casavip_vendas">Casa VIP · Vendas</option>
+      </select>
+      <select class="selin" id="lgConta"><option value="">Todas as contas</option></select>
+      <span class="grow"></span>
+      <button class="btn-tool" id="lgCSV">Exportar CSV</button>
+    </div>
+    <div id="lgPainel"><div class="panel"><div class="empty">Carregando…</div></div></div>`;
+
+  document.getElementById('lgPer').onchange=e=>{ LOG.per=e.target.value; logEspecifico(); logCarrega(); };
+  document.getElementById('lgPapel').onchange=e=>{ LOG.papel=e.target.value; logCarrega(); };
+  document.getElementById('lgConta').onchange=e=>{ LOG.conta=e.target.value; logCarrega(); };
+  document.getElementById('lgCSV').onclick=logCSV;
+  logEspecifico();
+
+  // o cadastro de contas não depende do filtro: carrega uma vez
+  const {data:cs,error:ec}=await sb.from('vw_acessos_contas').select('*');
+  if(ec){ document.getElementById('lgPainel').innerHTML=`<div class="notice warn">${ec.message}</div>`; return; }
+  LOG.contas=(cs||[]).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+  document.getElementById('lgConta').innerHTML='<option value="">Todas as contas</option>'
+    + LOG.contas.map(c=>`<option value="${c.id}">${c.nome||c.email}</option>`).join('');
+  logCarrega();
+}
+// As datas só aparecem quando são necessárias: fora de "período específico" elas
+// só ocupariam a barra.
+function logEspecifico(){
+  const box=document.getElementById('lgEsp'); if(!box) return;
+  if(LOG.per!=='esp'){ box.innerHTML=''; return; }
+  const hoje=logIsoDia(new Date());
+  if(!LOG.ate) LOG.ate=hoje;
+  if(!LOG.de){ const d=new Date(); d.setDate(d.getDate()-30); LOG.de=logIsoDia(d); }
+  box.innerHTML=`<input type="date" class="selin" id="lgDe" value="${LOG.de}" max="${hoje}">
+    <span style="font-size:13px;color:var(--ink-faint)">até</span>
+    <input type="date" class="selin" id="lgAte" value="${LOG.ate}" max="${hoje}">`;
+  const de=document.getElementById('lgDe'), at=document.getElementById('lgAte');
+  de.onchange=()=>{ LOG.de=de.value; if(LOG.de>LOG.ate){ LOG.ate=LOG.de; at.value=LOG.ate; } logCarrega(); };
+  at.onchange=()=>{ LOG.ate=at.value; if(LOG.ate<LOG.de){ LOG.de=LOG.ate; de.value=LOG.de; } logCarrega(); };
+}
+
+async function logCarrega(){
+  const alvo=document.getElementById('lgPainel'); if(!alvo) return;
+  alvo.innerHTML='<div class="panel"><div class="empty">Carregando…</div></div>';
+  const j=logJanela();
+  const args={p_ini:j.ini, p_fim:j.fim, p_papel:LOG.papel||null, p_usuario:LOG.conta||null};
+  let q=sb.from('log_eventos').select('criado_em,quem,papel,tipo,rota')
+        .order('criado_em',{ascending:false}).limit(400);
+  if(j.ini) q=q.gte('criado_em',j.ini);
+  if(j.fim) q=q.lt('criado_em',j.fim);
+  if(LOG.papel) q=q.eq('papel',LOG.papel);
+  if(LOG.conta) q=q.eq('usuario',LOG.conta);
+  const [r1,r2]=await Promise.all([sb.rpc('log_resumo',args), q]);
+  if(r1.error){ alvo.innerHTML=`<div class="notice warn">${r1.error.message}</div>`; return; }
+  LOG.res=r1.data||{};
+  LOG.ultimos=r2.data||[];
+  LOG.lim=60;
+  logPinta();
+}
+
+function logPinta(){
+  const alvo=document.getElementById('lgPainel'); if(!alvo) return;
+  const R=LOG.res||{};
+  const contas=LOG.contas.filter(c=>(!LOG.papel||c.papel===LOG.papel) && (!LOG.conta||c.id===LOG.conta));
+  const porU={}; (R.por_usuario||[]).forEach(u=>{ porU[u.usuario]=u; });
+  const nunca=contas.filter(c=>!c.ultimo_login && !porU[c.id]).length;
+  const semPer=contas.filter(c=>!porU[c.id]).length;
+
+  if(!R.total){
+    alvo.innerHTML=`<div class="panel"><div class="empty">
+      <div class="big">Nenhum registro em ${logJanelaRot()}</div>
+      O registro de uso começou agora: a partir daqui cada entrada e cada tela aberta
+      fica gravada. Para o histórico anterior, a coluna de último acesso do quadro de
+      contas abaixo é o que existe.</div></div>` + logContasHTML(contas, porU);
+    return;
+  }
+
+  const ativas=(R.por_usuario||[]).length;
+  alvo.innerHTML=`
+    <div class="statbar">
+      <div class="s"><div class="n">${fmtInt(ativas)}<span style="font-size:13px;font-weight:600;color:var(--ink-faint)"> de ${fmtInt(contas.length)}</span></div>
+        <div class="l">Contas que usaram</div></div>
+      <div class="s"><div class="n">${fmtInt(R.acessos)}</div><div class="l">Acessos</div></div>
+      <div class="s"><div class="n">${fmtInt(R.telas)}</div><div class="l">Telas abertas</div></div>
+      <div class="s"><div class="n">${fmtInt(R.dias)}</div><div class="l">Dias com movimento</div></div>
+      ${nunca? `<div class="s"><div class="n" style="color:var(--amber)">${fmtInt(nunca)}</div>
+        <div class="l">Nunca entraram</div></div>`:''}
+    </div>
+    <div class="vc-grid" style="margin-bottom:14px">
+      <div class="panel" style="margin:0"><div class="panel-head"><h2>Telas mais abertas</h2>
+        <span class="count">${logJanelaRot()}</span></div>
+        <div style="padding:12px 16px">${logTelasHTML(R.por_tela||[])}</div></div>
+      <div class="panel" style="margin:0"><div class="panel-head"><h2>Contas por dia</h2>
+        <span class="count">${fmtInt(R.total)} registros</span></div>
+        <div style="padding:12px 16px">${logDiasHTML(R.por_dia||[])}</div></div>
+    </div>
+    ${logContasHTML(contas, porU)}
+    ${logEventosHTML()}`;
+  const mais=document.getElementById('lgMais');
+  if(mais) mais.onclick=()=>{ LOG.lim+=120; logPinta(); };
+}
+
+function logTelasHTML(l){
+  if(!l.length) return '<div style="color:var(--ink-faint);font-size:13px">Nenhuma tela aberta no período.</div>';
+  const max=Math.max(...l.map(x=>+x.aberturas),1);
+  return l.slice(0,12).map((x,i)=>`<div class="rankrow">
+    <span class="nm">${i+1}. ${rotaLabel(x.rota)}</span>
+    <span class="vl"><span class="un">${fmtInt(x.aberturas)}</span>
+      <span class="pc">${fmtInt(x.contas)} ${+x.contas===1?'conta':'contas'}</span></span>
+    <span class="track"><span class="fill" style="width:${(100*x.aberturas/max).toFixed(1)}%"></span></span>
+  </div>`).join('');
+}
+function logDiasHTML(l){
+  if(!l.length) return '<div style="color:var(--ink-faint);font-size:13px">Sem movimento no período.</div>';
+  if(l.length===1){
+    const d=l[0];
+    return `<div class="kv2"><b>Dia</b><span>${String(d.dia).split('-').reverse().join('/')}</span>
+      <b>Registros</b><span>${fmtInt(d.eventos)}</span>
+      <b>Acessos</b><span>${fmtInt(d.acessos)}</span>
+      <b>Contas</b><span>${fmtInt(d.contas)}</span></div>`;
+  }
+  // Só as contas. O volume de cliques varia demais de um dia para o outro para
+  // dizer alguma coisa; quantas lojas abriram o sistema é a leitura que importa.
+  const lab=l.map(d=>{const p=String(d.dia).split('-'); return p[2]+'/'+p[1];});
+  return lineChart(lab, [{name:'Contas que usaram', values:l.map(d=>+d.contas), color:'#1f6fe0'}]);
+}
+
+// Um quadro só, com todas as contas. Quem não teve movimento fica na tabela e
+// não escondido atrás de um filtro: é justamente essa a informação que interessa.
+function logContasHTML(contas, porU){
+  const linhas=contas.map(c=>{
+    const u=porU[c.id];
+    return {c:c, u:u, ord: u ? new Date(u.ultimo).getTime()
+      : (c.ultimo_login ? new Date(c.ultimo_login).getTime()-1e13 : -1e15)};
+  }).sort((a,b)=>b.ord-a.ord);
+  const corpo=linhas.map(({c,u})=>{
+    const pill = u ? '<span class="pill B">ativa no período</span>'
+      : (c.ultimo_login ? '<span class="pill C">sem acesso no período</span>'
+                        : '<span class="pill D">nunca entrou</span>');
+    const ult = u ? fmtDataHora(u.ultimo)
+      : (c.ultimo_login ? fmtDataHora(c.ultimo_login)+' <span style="font-size:11.5px;color:var(--ink-faint)">(antes do log)</span>' : '—');
+    return `<tr class="${u?'':'lg-off'}">
+      <td><b>${c.nome||c.email||'—'}</b>${c.loja&&c.loja!==c.nome?` <span style="font-size:12px;color:var(--ink-faint)">· ${c.loja}</span>`:''}</td>
+      <td>${PAPEL_LABEL[c.papel]||c.papel||'—'}</td>
+      <td class="num">${u?fmtInt(u.acessos):'—'}</td>
+      <td class="num">${u?fmtInt(u.telas):'—'}</td>
+      <td class="num">${u?fmtInt(u.dias):'—'}</td>
+      <td style="white-space:nowrap">${ult}</td>
+      <td>${pill}</td></tr>`;}).join('');
+  return `<div class="panel"><div class="panel-head"><h2>Por conta</h2>
+      <span class="count">${fmtInt(contas.length)} contas · ${logJanelaRot()}</span></div>
+    <div class="tbl-scroll"><table><thead><tr>
+      <th>Conta</th><th>Papel</th><th class="num">Acessos</th><th class="num">Telas</th>
+      <th class="num">Dias</th><th>Último acesso</th><th>Situação</th>
+    </tr></thead><tbody>${corpo||'<tr><td colspan="7" style="color:var(--ink-faint);padding:14px">Nenhuma conta no filtro.</td></tr>'}</tbody></table></div>
+    <div style="padding:10px 16px;font-size:12px;color:var(--ink-faint)">
+      Acessos conta entradas e aberturas do sistema; Telas conta quantas telas foram abertas.
+      O último acesso marcado como <i>antes do log</i> vem do registro de autenticação, anterior a esta tela.</div>
+  </div>`;
+}
+
+function logEventosHTML(){
+  const l=LOG.ultimos.slice(0,LOG.lim);
+  if(!l.length) return '';
+  return `<div class="panel"><div class="panel-head"><h2>Últimos registros</h2>
+      <span class="count">${fmtInt(l.length)} de ${fmtInt(LOG.ultimos.length)}${LOG.ultimos.length>=400?'+':''}</span></div>
+    <div class="tbl-scroll"><table><thead><tr>
+      <th>Quando</th><th>Conta</th><th>Evento</th><th>Tela</th>
+    </tr></thead><tbody>${l.map(e=>`<tr>
+      <td style="white-space:nowrap">${fmtDataHora(e.criado_em)}</td>
+      <td><b>${e.quem||'—'}</b></td>
+      <td><span class="lg-tipo${e.tipo==='tela'?'':' ac'}">${LOG_TIPO_ROT[e.tipo]||e.tipo}</span></td>
+      <td>${e.tipo==='tela'?rotaLabel(e.rota):'—'}</td></tr>`).join('')}</tbody></table></div>
+    ${LOG.ultimos.length>l.length? `<div style="padding:10px 16px">
+      <button class="btn-tool" id="lgMais">Mostrar mais</button></div>`:''}
+  </div>`;
+}
+
+function logCSV(){
+  const R=LOG.res||{};
+  const porU={}; (R.por_usuario||[]).forEach(u=>{ porU[u.usuario]=u; });
+  const contas=LOG.contas.filter(c=>(!LOG.papel||c.papel===LOG.papel) && (!LOG.conta||c.id===LOG.conta));
+  const rows=contas.map(c=>{ const u=porU[c.id]; return {
+    conta:c.nome||c.email, papel:PAPEL_LABEL[c.papel]||c.papel,
+    acessos:u?u.acessos:0, telas:u?u.telas:0, dias:u?u.dias:0,
+    primeiro:u?fmtDataHora(u.primeiro):'', ultimo:u?fmtDataHora(u.ultimo):fmtDataHora(c.ultimo_login),
+    situacao:u?'ativa no periodo':(c.ultimo_login?'sem acesso no periodo':'nunca entrou')};});
+  exportCSV('log_do_sistema',[{label:'Conta',key:'conta'},{label:'Papel',key:'papel'},
+    {label:'Acessos',key:'acessos'},{label:'Telas',key:'telas'},{label:'Dias',key:'dias'},
+    {label:'Primeiro acesso',key:'primeiro'},{label:'Ultimo acesso',key:'ultimo'},
+    {label:'Situacao',key:'situacao'}], rows);
+}
+
+/* ============================================================
    Tela: Perguntar — assistente em construção
    ------------------------------------------------------------
    Por ora ele não responde com dados: só apresenta as telas e leva até elas.
@@ -4318,7 +4792,11 @@ sb.auth.onAuthStateChange(()=>{});
   wireLogos();
   await refreshAuth();
   if(!session){ openLogin(); }
-  else { closeLogin(); await loadStatus(); route('importar'); }
+  else {
+    closeLogin(); await loadStatus();
+    const h=(location.hash||'').replace('#','');
+    route(ROTA_LABEL[h] ? h : 'importar');
+  }
 })();
 </script>
 </body>
