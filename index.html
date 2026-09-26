@@ -2053,9 +2053,16 @@ const OPO={gap:[],dest:[],porte:[],pm:[],linha:[],loja:'',aba:'gap',meses:[],per
 /* Cortes da leitura por linha. Sem eles sao 17 lojas x 14 linhas na tela, e
    ninguem lê 238 avisos. Entra so linha que pesa na rede e diferenca que
    muda alguma coisa. */
-const LINHA_PESO_MIN = 5;    // % da rede
-const LINHA_FALTAM_MIN = 50; // peças no período
+const LINHA_PESO_MIN = 5;      // % da rede
 const LINHA_INDICE_MIN = 0.85;
+/* O corte nao pode ser um numero fixo. A maior loja da rede vende 5.011 peças
+   no período e a menor 4: 50 peças é ruído numa e é a loja inteira na outra,
+   entao um corte absoluto so enxerga as grandes.
+   50 peças para quem é grande, 5% do próprio volume para quem é menor, e um
+   piso de 10 para a conta nao virar alarme em loja de meia dúzia de peças. */
+function linhaCorte(x){
+  return Math.max(10, Math.min(50, 0.05*(+x.un_loja_total||0)));
+}
 function linhaSituacao(x){
   if(Number(x.un_loja)===0) return {cls:'D', rot:'não trabalha', alerta:true};
   if(+x.indice >= 1.05)              return {cls:'B', rot:'acima do padrão'};
@@ -2065,9 +2072,10 @@ function linhaSituacao(x){
 // O que merece aparecer como oportunidade de verdade.
 function linhaFoco(l){
   return (l||[]).filter(x=> +x.peso_rede_pct >= LINHA_PESO_MIN
-                         && +x.faltam >= LINHA_FALTAM_MIN
+                         && +x.faltam >= linhaCorte(x)
                          && +x.indice < LINHA_INDICE_MIN)
-                .sort((a,b)=> b.faltam - a.faltam);
+                .sort((a,b)=> (b.indice==null?9:0)-(a.indice==null?9:0)
+                           || (a.indice - b.indice));   // o desvio maior primeiro
 }
 const LINHA_PERGUNTAS = `<div class="notice" style="margin:12px 0 0">
   <b>O número diz onde olhar, não o que houve.</b> O sistema não conhece o preço
@@ -2189,6 +2197,59 @@ function opoPinta(){
       : opoTabelaLinha(lnLoja)}`;
 }
 
+/* A conta explicada com a linha que a pessoa esta vendo. */
+function ajudaCalculoLinha(x, ondeLoja){
+  const ex = x ? `<p class="exemplo">Nesta tela, a <b>${x.linha}</b>: ela é
+      <b>${fmtPct(+x.peso_rede_pct)}</b> das peças que a rede vende e
+      <b>${fmtPct(+x.peso_loja_pct)}</b> das que ${ondeLoja} vende.
+      Dividindo um pelo outro: <b>índice ${pctRedondo(100*(+x.indice||0))}</b>.
+      ${+x.faltam? `A diferença aplicada ao volume da loja
+        (${fmtPct(+x.peso_rede_pct)} − ${fmtPct(+x.peso_loja_pct)}) × ${fmtInt(x.un_loja_total)} peças
+        dá as <b>${fmtInt(x.faltam)} peças</b> da coluna Faltam.`:''}</p>` : '';
+  return `<p>A conta compara o <b>peso da linha</b> na loja com o peso dela na rede,
+      no mesmo período. Peso é a fatia que a linha ocupa nas peças vendidas.</p>
+    ${ex}
+    <p>Entra como oportunidade a linha que reúne três condições: pesa pelo menos
+      <b>${LINHA_PESO_MIN}%</b> na rede; está abaixo de <b>85%</b> do padrão; e a diferença é
+      material para o tamanho da loja — <b>50 peças</b> nas maiores, <b>5% do próprio volume</b>
+      nas menores. Um corte fixo só enxergaria as lojas grandes.</p>
+    <p>A ordem é pelo <b>tamanho do desvio</b>, não pelas peças: é o desvio que diz se a loja
+      está fora do padrão; as peças dizem só quanto ela vende.</p>
+    <p><b>O que a conta não sabe:</b> o preço praticado, o que está no mostruário e a demanda
+      da praça. Ela aponta onde olhar — a causa é de quem conhece a loja.</p>`;
+}
+const AJUDA_INDICE_LINHA = `<p>Quanto a linha pesa nesta loja ÷ quanto ela pesa na rede.</p>
+  <ul>
+    <li><b>100%</b> — a loja trabalha a linha exatamente no padrão da rede.</li>
+    <li><b>64%</b> — vende 64% do que venderia se tratasse a linha como a rede trata.</li>
+    <li><b>209%</b> — o dobro do padrão: a linha é forte aqui.</li>
+  </ul>
+  <p><b>Não é previsão de venda.</b> É diferença de sortimento, e serve para investigar
+  exposição, preço ou demanda local — não para projetar faturamento.</p>`;
+const AJUDA_FALTAM_LINHA = `<p>(peso na rede − peso nesta loja) × peças vendidas pela loja no período.</p>
+  <p>É quanto a loja teria vendido a mais nessa linha se a tratasse como a rede trata,
+  dentro do mesmo período e do mesmo volume total que ela já faz.</p>
+  <p><b>Não é sugestão de compra.</b> O sistema não conhece o estoque da loja — só o do
+  Pulmão SP. A coluna diz o tamanho da diferença, não o que pedir.</p>`;
+const AJUDA_PESOS_LINHA = `<p>A fatia que a linha ocupa nas peças vendidas: a primeira coluna
+  nesta loja, a segunda na rede inteira.</p>
+  <p>Os dois pesos somam 100% considerando <b>só a venda com linha identificada</b>.
+  Item sem linha no cadastro fica de fora dos dois lados — se entrasse em um só,
+  a comparação sairia torta.</p>
+  <p>É peso em <b>peças</b>, não em dinheiro: a base não tem valor por item.</p>`;
+const AJUDA_PULMAO_LINHA = `<p>O saldo dessa linha no Pulmão SP hoje, somando todos os itens dela.</p>
+  <p>Está aqui para a leitura não mandar a loja atrás de mercadoria que não existe.
+  Linha abaixo do padrão e <b>sem saldo</b> não é oportunidade de venda: é assunto de reposição,
+  e a tela avisa isso em vez de sugerir.</p>`;
+const AJUDA_SITUACAO_LINHA = `<ul>
+    <li><b>acima do padrão</b> — índice de 105% para cima.</li>
+    <li><b>no padrão</b> — entre 85% e 105%.</li>
+    <li><b>abaixo do padrão</b> — menos de 85%.</li>
+    <li><b>não trabalha</b> — a loja não vendeu nenhuma peça da linha no período.</li>
+  </ul>
+  <p>Estar abaixo do padrão não basta para virar oportunidade. A linha ainda precisa pesar
+  na rede e a diferença precisa ser material para o tamanho desta loja — senão seriam
+  dezenas de avisos por loja, e aviso demais é o mesmo que nenhum.</p>`;
 function opoTabelaLinha(l){
   if(!l.length) return `<div class="panel"><div class="empty">
     <div class="big">Sem leitura por linha</div>
@@ -2198,7 +2259,8 @@ function opoTabelaLinha(l){
   const pecas=foco.reduce((t,x)=>t+(+x.faltam||0),0);
   return `
     ${foco.length? `<div class="panel" style="margin-bottom:14px">
-      <div class="panel-head"><h2>Onde reforçar</h2>
+      <div class="panel-head"><h2>Onde reforçar${ajuda('Como esta lista é montada',
+          ajudaCalculoLinha(foco[0], 'esta loja'))}</h2>
         <span class="count">${fmtInt(pecas)} peças até o padrão da rede</span></div>
       <div style="padding:12px 16px">
         ${foco.slice(0,4).map(x=>{
@@ -2218,9 +2280,13 @@ function opoTabelaLinha(l){
     <div class="panel"><div class="panel-head"><h2>Todas as linhas</h2>
       <span class="count">${l.length} linhas</span></div>
       <div class="tbl-scroll"><table><thead><tr>
-        <th>Linha</th><th class="num">Peças</th><th class="num">Nesta loja</th>
-        <th class="num">Na rede</th><th class="num">Índice</th><th class="num">Faltam</th>
-        <th class="num">Pulmão SP</th><th>Situação</th>
+        <th>Linha</th><th class="num">Peças</th>
+        <th class="num">Nesta loja${ajuda('Peso da linha', AJUDA_PESOS_LINHA)}</th>
+        <th class="num">Na rede</th>
+        <th class="num">Índice${ajuda('Índice da linha', AJUDA_INDICE_LINHA)}</th>
+        <th class="num">Faltam${ajuda('Peças que faltam', AJUDA_FALTAM_LINHA)}</th>
+        <th class="num">Pulmão SP${ajuda('Saldo no Pulmão SP', AJUDA_PULMAO_LINHA)}</th>
+        <th>Situação${ajuda('Situação da linha', AJUDA_SITUACAO_LINHA)}</th>
       </tr></thead><tbody>${ord.map(x=>{
         const st=linhaSituacao(x);
         return `<tr${st.alerta&&+x.peso_rede_pct>=LINHA_PESO_MIN?' style="background:#fffaf2"':''}>
@@ -2229,7 +2295,7 @@ function opoTabelaLinha(l){
           <td class="num">${fmtPct(+x.peso_loja_pct)}</td>
           <td class="num">${fmtPct(+x.peso_rede_pct)}</td>
           <td class="num">${indiceHTML(+x.indice)}</td>
-          <td class="num"${+x.faltam>=LINHA_FALTAM_MIN?' style="font-weight:700;color:var(--amber)"':''}>${
+          <td class="num"${+x.faltam>=linhaCorte(x)?' style="font-weight:700;color:var(--amber)"':''}>${
             +x.faltam? fmtInt(x.faltam):'—'}</td>
           <td class="num">${fmtInt(x.saldo_pulmao)}</td>
           <td><span class="pill ${st.cls}">${st.rot}</span></td></tr>`;}).join('')}
@@ -2238,7 +2304,8 @@ function opoTabelaLinha(l){
         <b>Índice</b> = quanto a linha pesa nesta loja ÷ quanto pesa na rede.
         <b>Faltam</b> = peças que a loja venderia no período se tratasse a linha como a rede trata.
         Entram como oportunidade as linhas com pelo menos ${LINHA_PESO_MIN}% de peso na rede
-        e ${LINHA_FALTAM_MIN} peças de diferença.</div>
+        e diferença de ${fmtInt(Math.round(linhaCorte(l[0]||{})))} peças ou mais — o corte acompanha
+        o tamanho da loja, senão só as maiores apareceriam.</div>
     </div>`;
 }
 function opoTabelaGap(g){
@@ -2415,12 +2482,16 @@ function opoLinhaRede(){
   if(!foco.length) return '';
   const pecas=linhaFoco(OPO.linha).reduce((t,x)=>t+(+x.faltam||0),0);
   return `<div class="panel" style="margin-top:14px">
-    <div class="panel-head"><h2>Linhas para reforçar</h2>
+    <div class="panel-head"><h2>Linhas para reforçar${ajuda('Como esta lista é montada',
+        ajudaCalculoLinha(foco[0], 'a loja'))}</h2>
       <span class="count">${fmtInt(pecas)} peças na rede</span></div>
     <div class="tbl-scroll"><table><thead><tr>
       <th>Loja</th><th>Linha</th><th class="num">Peças na loja</th>
-      <th class="num">Nesta loja</th><th class="num">Na rede</th>
-      <th class="num">Índice</th><th class="num">Faltam</th><th class="num">Pulmão SP</th>
+      <th class="num">Nesta loja${ajuda('Peso da linha', AJUDA_PESOS_LINHA)}</th>
+      <th class="num">Na rede</th>
+      <th class="num">Índice${ajuda('Índice da linha', AJUDA_INDICE_LINHA)}</th>
+      <th class="num">Faltam${ajuda('Peças que faltam', AJUDA_FALTAM_LINHA)}</th>
+      <th class="num">Pulmão SP${ajuda('Saldo no Pulmão SP', AJUDA_PULMAO_LINHA)}</th>
     </tr></thead><tbody>${foco.map(x=>`
       <tr class="drill" title="Ver esta loja" onclick="OPO.loja='${x.loja.replace(/'/g,"\\'")}';OPO.aba='linha';
           document.getElementById('opLoja').value='${x.loja.replace(/'/g,"\\'")}';opoPinta()">
@@ -2435,7 +2506,8 @@ function opoLinhaRede(){
     </tbody></table></div>
     <div style="padding:10px 16px;font-size:12px;color:var(--ink-faint)">
       Linha que pesa ${LINHA_PESO_MIN}% ou mais na rede e em que a loja está pelo menos
-      ${Math.round(100*(1-LINHA_INDICE_MIN))}% abaixo do padrão, com ${LINHA_FALTAM_MIN} peças ou mais de diferença.
+      ${Math.round(100*(1-LINHA_INDICE_MIN))}% abaixo do padrão, com diferença que pese no volume dela —
+      50 peças nas maiores, 5% do próprio volume nas menores. Ordenado pelo tamanho do desvio.
       Clique para abrir a loja.</div>
   </div>`;
 }
