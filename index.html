@@ -1148,6 +1148,7 @@ async function refreshAuth(){
   // Sessao do Supabase dura dias: sem isto quem nao faz logout de novo nunca
   // mais apareceria no log. Uma marca por carregamento de pagina.
   if(session && perfil && !LOGX.sessaoMarcada){ LOGX.sessaoMarcada=true; logEvento('abertura'); }
+  if(typeof CHAT!=='undefined' && CHAT.dono && CHAT.dono!==(session&&session.user?session.user.id:null)) chatEsquece();
   sessaoVigia(!!session);
   document.getElementById('whoNome').textContent = CONTA.nome;
   document.getElementById('whoPapel').textContent = CONTA.papel;
@@ -4835,7 +4836,7 @@ const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
   <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={minha:'', lojaId:null, achou:false, meses:6, ini:null, fim:null, carregado:false};
+const CHAT={dono:null, minha:'', lojaId:null, achou:false, meses:6, ini:null, fim:null, carregado:false};
 const CHAT_PERIODOS=[[3,'Últimos 3 meses'],[6,'Últimos 6 meses'],[120,'Tudo o que tem na base']];
 
 // Cada tela com uma frase que diz o que ela responde — não o que ela contém.
@@ -4922,7 +4923,17 @@ async function chatJanela(){
 function chatPeriodoTxt(){
   return CHAT.ini ? `${mesLabel(CHAT.ini)}–${mesLabel(CHAT.fim)}` : 'todo o histórico';
 }
+// Trocar de conta sem recarregar a pagina e comum: sai o lojista, entra o
+// administrador no mesmo navegador. A memoria do bot tem que ir junto, senao
+// ele continua falando da loja anterior com quem acabou de entrar.
+function chatEsquece(){
+  CHAT.dono=null; CHAT.minha=''; CHAT.lojaId=null; CHAT.achou=false; CHAT.carregado=false;
+  const fio=document.getElementById('pgFio'); if(fio) fio.innerHTML='';
+}
 async function chatDados(){
+  const eu = session && session.user ? session.user.id : null;
+  if(CHAT.dono && CHAT.dono!==eu) chatEsquece();
+  CHAT.dono = eu;
   if(CHAT.carregado) return;
   CHAT.lojaId = (perfil && perfil.loja_id!=null) ? Number(perfil.loja_id) : null;
   let lojas=[];
