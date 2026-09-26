@@ -2315,7 +2315,20 @@ function opoTabelaGap(g){
     <span class="count">${fmtInt(g.length)} itens · ${fmtInt(g.reduce((a,x)=>a+x.gap_atendivel,0))} peças disponíveis</span></div>
     <div class="tbl-scroll"><table class="densa"><thead><tr>
       <th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Classe</th>
-      <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num" title="peso na loja ÷ peso na rede · 100% = no porte">Índice</th>
+      <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num">Índice${ajuda('Índice do item', `<p>Quanto o item pesa <b>nesta loja</b> ÷ quanto ele pesa <b>na rede</b>. É uma
+    comparação de proporção, não de quantidade.</p>
+  <p class="exemplo">Se um item é <b>3 de cada 100</b> peças que a rede vende e
+    <b>2 de cada 100</b> que esta loja vende, o índice é 2 ÷ 3 = <b>67%</b>:
+    a loja dá a esse item dois terços do espaço que a rede dá.</p>
+  <ul>
+    <li><b>100%</b> — a loja trata o item como a rede trata.</li>
+    <li><b>abaixo de 100%</b> — o item ocupa menos espaço aqui do que ocupa na rede.</li>
+    <li><b>acima de 100%</b> — ocupa mais; é um destaque desta loja.</li>
+  </ul>
+  <p>Por ser proporção, o tamanho da loja sai da conta: uma que vende 285 peças e outra que
+    vende 5.212 são comparadas na mesma régua.</p>
+  <p><b>Não é previsão de venda</b> e não diz a causa. Índice baixo pode ser preço,
+    exposição ou demanda local — a conta aponta onde olhar, não o que houve.</p>`)}</th>
       <th class="num">Esta loja</th><th class="num">Esperado</th>
       <th class="num">Diferença</th><th class="num">Pulmão SP</th></tr></thead>
     <tbody>${g.map(x=>`<tr${x.estoque_cd===0?' class="rompido"':''}>
@@ -2340,7 +2353,20 @@ function opoTabelaDest(d){
     <span class="count">${fmtInt(d.length)} itens</span></div>
     <div class="tbl-scroll"><table class="densa"><thead><tr>
       <th>Código</th><th class="wide">Descrição</th><th>Linha</th><th>Classe</th>
-      <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num" title="peso na loja ÷ peso na rede · 100% = no porte">Índice</th>
+      <th class="num">% na rede</th><th class="num">% nesta loja</th><th class="num">Índice${ajuda('Índice do item', `<p>Quanto o item pesa <b>nesta loja</b> ÷ quanto ele pesa <b>na rede</b>. É uma
+    comparação de proporção, não de quantidade.</p>
+  <p class="exemplo">Se um item é <b>3 de cada 100</b> peças que a rede vende e
+    <b>2 de cada 100</b> que esta loja vende, o índice é 2 ÷ 3 = <b>67%</b>:
+    a loja dá a esse item dois terços do espaço que a rede dá.</p>
+  <ul>
+    <li><b>100%</b> — a loja trata o item como a rede trata.</li>
+    <li><b>abaixo de 100%</b> — o item ocupa menos espaço aqui do que ocupa na rede.</li>
+    <li><b>acima de 100%</b> — ocupa mais; é um destaque desta loja.</li>
+  </ul>
+  <p>Por ser proporção, o tamanho da loja sai da conta: uma que vende 285 peças e outra que
+    vende 5.212 são comparadas na mesma régua.</p>
+  <p><b>Não é previsão de venda</b> e não diz a causa. Índice baixo pode ser preço,
+    exposição ou demanda local — a conta aponta onde olhar, não o que houve.</p>`)}</th>
       <th class="num">Rede</th><th class="num">Esta loja</th><th class="num">% do item</th></tr></thead>
     <tbody>${d.map(x=>`<tr>
       <td>${ref(x.sku)}</td>
