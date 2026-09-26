@@ -237,11 +237,12 @@ tr.lg-off td b{font-weight:600;color:var(--ink-soft)}
 .eixo:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
 .eixo.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .eixo:disabled{opacity:.4;cursor:not-allowed}
-/* ---------- Codigo de pareamento do Telegram ---------- */
-.tg-cod{display:inline-block;font-size:30px;font-weight:800;letter-spacing:.22em;
-  background:var(--blue-tint);border:1px solid var(--blue-line);color:var(--blue-ink);
-  border-radius:12px;padding:12px 10px 12px 22px;margin-bottom:12px;
-  font-variant-numeric:tabular-nums;user-select:all}
+/* ---------- Listas dentro da bolha do bot ---------- */
+.chat-msg .bot-lista{margin:6px 0 8px;padding-left:20px;font-size:13px;line-height:1.5}
+.chat-msg .bot-lista li{margin-bottom:5px}
+.chat-msg .fraco{color:var(--ink-faint);font-size:12.5px}
+.chat-msg code{background:#eef1f6;border-radius:5px;padding:1px 5px;font-size:12px}
+.chat-msg .money{font-weight:700}
 /* ---------- Ajuda de coluna ---------- */
 .ajuda{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
   border:1px solid #cfd6e2;background:#fff;color:var(--ink-faint);font-family:Georgia,'Times New Roman',serif;
@@ -679,10 +680,6 @@ table.densa tr.drill:hover td{background:#f2f7ff}
       <div class="nav-item" data-route="usuarios">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
         Usuários
-      </div>
-      <div class="nav-item so-logado esconde" data-route="telegram">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 4.3L2.9 11.4c-1 .4-1 1.2 0 1.5l4.6 1.4 1.8 5.4c.2.6.4.7 1 .3l2.6-1.9 4.5 3.3c.8.5 1.4.2 1.6-.8l3-14c.3-1.2-.4-1.7-1.5-1.3z"/></svg>
-        Telegram
       </div>
       <div class="nav-item so-adm esconde" data-route="log">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2.5-7 4 14 2.5-7h5"/></svg>
@@ -1402,7 +1399,7 @@ const ROTA_LABEL={importar:'Importar planilhas', historico:'Histórico de cargas
   precomedio:'Preço médio', presenca:'Presença Casa VIP', produtos:'Produtos',
   lojas:'Lojas', usuarios:'Usuários', pendencias:'Pendências', grupos:'Grupos',
   linhas:'Linhas', cores:'Cores', sobre:'Sobre', perguntar:'Perguntar',
-  log:'Log do Sistema', telegram:'Telegram'};
+  log:'Log do Sistema'};
 function rotaLabel(r){ return ROTA_LABEL[r] || r || '—'; }
 /* ---------- Voltar ----------
    Sem isto o botao voltar do navegador (e o do celular) sai do sistema, e o
@@ -1461,7 +1458,6 @@ async function route(r){
   if(r==='historico') return renderHistorico();
   if(r==='cobertura') return renderCobertura();
   if(r==='log') return renderLog();
-  if(r==='telegram') return renderTelegram();
 }
 
 /* ============================================================
@@ -4617,178 +4613,16 @@ function logCSV(){
 }
 
 /* ============================================================
-   Tela: Telegram  (Cadastros)
+   Tela: Perguntar — e a bolha do canto
    ------------------------------------------------------------
-   Duas coisas na mesma tela, porque são a mesma conversa:
-   · qualquer conta conecta a sua no Telegram, por um código de 15 minutos;
-   · o administrador liga o bot e vê quem já conectou.
+   Bot conduzido por botão. Nada de digitar: a pergunta que não existe é a
+   pergunta que ele não erra. Cada resposta traz número de verdade, diz em que
+   período foi calculada e oferece o caminho para a tela onde dá para
+   investigar aquilo com calma.
 
-   O token do bot nunca passa por aqui. Registrar o webhook é um pedido à
-   Edge Function, que lê o token dos Secrets e fala com o Telegram sozinha.
-   ============================================================ */
-const ICO_TG=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M21.5 4.3L2.9 11.4c-1 .4-1 1.2 0 1.5l4.6 1.4 1.8 5.4c.2.6.4.7 1 .3l2.6-1.9 4.5 3.3c.8.5 1.4.2 1.6-.8l3-14c.3-1.2-.4-1.7-1.5-1.3z"/><path d="M7.5 14.3L17.7 7.6"/></svg>`;
-const TG={vinculo:null, bot:'', carregando:false};
-
-async function renderTelegram(){
-  view.innerHTML=head(ICO_TG,'Telegram',
-    'Receba os números da sua loja no Telegram, sem precisar abrir o sistema.','Cadastros')
-    +'<div id="tgBody"><div class="panel"><div class="empty">Carregando…</div></div></div>';
-  const body=document.getElementById('tgBody');
-  if(!session){ body.innerHTML=loginWall('Conectar o Telegram exige estar na sua conta.'); return; }
-
-  const [v, cfg] = await Promise.all([
-    sb.from('telegram_vinculos').select('*').eq('usuario',session.user.id).maybeSingle(),
-    sb.from('app_config').select('valor').eq('chave','telegram_bot').maybeSingle()
-  ]);
-  TG.vinculo = v.data || null;
-  TG.bot = (cfg.data && cfg.data.valor) || '';
-  tgPinta();
-}
-
-function tgPinta(){
-  const body=document.getElementById('tgBody'); if(!body) return;
-  body.innerHTML = tgMinhaConexao() + (isAdmin()? tgAdmin() : '');
-  const g=document.getElementById('tgGerar');   if(g) g.onclick=tgGerarCodigo;
-  const d=document.getElementById('tgSoltar');  if(d) d.onclick=tgDesconectar;
-  const r=document.getElementById('tgLigar');   if(r) r.onclick=()=>tgFuncao('registrar');
-  const e=document.getElementById('tgEstado');  if(e) e.onclick=()=>tgFuncao('estado');
-  if(isAdmin()) tgListaVinculos();
-}
-
-/* ---------- a conexão de quem está logado ---------- */
-function tgMinhaConexao(){
-  const v=TG.vinculo;
-  if(v && v.chat_id){
-    return `<div class="panel"><div class="panel-head"><h2>Sua conexão</h2>
-        <span class="count">ativa</span></div>
-      <div style="padding:14px 16px">
-        <div class="notice info" style="margin:0 0 12px">
-          Conectado${v.tg_usuario?` como <b>@${v.tg_usuario}</b>`:''} desde ${fmtDataHora(v.vinculado_em)}.
-          Mande <b>/menu</b> no Telegram para ver as opções.</div>
-        <button class="btn-tool" id="tgSoltar">Desconectar este Telegram</button>
-      </div></div>`;
-  }
-  const cod = (v && v.codigo && (!v.codigo_expira || new Date(v.codigo_expira)>new Date())) ? v.codigo : '';
-  return `<div class="panel"><div class="panel-head"><h2>Conectar seu Telegram</h2>
-      <span class="count">${cod?'código gerado':'não conectado'}</span></div>
-    <div style="padding:14px 16px">
-      ${cod ? `
-        <div class="tg-cod">${cod}</div>
-        <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 12px;line-height:1.55">
-          Abra o bot no Telegram e mande esse código. Ele vale até
-          <b>${fmtDataHora(TG.vinculo.codigo_expira)}</b>.</p>
-        ${TG.bot? `<a class="btn-tool pri" style="text-decoration:none;display:inline-flex"
-            href="https://t.me/${TG.bot}?start=${cod}" target="_blank" rel="noopener">
-            Abrir o bot no Telegram</a>` : `<div class="notice warn" style="margin:0">
-            O bot ainda não foi ligado pelo administrador — o código já vale, mas o link direto
-            só aparece depois disso.</div>`}
-        <div style="margin-top:12px"><button class="btn-tool" id="tgGerar">Gerar outro código</button></div>
-      ` : `
-        <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.55;max-width:620px">
-          O bot responde no seu Telegram com os números da sua loja — peças vendidas, onde você
-          vende abaixo do próprio porte e como está o seu preço médio. Tudo por botão, sem digitar.
-          Para ele saber de qual loja falar, é preciso ligar a sua conta uma vez.</p>
-        <button class="btn-tool pri" id="tgGerar">Gerar código de conexão</button>
-      `}
-    </div></div>`;
-}
-
-async function tgGerarCodigo(){
-  const b=document.getElementById('tgGerar'); if(b){ b.disabled=true; b.textContent='Gerando…'; }
-  const {data,error}=await sb.rpc('telegram_gerar_codigo');
-  if(error){ toast('Não consegui gerar o código: '+error.message); if(b){b.disabled=false;b.textContent='Gerar código de conexão';} return; }
-  const {data:v}=await sb.from('telegram_vinculos').select('*').eq('usuario',session.user.id).maybeSingle();
-  TG.vinculo=v||{codigo:data};
-  tgPinta();
-}
-async function tgDesconectar(){
-  if(!confirm('Desconectar o Telegram desta conta?')) return;
-  const {error}=await sb.from('telegram_vinculos')
-    .update({chat_id:null, tg_usuario:null, vinculado_em:null}).eq('usuario',session.user.id);
-  if(error){ toast(error.message); return; }
-  TG.vinculo=null; toast('Telegram desconectado.'); renderTelegram();
-}
-
-/* ---------- painel do administrador ---------- */
-function tgAdmin(){
-  return `<div class="panel"><div class="panel-head"><h2>O bot</h2>
-      <span class="count">${TG.bot? '@'+TG.bot : 'ainda não ligado'}</span></div>
-    <div style="padding:14px 16px">
-      <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 12px;line-height:1.55;max-width:660px">
-        Ligar o bot é dizer ao Telegram para onde mandar as mensagens. O token não passa por
-        esta tela nem pelo navegador: o pedido vai para a função no Supabase, que lê o token
-        dos Secrets e fala com o Telegram por conta própria.</p>
-      <div class="tools" style="margin:0">
-        <button class="btn-tool pri" id="tgLigar">Ligar o bot</button>
-        <button class="btn-tool" id="tgEstado">Conferir estado</button>
-      </div>
-      <div id="tgSaida" style="margin-top:12px"></div>
-    </div></div>
-    <div class="panel"><div class="panel-head"><h2>Contas conectadas</h2>
-      <span class="count" id="tgCount">—</span></div>
-      <div id="tgLista"><div class="empty">Carregando…</div></div></div>`;
-}
-
-async function tgFuncao(acao){
-  const saida=document.getElementById('tgSaida');
-  saida.innerHTML='<div class="notice info" style="margin:0">Falando com o Telegram…</div>';
-  try{
-    const {data,error}=await sb.functions.invoke('telegram-bot',{body:{acao:acao}});
-    if(error){
-      // a função devolve o motivo no corpo; o erro do SDK só diz que houve falha
-      let det=''; try{ det=(await error.context.text())||''; }catch(e){}
-      saida.innerHTML=`<div class="notice warn" style="margin:0">Não deu certo. ${det||error.message}</div>`;
-      return;
-    }
-    const bot=data && data.bot;
-    const info=data && data.info;
-    if(bot && bot.username && bot.username!==TG.bot){
-      await sb.from('app_config').upsert({chave:'telegram_bot', valor:bot.username, atualizado_em:new Date().toISOString()});
-      TG.bot=bot.username;
-    }
-    const ok = info && info.url;
-    saida.innerHTML=`<div class="notice ${ok?'info':'warn'}" style="margin:0">
-      <b>${bot? '@'+bot.username : 'bot'}</b> — ${ok? 'webhook registrado.' : 'webhook ainda não registrado.'}
-      ${info && info.last_error_message? `<br>Último erro relatado pelo Telegram: ${info.last_error_message}`:''}
-      ${info && info.pending_update_count? `<br>${info.pending_update_count} mensagens na fila.`:''}
-    </div>`;
-    tgPinta();
-  }catch(e){
-    saida.innerHTML=`<div class="notice warn" style="margin:0">Falha ao chamar a função: ${e.message}</div>`;
-  }
-}
-
-async function tgListaVinculos(){
-  const el=document.getElementById('tgLista'); if(!el) return;
-  const {data,error}=await sb.from('telegram_vinculos')
-    .select('chat_id, tg_usuario, vinculado_em, perfis(nome, papel, lojas(nome))')
-    .not('chat_id','is',null).order('vinculado_em',{ascending:false});
-  if(error){ el.innerHTML=`<div class="notice warn" style="margin:12px 16px">${error.message}</div>`; return; }
-  const l=data||[];
-  document.getElementById('tgCount').textContent = l.length
-    ? `${l.length} ${l.length===1?'conta':'contas'}` : 'nenhuma ainda';
-  if(!l.length){
-    el.innerHTML='<div class="empty">Ninguém conectou ainda. Cada loja gera o próprio código nesta tela.</div>';
-    return;
-  }
-  el.innerHTML=`<div class="tbl-scroll"><table><thead><tr>
-      <th>Conta</th><th>Papel</th><th>Telegram</th><th>Conectado em</th>
-    </tr></thead><tbody>${l.map(x=>{
-      const p=x.perfis||{};
-      return `<tr><td><b>${(p.lojas&&p.lojas.nome)||p.nome||'—'}</b></td>
-        <td>${PAPEL_LABEL[p.papel]||p.papel||'—'}</td>
-        <td>${x.tg_usuario?'@'+x.tg_usuario:'—'}</td>
-        <td style="white-space:nowrap">${fmtDataHora(x.vinculado_em)}</td></tr>`;}).join('')}
-    </tbody></table></div>`;
-}
-
-/* ============================================================
-   Tela: Perguntar — assistente em construção
-   ------------------------------------------------------------
-   Por ora ele não responde com dados: só apresenta as telas e leva até elas.
-   É pouco de propósito. Um assistente que erra a resposta perde o usuário na
-   terceira tentativa; um que só indica o caminho nunca erra, e já poupa quem
-   ainda não decorou onde cada coisa fica.
+   O recorte sai do perfil de quem está logado: associado vê a própria loja,
+   quem é da gestão vê a rede. Nada aqui contorna a RLS — são as mesmas RPCs
+   que as telas usam.
    ============================================================ */
 const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <rect x="3.5" y="5" width="25" height="17.5" rx="7.6" fill="#1f6fe0"/>
@@ -4797,10 +4631,10 @@ const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
   <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={minha:'', carregado:false};
+const CHAT={minha:'', lojaId:null, meses:6, ini:null, fim:null, carregado:false};
+const CHAT_PERIODOS=[[3,'Últimos 3 meses'],[6,'Últimos 6 meses'],[120,'Tudo o que tem na base']];
 
 // Cada tela com uma frase que diz o que ela responde — não o que ela contém.
-// adm:true = só o administrador enxerga.
 const GUIA=[
   {rota:'abc', rot:'Curva ABC',
    txt:'Quais itens concentram a venda. Classe A é o que não pode faltar; C é o que quase não gira. Dá para ver a rede inteira ou uma loja, por grupo, linha e cor.'},
@@ -4824,10 +4658,15 @@ const GUIA=[
    txt:'A carga das duas planilhas: vendas da rede e estoque do Pulmão SP. A leitura é conferida antes de gravar.'},
   {rota:'historico', rot:'Histórico de cargas', adm:true,
    txt:'Tudo que já foi importado: quando, por quem, quantas linhas.'},
+  {rota:'log', rot:'Log do Sistema', adm:true,
+   txt:'Quem está usando o sistema, com que frequência e quais telas abre.'},
   {rota:'usuarios', rot:'Usuários', adm:true,
    txt:'Quem tem acesso e com qual perfil.'},
 ];
 
+// Na bolha o valor entra no meio da frase: o formato contábil, que alinha
+// coluna, aqui só abriria um buraco entre o R$ e o número.
+const botMoeda=n=>'<b>R$ '+fmtNum2(n)+'</b>';
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
@@ -4863,53 +4702,224 @@ function botOfereceu(bolha, ops, aoEscolher){
   const fio=document.getElementById('pgFio'); if(fio) fio.scrollTop=1e9;
 }
 
+/* ---------- quem está falando e em que janela ---------- */
+const botRede = () => isGestor();
+async function chatJanela(){
+  const {data}=await sb.rpc('vendas_janela',{p_meses:CHAT.meses});
+  const j=Array.isArray(data)?data[0]:data;
+  CHAT.ini=j&&j.ini||null; CHAT.fim=j&&j.fim||null;
+}
+function chatPeriodoTxt(){
+  return CHAT.ini ? `${mesLabel(CHAT.ini)}–${mesLabel(CHAT.fim)}` : 'todo o histórico';
+}
 async function chatDados(){
   if(CHAT.carregado) return;
   try{
+    CHAT.lojaId = perfil && perfil.loja_id || null;
     const {data}=await fetchAll('vw_lojas','id,nome');
-    CHAT.minha=resolverMinhaLoja(uniq((data||[]).map(x=>x.nome)))||'';
-  }catch{}
+    const l=(data||[]).find(x=>x.id===CHAT.lojaId);
+    CHAT.minha = (l && l.nome) || resolverMinhaLoja(uniq((data||[]).map(x=>x.nome))) || '';
+  }catch(e){}
+  try{ await chatJanela(); }catch(e){}
   CHAT.carregado=true;
 }
 function chatMarkup(){ return `<div class="chat-fio" id="pgFio"></div>`; }
 
+/* ---------- abertura e menu ---------- */
 async function chatAbertura(){
   const h=new Date().getHours();
   const cump=h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
   await botDiz(`<p>${cump}${CHAT.minha?`, <b>${CHAT.minha}</b>`:''}!</p>
-    <p>Estou em <b>fase de aprendizado</b> — em breve vou ajudar com as análises.</p>`, 450);
+    <p>Eu respondo pelos botões — é só escolher.</p>`, 420);
   await botMenu(true);
 }
-async function botMenu(primeira){
-  const lista=GUIA.filter(g=>!g.adm || isAdmin());
-  const b=await botDiz(`<p>${primeira
-    ? 'Por enquanto eu conheço bem as telas do sistema. Sobre qual delas quer saber?'
-    : 'Quer ver outra?'}</p>`, 380);
-  botOfereceu(b, lista.map(g=>({rot:g.rot, g})), o=>botTela(o.g));
+function botOpcoes(){
+  const rede=botRede();
+  const l=[
+    {rot: rede?'📊 Resumo da rede':'📊 Minha loja no período', faz:botResumo},
+    {rot: rede?'🎯 Oportunidades por loja':'🎯 Onde posso vender mais', faz:botGap},
+    {rot: rede?'💲 Preço médio da rede':'💲 Meu preço médio', faz:botPreco},
+    {rot:'📦 O que está rompido no Pulmão SP', faz:botRuptura},
+    {rot:'🧭 Conhecer as telas', faz:botTelasMenu},
+  ];
+  return l;
 }
-async function botTela(g){
-  const b=await botDiz(`<p>${g.txt}</p>`, 560);
-  botLog(g.rota);
-  botOfereceu(b, [{rot:`Abrir ${g.rot} →`, abrir:g.rota}, {rot:'Ver outra tela', outra:1}], o=>{
+async function botMenu(primeira){
+  const b=await botDiz(`<p>${primeira
+    ? 'O que você quer ver?'
+    : 'Quer ver mais alguma coisa?'}</p>`, 340);
+  botOfereceu(b, botOpcoes(), o=>o.faz());
+}
+// Depois de responder: a tela onde dá para investigar, trocar a janela, ou voltar.
+function botDepois(bolha, rota, refaz){
+  const ops=[];
+  if(rota) ops.push({rot:`Abrir ${rotaLabel(rota)} →`, abrir:rota});
+  ops.push({rot:'📅 Trocar o período', per:1});
+  ops.push({rot:'‹ Voltar ao menu', menu:1});
+  botOfereceu(bolha, ops, async o=>{
     if(o.abrir){ dockFechar(); route(o.abrir); return; }
+    if(o.per) return botPeriodo(refaz);
     botMenu(false);
   });
 }
-// registra qual tela foi procurada: diz o que as pessoas querem antes de eu
-// construir a resposta para isso
+async function botPeriodo(refaz){
+  const b=await botDiz(`<p>Estou usando <b>${chatPeriodoTxt()}</b>. Qual janela você quer?</p>`, 320);
+  botOfereceu(b, CHAT_PERIODOS.map(([n,r])=>({rot:r, n:n})), async o=>{
+    CHAT.meses=o.n;
+    await chatJanela();
+    if(refaz) return refaz();
+    botMenu(false);
+  });
+}
+async function botEspera(){ return await botDiz('<p>Deixa eu ver…</p>', 260); }
+function botErro(b, msg){ if(b) b.innerHTML=`<p>Não consegui buscar isso agora. ${msg||''}</p>`; }
+
+/* ---------- respostas com dado de verdade ---------- */
+async function botResumo(){
+  const b=await botEspera();
+  const {data,error}=await fetchRpc('loja_porte',{p_ini:CHAT.ini, p_fim:CHAT.fim});
+  if(error) return botErro(b, error.message);
+  const tudo=data||[]; const per=chatPeriodoTxt();
+  if(botRede()){
+    const un=tudo.reduce((s,x)=>s+(+x.unidades||0),0);
+    const top=[...tudo].sort((a,c)=>c.unidades-a.unidades).slice(0,5);
+    b.innerHTML=`<p><b>Rede · ${per}</b></p>
+      <p>${fmtInt(un)} peças em ${tudo.length} lojas com venda.</p>
+      <p><b>Maiores volumes</b></p>
+      <ol class="bot-lista">${top.map(x=>`<li>${x.loja} — ${fmtInt(x.unidades)} un · ${fmtPct(100*x.participacao)}</li>`).join('')}</ol>`;
+    return botDepois(b,'vendas',botResumo);
+  }
+  const m=tudo.find(x=>x.loja_id===CHAT.lojaId);
+  if(!m){ b.innerHTML=`<p>Ainda não há venda registrada para a <b>${CHAT.minha}</b> em ${per}.</p>`;
+          return botDepois(b,'vendas',botResumo); }
+  const pos=[...tudo].sort((a,c)=>c.unidades-a.unidades).findIndex(x=>x.loja_id===CHAT.lojaId)+1;
+  b.innerHTML=`<p><b>${CHAT.minha} · ${per}</b></p>
+    <ul class="bot-lista">
+      <li>Peças vendidas: <b>${fmtInt(m.unidades)}</b></li>
+      <li>Participação na rede: <b>${fmtPct(100*m.participacao)}</b></li>
+      <li>SKUs diferentes: <b>${fmtInt(m.skus_ativos)}</b></li>
+      <li>Posição por volume: <b>${pos}º de ${tudo.length}</b></li>
+    </ul>`;
+  botDepois(b,'vendas',botResumo);
+}
+
+async function botGap(){
+  const b=await botEspera();
+  const {data,error}=await fetchRpc('oportunidade_gap',{p_ini:CHAT.ini, p_fim:CHAT.fim});
+  if(error) return botErro(b, error.message);
+  const tudo=data||[]; const per=chatPeriodoTxt();
+  if(botRede()){
+    const porLoja={};
+    tudo.forEach(x=>{ const k=x.loja; porLoja[k]=porLoja[k]||{un:0,n:0};
+      porLoja[k].un+=(+x.gap_atendivel||0); porLoja[k].n++; });
+    const top=Object.entries(porLoja).sort((a,c)=>c[1].un-a[1].un).slice(0,6);
+    if(!top.length){ b.innerHTML=`<p>Nenhuma oportunidade apontada em ${per}.</p>`;
+                     return botDepois(b,'oportunidades',botGap); }
+    b.innerHTML=`<p><b>Oportunidades · ${per}</b></p>
+      <p>Itens que a loja vende abaixo do próprio porte, com estoque no Pulmão SP hoje.</p>
+      <ol class="bot-lista">${top.map(([l,v])=>
+        `<li>${l} — <b>${fmtInt(v.un)}</b> peças · ${v.n} itens</li>`).join('')}</ol>`;
+    return botDepois(b,'oportunidades',botGap);
+  }
+  const meus=tudo.filter(x=>x.loja_id===CHAT.lojaId)
+    .sort((a,c)=>c.gap_atendivel-a.gap_atendivel || c.gap-a.gap);
+  if(!meus.length){ b.innerHTML=`<p>Nenhum item da <b>${CHAT.minha}</b> está abaixo do porte em ${per}. 👏</p>`;
+                    return botDepois(b,'oportunidades',botGap); }
+  const atend=meus.reduce((s,x)=>s+(+x.gap_atendivel||0),0);
+  b.innerHTML=`<p><b>${CHAT.minha} · ${per}</b></p>
+    <p><b>${fmtInt(meus.length)}</b> itens abaixo do próprio porte · <b>${fmtInt(atend)}</b> peças com estoque no Pulmão SP hoje.</p>
+    <p><b>Os 5 maiores</b></p>
+    <ol class="bot-lista">${meus.slice(0,5).map(x=>
+      `<li><code>${x.sku}</code> ${x.descricao||''}<br><span class="fraco">vendeu ${fmtInt(x.un_loja)} · esperado ${fmtInt(x.esperado)} · faltam <b>${fmtInt(x.gap)}</b></span></li>`).join('')}</ol>
+    <p class="fraco">Não é previsão de venda: é a diferença de sortimento em relação à rede.</p>`;
+  botDepois(b,'oportunidades',botGap);
+}
+
+async function botPreco(){
+  const b=await botEspera();
+  const {data,error}=await fetchRpc('preco_medio_loja',{p_comp_ini:CHAT.ini, p_comp_fim:CHAT.fim});
+  if(error) return botErro(b, error.message);
+  const tudo=data||[]; const per=chatPeriodoTxt();
+  if(!tudo.length){ b.innerHTML=`<p>Sem faturamento carregado em ${per}.</p>`;
+                    return botDepois(b,'precomedio',botPreco); }
+  if(botRede()){
+    const ord=[...tudo].sort((a,c)=>c.preco_medio-a.preco_medio);
+    b.innerHTML=`<p><b>Preço médio da rede · ${per}</b></p>
+      <p>Média da rede: ${botMoeda(tudo[0].pm_rede)} por peça.</p>
+      <p><b>Mais alto</b></p>
+      <ul class="bot-lista">${ord.slice(0,3).map(x=>`<li>${x.loja} — ${botMoeda(x.preco_medio)}</li>`).join('')}</ul>
+      <p><b>Mais baixo</b></p>
+      <ul class="bot-lista">${ord.slice(-3).reverse().map(x=>`<li>${x.loja} — ${botMoeda(x.preco_medio)}</li>`).join('')}</ul>`;
+    return botDepois(b,'precomedio',botPreco);
+  }
+  const m=tudo.find(x=>x.loja_id===CHAT.lojaId);
+  if(!m){ b.innerHTML=`<p>Sem faturamento registrado para a <b>${CHAT.minha}</b> em ${per}.</p>`;
+          return botDepois(b,'precomedio',botPreco); }
+  const d=+m.vs_rede_pct||0;
+  b.innerHTML=`<p><b>${CHAT.minha} · ${per}</b></p>
+    <ul class="bot-lista">
+      <li>Seu preço médio: ${botMoeda(m.preco_medio)} por peça</li>
+      <li>Média da rede: ${botMoeda(m.pm_rede)}</li>
+      <li>Diferença: <b style="color:${d>=0?'#1f9d55':'#c0392b'}">${d>=0?'+':''}${fmtPct(d)}</b></li>
+    </ul>
+    <p class="fraco">Faturamento ÷ peças. Não considera a carga tributária de cada estado, que muda o valor que entra.</p>`;
+  botDepois(b,'precomedio',botPreco);
+}
+
+async function botRuptura(){
+  const b=await botEspera();
+  const {data,error}=await fetchRpc('estoque_cobertura',{p_ini:CHAT.ini, p_fim:CHAT.fim});
+  if(error) return botErro(b, error.message);
+  const l=data||[];
+  if(!l.length){ b.innerHTML='<p>Não há carga de estoque do Pulmão SP para cruzar.</p>';
+                 return botDepois(b,'ruptura',botRuptura); }
+  const rompidos=l.filter(x=>Number(x.estoque)===0 && Number(x.vendido_total)>0);
+  const rompA=rompidos.filter(x=>x.classe==='A');
+  const quando=l[0] && l[0].atualizado_em;
+  b.innerHTML=`<p><b>Pulmão SP</b> · saldo de ${fmtDataHora(quando)}</p>
+    <ul class="bot-lista">
+      <li><b>${fmtInt(rompidos.length)}</b> itens rompidos que tiveram venda no período</li>
+      <li><b style="color:#c0392b">${fmtInt(rompA.length)}</b> deles são classe A</li>
+    </ul>
+    ${rompA.length? `<p><b>Classe A rompida — os 5 de maior giro</b></p>
+      <ol class="bot-lista">${[...rompA].sort((a,c)=>c.venda_media_mes-a.venda_media_mes).slice(0,5)
+        .map(x=>`<li><code>${x.sku}</code> ${x.descricao||''}<br><span class="fraco">${(+x.venda_media_mes||0).toFixed(1)} peças/mês na rede</span></li>`).join('')}</ol>`
+      : '<p>Nenhum item de classe A está rompido. 👏</p>'}`;
+  botDepois(b,'ruptura',botRuptura);
+}
+
+/* ---------- guia de telas ---------- */
+async function botTelasMenu(){
+  const lista=GUIA.filter(g=>!g.adm || isAdmin());
+  const b=await botDiz('<p>Sobre qual tela você quer saber?</p>', 320);
+  botOfereceu(b, lista.map(g=>({rot:g.rot, g:g})).concat([{rot:'‹ Voltar ao menu', menu:1}]),
+    o=>{ if(o.menu) return botMenu(false); botTela(o.g); });
+}
+async function botTela(g){
+  const b=await botDiz(`<p>${g.txt}</p>`, 500);
+  botLog(g.rota);
+  botOfereceu(b, [{rot:`Abrir ${g.rot} →`, abrir:g.rota},
+                  {rot:'Ver outra tela', outra:1},
+                  {rot:'‹ Voltar ao menu', menu:1}], o=>{
+    if(o.abrir){ dockFechar(); route(o.abrir); return; }
+    if(o.outra) return botTelasMenu();
+    botMenu(false);
+  });
+}
+// registra o que as pessoas procuram — diz o que construir a seguir
 async function botLog(rota){
   try{
     await sb.from('chat_perguntas').insert({
       usuario: session.user.id, papel: perfil?.papel || null,
       loja: CHAT.minha || null, pergunta: 'tela: '+rota,
       intencao: 'guia_tela', origem:'guia', respondida:true });
-  }catch{}
+  }catch(e){}
 }
 
 async function renderPerguntar(){
   dockFechar();
   view.innerHTML=head(ICO_CHAT,'Perguntar',
-    'Assistente em construção. Por enquanto ele apresenta as telas e leva até elas.','Análise')
+    'Os números da sua loja em perguntas prontas. Clique — não precisa digitar.','Análise')
     +'<div id="pgBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('pgBody');
   if(!session){ body.innerHTML=loginWall('O assistente é restrito à equipe.'); return; }
