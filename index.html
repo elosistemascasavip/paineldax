@@ -1027,12 +1027,44 @@ function wirePeriod(box, meses, onChange, stInicial){
   const render=(st)=>{ box.innerHTML=periodControlHTML(meses,st);
     box.querySelectorAll('[data-k]').forEach(el=>el.onchange=()=>{
       const s=readPeriod(box);
+      perSalvar(s);
       if(el.dataset.k==='cmp'){ render(s); }
       onChange(readPeriod(box));
     });
   };
   render(stInicial||{});
   onChange(readPeriod(box));
+}
+/* Periodo do usuario: um so para todas as telas e para o robo, guardado no
+   navegador de quem esta logado. O que um associado escolhe nao muda a tela
+   de outro. Padrao de quem nunca escolheu: janeiro ate o ultimo mes enviado. */
+function perChave(){ return 'elo.periodo.'+((session&&session.user&&session.user.id)||'anon'); }
+function perUsuario(){
+  try{ const v=JSON.parse(localStorage.getItem(perChave())||'null');
+    if(v && v.aIni && v.aFim) return v; }catch(e){}
+  return null;
+}
+function perSalvar(st){
+  if(!st || !st.aIni || !st.aFim) return;
+  try{ localStorage.setItem(perChave(), JSON.stringify({aIni:st.aIni, aFim:st.aFim})); }catch(e){}
+}
+// janeiro do ano do ultimo mes enviado ate o ultimo mes (ou o 1o mes que houver naquele ano)
+function anoAteAgora(meses){
+  if(!meses || !meses.length) return {};
+  const fim=meses[meses.length-1], ano=String(fim).slice(0,4);
+  const ini=meses.find(m=>String(m).slice(0,4)===ano)||fim;
+  return {aIni:ini, aFim:fim};
+}
+// periodo com que a tela abre: o do usuario, encaixado nos meses que a tela tem
+function periodoPadrao(meses){
+  if(!meses || !meses.length) return {};
+  const u=perUsuario();
+  if(u){
+    const pri=meses[0], ult=meses[meses.length-1];
+    const ini=u.aIni<pri?pri:u.aIni, fim=u.aFim>ult?ult:u.aFim;
+    if(ini<=fim) return {aIni:ini, aFim:fim};
+  }
+  return anoAteAgora(meses);
 }
 // Ultimos N meses da base. Na cobertura o padrao NAO pode ser "todo o historico":
 // com 2025 carregado a media por item cairia pela metade e a cobertura em dias
@@ -2111,7 +2143,7 @@ async function renderOportunidades(){
   const mesesDisp=await sb.from('vw_vendas_por_loja').select('competencia')
     .order('competencia',{ascending:true});
   OPO.meses=uniq((mesesDisp.data||[]).map(x=>x.competencia));
-  OPO.period=ultimosMeses(OPO.meses,6);
+  OPO.period=periodoPadrao(OPO.meses);
   const erro=await opoCarregar();
   if(erro){ body.innerHTML=`<div class="notice warn">${erro}</div>`; return; }
   if(!OPO.gap.length && !OPO.dest.length){
@@ -2716,7 +2748,7 @@ async function renderABC(){
       <div class="tbl-scroll"><table><thead><tr id="abcHead"></tr></thead><tbody id="abcRows"></tbody></table></div></div>
     <div id="abcLegenda"></div>`;
   wirePeriod(document.getElementById('abcPeriod'), ABC.meses, (st)=>{ABC.period=st; abcRefresh();},
-    ultimosMeses(ABC.meses,6));
+    periodoPadrao(ABC.meses));
   ['fSearch','fLojaAbc','fGrupo','fLinha','fCor','fClasse'].forEach(id=>{
     const el=document.getElementById(id); el.oninput=el.onchange=abcRefresh;
   });
@@ -3043,7 +3075,7 @@ async function renderVendas(){
     <div id="vStats"></div>
     <div id="vRankPanel"></div>`;
   wirePeriod(document.getElementById('vPeriod'), VEN.meses, (st)=>{VEN.period=st; vendasRefresh();},
-    ultimosMeses(VEN.meses,6));
+    periodoPadrao(VEN.meses));
   document.getElementById('vLoja').onchange=vendasChart;
   document.getElementById('vBusca').oninput=vendasRefresh;
   document.getElementById('vOrd').onchange=vendasRefresh;
@@ -3483,7 +3515,7 @@ async function renderPresenca(){
       <span class="count" id="prLinhaCtx"></span></div><div style="padding:12px 16px" id="prLinhaShare"></div></div>`;
   presFillFiltros();
   wirePeriod(document.getElementById('prPeriod'), PRES.meses, (st)=>{PRES.period=st; presRefresh();},
-    ultimosMeses(PRES.meses,6));
+    periodoPadrao(PRES.meses));
   document.getElementById('prReg').onchange=e=>{PRES.regiao=e.target.value;PRES.uf='';PRES.loja='';presFillFiltros();presRefresh();};
   document.getElementById('prUf').onchange=e=>{PRES.uf=e.target.value;PRES.loja='';presFillFiltros();presRefresh();};
   document.getElementById('prLoja').onchange=e=>{PRES.loja=e.target.value;presFillFiltros();presRefresh();};
@@ -3699,7 +3731,7 @@ async function renderPrecoMedio(){
   const mesesDisp=await sb.from('vw_faturamento_mes').select('competencia')
     .order('competencia',{ascending:true});
   PM.meses=uniq((mesesDisp.data||[]).map(x=>x.competencia));
-  PM.period=ultimosMeses(PM.meses,6);
+  PM.period=periodoPadrao(PM.meses);
   const erro=await pmCarregar();
   if(erro){ body.innerHTML=`<div class="notice warn">${erro}</div>`; return; }
   const data=PM.data;
@@ -4264,7 +4296,7 @@ async function renderRuptura(){
   const mesesDisp=await sb.from('vw_vendas_por_loja').select('competencia')
     .order('competencia',{ascending:true});
   PUL.meses=uniq((mesesDisp.data||[]).map(d=>d.competencia));
-  PUL.period=ultimosMeses(PUL.meses, 6);       // padrão: últimos 6 meses
+  PUL.period=periodoPadrao(PUL.meses);          // padrão: o período do usuário
   const ok=await pulmaoCarregar();
   if(ok!==true){ body.innerHTML=`<div class="notice warn">${ok}</div>`; return; }
   if(!PUL.raw.some(d=>Number(d.estoque)>0)){
@@ -4862,8 +4894,10 @@ const ICO_CHAT=`<svg width="26" height="26" viewBox="0 0 32 32" fill="none">
   <circle cx="16" cy="13.8" r="1.8" fill="#fff"/>
   <circle cx="20.6" cy="13.8" r="1.8" fill="#fff"/></svg>`;
 
-const CHAT={dono:null, minha:'', lojaId:null, achou:false, meses:6, ini:null, fim:null, carregado:false};
-const CHAT_PERIODOS=[[3,'Últimos 3 meses'],[6,'Últimos 6 meses'],[120,'Tudo o que tem na base']];
+const CHAT={dono:null, minha:'', lojaId:null, achou:false, meses:'tela', ini:null, fim:null, carregado:false};
+// 'tela' = o mesmo periodo que a pessoa escolheu nas telas (padrao)
+const CHAT_PERIODOS=[['tela','📅 O período das telas'],[1,'Último mês'],[2,'Últimos 2 meses'],
+  [3,'Últimos 3 meses'],[6,'Últimos 6 meses'],[120,'Tudo o que tem na base']];
 
 // Cada tela com uma frase que diz o que ela responde — não o que ela contém.
 const GUIA=[
@@ -4942,9 +4976,17 @@ function botOfereceu(bolha, ops, aoEscolher){
 /* ---------- quem está falando e em que janela ---------- */
 const botRede = () => isGestor();
 async function chatJanela(){
-  const {data}=await sb.rpc('vendas_janela',{p_meses:CHAT.meses});
+  const tela = CHAT.meses==='tela';
+  const {data}=await sb.rpc('vendas_janela',{p_meses: tela ? 120 : CHAT.meses});
   const j=Array.isArray(data)?data[0]:data;
   CHAT.ini=j&&j.ini||null; CHAT.fim=j&&j.fim||null;
+  if(!tela || !CHAT.fim) return;
+  // mesmo periodo das telas; sem escolha ainda, janeiro ate o ultimo mes enviado
+  const u=perUsuario(), ult=String(CHAT.fim).slice(0,10), pri=String(CHAT.ini).slice(0,10);
+  let ini = u ? u.aIni : String(CHAT.fim).slice(0,4)+'-01-01';
+  let fim = u ? u.aFim : ult;
+  if(ini<pri) ini=pri; if(fim>ult) fim=ult; if(ini>fim){ ini=pri; fim=ult; }
+  CHAT.ini=ini; CHAT.fim=fim;
 }
 function chatPeriodoTxt(){
   return CHAT.ini ? `${mesLabel(CHAT.ini)}–${mesLabel(CHAT.fim)}` : 'todo o histórico';
@@ -4960,7 +5002,11 @@ async function chatDados(){
   const eu = session && session.user ? session.user.id : null;
   if(CHAT.dono && CHAT.dono!==eu) chatEsquece();
   CHAT.dono = eu;
-  if(CHAT.carregado) return;
+  if(CHAT.carregado){
+    // o periodo pode ter mudado numa tela desde a ultima conversa
+    if(CHAT.meses==='tela'){ try{ await chatJanela(); }catch(e){} }
+    return;
+  }
   CHAT.lojaId = (perfil && perfil.loja_id!=null) ? Number(perfil.loja_id) : null;
   let lojas=[];
   try{ const {data}=await fetchAll('vw_lojas','id,nome'); lojas=data||[]; }catch(e){}
@@ -5067,7 +5113,8 @@ function botDepois(bolha, rota, refaz){
   });
 }
 async function botPeriodo(refaz){
-  const b=await botDiz(`<p>Estou usando <b>${chatPeriodoTxt()}</b>. Qual janela você quer?</p>`, 320);
+  const b=await botDiz(`<p>Estou usando <b>${chatPeriodoTxt()}</b>. Qual janela você quer?</p>
+    <p class="fraco">Para um período específico, escolha nas telas: eu passo a usar o mesmo.</p>`, 320);
   botOfereceu(b, CHAT_PERIODOS.map(([n,r])=>({rot:r, n:n})).concat([{rot:'‹ Voltar ao menu', menu:1}]),
     async o=>{
     if(o.menu) return botMenu(false);
