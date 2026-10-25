@@ -846,8 +846,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.4.1 · 25/10/2026 · Gráfico semanal com as 3 curvas (A, B e C)
    1.4.2 · 25/10/2026 · Ícone da aba a partir da logo elo (marca branca sobre o azul do cabeçalho)
    1.4.3 · 25/10/2026 · Rupturas por semana sem rótulos sobrepostos (tabela retirada); contadores dos cards alinhados
+   1.4.4 · 25/10/2026 · Impressão: fonte uniforme (9) e descrição mais larga; volta o detalhamento semanal em tabela
    ============================================================ */
-const APP_VERSAO = '1.4.3';
+const APP_VERSAO = '1.4.4';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4501,10 +4502,21 @@ async function znSemana(){
   if(!l.length){ el.innerHTML='<div class="empty">Ainda não há histórico de estoque para montar as semanas.</div>'; return; }
   const dt=d=>{const p=String(d).split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2);};
   const fora=l.filter(x=>x.capturado_em!==x.sexta);
+  const lab=l.map(x=>dt(x.sexta));
+  const linha=(rot,k,cor)=>`<tr><td style="font-weight:700;color:${cor}">${rot}</td>${
+    l.map(x=>`<td class="num">${fmtInt(x[k])}</td>`).join('')}</tr>`;
   el.innerHTML=znSemanaSVG(l,dt)+`
-    <div style="margin-top:6px;font-size:12px;color:var(--ink-faint)">Cada ponto é a sexta-feira da semana.
+    <div class="tbl-scroll" style="margin-top:12px;max-height:none"><table class="densa"><thead><tr>
+      <th>SKUs rompidos <small>(un de SKU)</small></th>${lab.map(d=>`<th class="num">${d}</th>`).join('')}</tr></thead>
+    <tbody>${linha('Curva A','rompidos_a','#1552c9')}${linha('Curva B','rompidos_b','#1f7a3f')}${
+      linha('Curva C','rompidos_c','#a86d12')}
+      <tr style="font-weight:700;background:#f7f9fc"><td>Total</td>${l.map(x=>`<td class="num">${fmtInt(x.rompidos)}</td>`).join('')}</tr>
+      <tr><td style="color:var(--ink-faint)">% dos itens com venda</td>${l.map(x=>`<td class="num" style="color:var(--ink-faint)">${
+        fmtPct(x.itens_com_venda?100*x.rompidos/x.itens_com_venda:0)}</td>`).join('')}</tr>
+    </tbody></table></div>
+    <div style="margin-top:6px;font-size:12px;color:var(--ink-faint)">Cada coluna é a sexta-feira da semana.
       Conta os itens com estoque zero no Pulmão SP entre os que tiveram venda no período escolhido,
-      pela curva do mesmo período. Embaixo de cada data: total rompido (SKUs) e % dos itens com venda.${
+      pela curva do mesmo período.${
       fora.length?` Sem carga na sexta: ${fora.map(x=>`${dt(x.sexta)} usa ${dt(x.capturado_em)}`).join('; ')}.`:''}</div>`;
 }
 // Grafico proprio das rupturas: os rotulos de cada semana sao afastados entre si
@@ -4513,7 +4525,7 @@ function znSemanaSVG(l,dt){
   const S=[{k:'rompidos_a',rot:'Curva A',cor:'#1552c9'},
            {k:'rompidos_b',rot:'Curva B',cor:'#1f9d55'},
            {k:'rompidos_c',rot:'Curva C',cor:'#c9871f'}];
-  const W=1400,H=330,padL=58,padR=70,padT=34,padB=62, iw=W-padL-padR, ih=H-padT-padB, N=l.length;
+  const W=1400,H=310,padL=58,padR=70,padT=34,padB=44, iw=W-padL-padR, ih=H-padT-padB, N=l.length;
   const bruto=Math.max(1,...l.flatMap(x=>S.map(s=>+x[s.k]||0)));
   // escala redonda: 4 faixas iguais com passo 5, 10, 20, 25, 50...
   const passo=[1,2,5,10,20,25,50,100,200,250,500,1000].find(p=>p*4>=bruto*1.12)||Math.ceil(bruto*1.12/4);
@@ -4548,9 +4560,7 @@ function znSemanaSVG(l,dt){
       fill="${o.cor}" text-anchor="${ax}" stroke="#fff" stroke-width="4" paint-order="stroke">${fmtInt(o.v)}</text>`).join('');
   }).join('');
   const eixo=l.map((x,i)=>{const ax=i===0?'start':(i===N-1?'end':'middle');
-    const pc=x.itens_com_venda?100*x.rompidos/x.itens_com_venda:0;
-    return `<text x="${X(i).toFixed(1)}" y="${H-36}" font-size="14" font-weight="700" fill="#384559" text-anchor="${ax}">${dt(x.sexta)}</text>
-      <text x="${X(i).toFixed(1)}" y="${H-16}" font-size="13" fill="#5d6a7e" text-anchor="${ax}">total ${fmtInt(x.rompidos)} · ${fmtPct(pc)}</text>`;}).join('');
+    return `<text x="${X(i).toFixed(1)}" y="${H-12}" font-size="14" font-weight="700" fill="#384559" text-anchor="${ax}">${dt(x.sexta)}</text>`;}).join('');
   const leg=S.map(s=>`<span style="display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:12.5px;color:var(--ink-soft)">
       <span style="width:14px;height:3px;background:${s.cor};display:inline-block;border-radius:2px"></span>${s.rot} (SKUs rompidos)</span>`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:320px;display:block">${grade}${linhas}${rot}${eixo}</svg>
@@ -4785,16 +4795,17 @@ function znImprimir(){
       if(c.desc) return `<td class="dsc"><div class="d2">${v}</div></td>`;
       return `<td class="${c.num?'r':''}">${v}</td>`;}).join('')+'</tr>';}).join('');
   const w=window.open('','_blank');
-  w.document.write(`<html><head><meta charset="utf-8"><title>Rupturas e excessos</title>
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Rupturas e excessos</title>
     <style>@page{size:A4 landscape;margin:7mm}
     body{font-family:Arial,sans-serif;font-size:8.5px;color:#111;margin:0}
     h1{font-size:15px;margin:0 0 3px} .sub{color:#555;margin:0 0 3px;font-size:10.5px}
     .tot{margin:6px 0 10px;font-size:11px} .tot b{font-size:12px}
     table{border-collapse:collapse;width:100%} thead{display:table-header-group}
     th,td{border:1px solid #ccc;padding:2px 4px;text-align:left;vertical-align:top;white-space:nowrap}
-    th{background:#eef2f8;font-size:8px} th small{font-weight:400;color:#666}
+    td{font-size:9px}
+    th{background:#eef2f8;font-size:9px} th small{font-weight:400;color:#666;font-size:8px}
     .r{text-align:right} tr{page-break-inside:avoid}
-    th.dsc,td.dsc{white-space:normal;width:40%}
+    th.dsc,td.dsc{white-space:normal;width:99%;min-width:280px}
     .d2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
     td i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
