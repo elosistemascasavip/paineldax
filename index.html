@@ -810,8 +810,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.3 · 25/10/2026 · Uma régua só: curva ABC e venda/dia do período escolhido em todas as telas;
                       alvo A/B/C também na Cobertura de estoque; Rupturas sem paginação, por curva
    1.3.1 · 25/10/2026 · Coluna China só aparece com pedido carregado; ajuda (i) no Editar régua
+   1.3.2 · 25/10/2026 · Rupturas: colunas Alvo ideal (un) e Falta / sobra (un) na lista da curva
    ============================================================ */
-const APP_VERSAO = '1.3.1';
+const APP_VERSAO = '1.3.2';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4568,6 +4569,10 @@ function znCards(){
       : `<div class="tbl-scroll" style="border:none;border-radius:0;border-top:1px solid var(--line)"><table class="densa zn-tab"><thead><tr>
           <th>SKU</th><th class="wide">Descrição</th>
           <th class="num">Estoque SP <small>(un)</small></th>
+          <th class="num">Alvo ideal <small>(un)</small>${ajuda('Alvo ideal', `<p>Quanto o Pulmão SP deveria ter do item:
+            <b>venda/dia da rede × dias da curva</b> (A ${fmtInt(ZN.par.dias_a)} · B ${fmtInt(ZN.par.dias_b)} · C ${fmtInt(ZN.par.dias_c)} dias).</p>
+            <p>A venda/dia é a do período escolhido no topo da tela. Item sem venda no período não tem alvo.</p>`)}</th>
+          <th class="num">Falta / sobra <small>(un)</small></th>
           <th class="num">Venda/dia <small>(un)</small></th>
           <th class="num">Cobertura <small>(dias)</small></th>
           <th class="num">% do alvo</th>
@@ -4577,6 +4582,9 @@ function znCards(){
             <td style="white-space:nowrap"><span class="zn-dot" style="background:${z.cor};margin-right:7px;vertical-align:-1px" title="${z.rot}"></span>${ref(d.sku)}</td>
             <td title="${(d.descricao||'').replace(/"/g,'&quot;')}"><span class="zn-desc">${d.descricao||'—'}</span></td>
             <td class="num" style="font-weight:700">${fmtInt(d.estoque)}</td>
+            <td class="num">${d.alvo==null?'—':fmtInt(Math.round(d.alvo))}</td>
+            <td class="num" style="font-weight:700;color:${+d.diferenca>0?'#3d8ef0':+d.diferenca<0?'#d0392b':'inherit'}"
+              title="${+d.diferenca<0?'faltam para chegar ao alvo':+d.diferenca>0?'acima do alvo':''}">${znSinal(d.diferenca)}</td>
             <td class="num">${+d.venda_dia>0?znDec(d.venda_dia,1):'0'}</td>
             <td class="num">${znCob(d)}</td>
             <td class="num">${d.pct_alvo!=null?`<span class="zn-pct" style="background:${z.cor}">${znDec(d.pct_alvo,0)}%</span>`:'—'}</td>
@@ -4605,9 +4613,9 @@ function znColunas(csv){
     {label:'Estoque SP', un:'un', num:1, get:d=>fmtInt(d.estoque)},
     {label:'Venda/dia', un:'un', num:1, get:d=>+d.venda_dia>0?znDec(d.venda_dia,1):'0'},
     {label:'Cobertura', un:'dias', num:1, get:znCob},
-    {label:'Alvo', un:'un', num:1, get:d=>d.alvo==null?'—':fmtInt(Math.round(d.alvo))},
+    {label:'Alvo ideal', un:'un', num:1, get:d=>d.alvo==null?'—':fmtInt(Math.round(d.alvo))},
     {label:'% do alvo', un:'%', num:1, get:d=>d.pct_alvo==null?'—':znDec(d.pct_alvo,0)},
-    {label:'Dif. p/ alvo', un:'un', num:1, get:d=>znSinal(d.diferenca)}
+    {label:'Falta / sobra', un:'un', num:1, get:d=>znSinal(d.diferenca)}
   ];
   if(ZN.temChina) cols.push({label:'China', nw:1, get:znChina});
   if(csv) cols.forEach(c=>{ if(c.un) c.label=c.label+' ('+c.un+')'; });
