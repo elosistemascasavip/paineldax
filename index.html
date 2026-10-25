@@ -726,6 +726,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 4v4M14 10v4M18 16v4"/></svg>
         Rupturas e excessos
       </div>
+      <div class="nav-item" data-route="reposicao">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h7.7a2 2 0 002-1.5L21 8H6.2"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>
+        Sugestão de reposição
+      </div>
       <div class="nav-item" data-route="ruptura">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
         Cobertura de estoque
@@ -847,8 +851,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.4.2 · 25/10/2026 · Ícone da aba a partir da logo elo (marca branca sobre o azul do cabeçalho)
    1.4.3 · 25/10/2026 · Rupturas por semana sem rótulos sobrepostos (tabela retirada); contadores dos cards alinhados
    1.4.4 · 25/10/2026 · Impressão: fonte uniforme (9) e descrição mais larga; volta o detalhamento semanal em tabela
+   1.5   · 25/10/2026 · Nova tela Sugestão de reposição (botão Gerar, documento para a JIWI, arredonda no MOQ);
+                        campo MOQ no cadastro de produtos
    ============================================================ */
-const APP_VERSAO = '1.4.4';
+const APP_VERSAO = '1.5';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -1533,13 +1539,14 @@ function loginWall(msg){
 const LOGX={rota:'', quando:0, sessaoMarcada:false};
 const ROTA_LABEL={importar:'Importar planilhas', historico:'Histórico de cargas',
   cobertura:'Cobertura da base', abc:'Curva ABC', oportunidades:'Oportunidades',
-  vendas:'Vendas por loja', pulmao:'Estoque Pulmão', zonas:'Rupturas e excessos',
+  vendas:'Vendas por loja', pulmao:'Estoque Pulmão', zonas:'Rupturas e excessos', reposicao:'Sugestão de reposição',
   ruptura:'Cobertura de estoque',
   precomedio:'Preço médio', presenca:'Presença Casa VIP', produtos:'Produtos',
   lojas:'Lojas', usuarios:'Usuários', pendencias:'Pendências', grupos:'Grupos',
   linhas:'Linhas', cores:'Cores', sobre:'Sobre', perguntar:'Perguntar',
   log:'Log do Sistema'};
-function rotaLabel(r){ return ROTA_LABEL[r] || r || '—'; }
+function rotaLabel(r){ if(r==='reposicao_gerada') return 'Gerou sugestão de reposição';
+  return ROTA_LABEL[r] || r || '—'; }
 /* ---------- Voltar ----------
    Sem isto o botao voltar do navegador (e o do celular) sai do sistema, e o
    unico caminho de volta e o menu lateral. Cada tela vira um passo no historico. */
@@ -1593,6 +1600,7 @@ async function route(r){
   if(r==='cores')  return renderRotulos('cor','Cores','vw_cores');
   if(r==='pulmao')  return renderPulmaoConsulta();
   if(r==='zonas')   return renderZonas();
+  if(r==='reposicao') return renderReposicao();
   if(r==='ruptura') return renderRuptura();
   if(r==='oportunidades') return renderOportunidades();
   if(r==='perguntar') return renderPerguntar();
@@ -3280,7 +3288,7 @@ async function renderProdutos(){
   const body=document.getElementById('pBody');
   if(!session){ body.innerHTML=loginWall('O cadastro é restrito à equipe.'); return; }
   const [prod,g,l,c]=await Promise.all([
-    fetchAll('vw_produtos','sku,descricao,linha,cor,grupo,preco,tem_correcao','sku'),
+    fetchAll('vw_produtos','sku,descricao,linha,cor,grupo,preco,moq,tem_correcao','sku'),
     fetchAll('vw_grupos','rotulo'), fetchAll('vw_linhas','rotulo'), fetchAll('vw_cores','rotulo')
   ]);
   const {data,error}=prod;
@@ -3304,7 +3312,7 @@ async function renderProdutos(){
       <button class="btn-tool" id="pPrint">Imprimir</button>
     </div>
     <div class="panel"><div class="panel-head"><h2>Catálogo</h2><span class="count" id="pCount"></span></div>
-    <div class="tbl-scroll"><table><thead><tr><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>${canEdit?'<th></th>':''}</tr></thead>
+    <div class="tbl-scroll"><table><thead><tr><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th><th class="num">MOQ <small>(un)</small></th>${canEdit?'<th></th>':''}</tr></thead>
     <tbody id="pRows"></tbody></table></div></div>`;
   ['pSearch','pGrupo','pLinha','pCor'].forEach(id=>{const el=document.getElementById(id);el.oninput=el.onchange=prodRefresh;});
   document.getElementById('pCSV').onclick=()=>exportCSV('produtos',prodCols(),prodFilter());
@@ -3319,13 +3327,14 @@ function prodFilter(){
   return PROD.data.filter(d=>bate(d.grupo,g)&&bate(d.linha,l)&&bate(d.cor,c)&&
     (!q||(ref(d.sku)+' '+(d.descricao||'')+' '+(d.linha||'')+' '+(d.grupo||'')).toLowerCase().includes(q)));
 }
-function prodCols(){return [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'}];}
+function prodCols(){return [{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Grupo',key:'grupo'},{label:'MOQ (un)',get:d=>d.moq||''}];}
 function prodRefresh(){
   const rows=prodFilter(); document.getElementById('pCount').textContent=fmtInt(rows.length)+' SKUs';
   document.getElementById('pRows').innerHTML=rows.slice(0,600).map(d=>`<tr>
     <td>${ref(d.sku)}</td>
     <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
     <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
+    <td class="num">${d.moq?fmtInt(d.moq):'—'}</td>
     ${PROD.canEdit?`<td class="mini-actions"><button class="iconbtn" onclick="editarProduto('${d.sku}')">Editar</button></td>`:''}
   </tr>`).join('');
 }
@@ -3347,10 +3356,14 @@ async function editarProduto(sku){
     <div class="field"><label>Linha</label>${sel('epLinha',PROD.opts.linha,d.linha,'Sem linha')}</div>
     <div class="field"><label>Cor</label>${sel('epCor',PROD.opts.cor,d.cor,'Sem cor')}</div>
     <div class="field"><label>Grupo</label>${sel('epGrupo',PROD.opts.grupo,d.grupo,'Sem grupo')}</div>
-    <div style="font-size:12px;color:var(--ink-faint)">Para criar um novo valor, use as telas Grupos, Linhas ou Cores.</div>`,
+    <div class="field"><label>MOQ — lote mínimo de compra (un)</label><input id="epMoq" type="number" min="1" step="1"
+      value="${d.moq||''}" placeholder="sem MOQ"></div>
+    <div style="font-size:12px;color:var(--ink-faint)">Com MOQ, a Sugestão de reposição arredonda para cima no múltiplo dele.
+      Vazio = sem arredondamento. Para criar um novo grupo, linha ou cor, use as telas Grupos, Linhas ou Cores.</div>`,
     async()=>{
       const payload={sku, descricao:val('epDesc')||null,
-        linha:val('epLinha')||null, cor:val('epCor')||null, grupo:val('epGrupo')||null};
+        linha:val('epLinha')||null, cor:val('epCor')||null, grupo:val('epGrupo')||null,
+        moq: (+val('epMoq')>0) ? Math.round(+val('epMoq')) : null};
       const {error}=await sb.from('produtos_correcoes').upsert(payload,{onConflict:'sku'});
       if(error){toast(error.message);return false;}
       toast('Produto atualizado.'); renderProdutos(); return true;
@@ -3952,7 +3965,7 @@ async function renderPendencias(){
   view.innerHTML=head(ICO_PEND,'Pendências do cadastro','Só os produtos com algo faltando: sem grupo, sem linha ou sem cor.','Cadastros')+'<div id="peBody"></div>';
   const body=document.getElementById('peBody');
   if(!session){ body.innerHTML=loginWall('O cadastro é restrito à equipe.'); return; }
-  const {data,error}=await fetchAll('vw_produtos','sku,descricao,linha,cor,grupo','sku');
+  const {data,error}=await fetchAll('vw_produtos','sku,descricao,linha,cor,grupo,moq','sku');
   if(error){ body.innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
   PROD.data=data;
   const pend=(data||[]).filter(d=>!d.grupo||!d.linha||!d.cor);
@@ -4300,6 +4313,8 @@ async function renderSobre(){
         ${semValores()?'':linha('Preço médio','posição de cada loja')}
         ${linha('Cadastros','produtos, lojas, grupos, linhas e cores')}
         ${linha('Estoque Pulmão','consulta de saldo no Pulmão SP')}
+        ${linha('Rupturas e excessos','zonas do Pulmão SP por curva e rupturas por semana')}
+        ${linha('Sugestão de reposição','documento do pedido para a JIWI, com MOQ')}
         ${linha('Cobertura de estoque','saldo x venda da rede, por classe ABC')}
         ${linha('Oportunidades','venda da loja x porte dela na rede')}
       </div></div>
@@ -4860,6 +4875,244 @@ function znEditarRegua(){
     if(error) return err.textContent=error.message;
     toast('Régua do pulmão atualizada.'); renderZonas();
   };
+}
+
+/* ============================================================
+   Tela: Sugestão de reposição — documento para o pedido da JIWI
+   Mesma régua da tela Rupturas e excessos:
+     necessidade (un) = alvo − estoque Pulmão SP − pedidos China em aberto
+   Com MOQ cadastrado no produto, a sugestão sobe para o próximo múltiplo
+   do MOQ; sem MOQ, sai a necessidade exata. O cálculo é do banco
+   (sugestao_reposicao); a tela só gera, mostra, imprime e exporta.
+   Tudo em quantidade: a JIWI enxerga esta tela.
+   ============================================================ */
+const REP={meses:[],period:{},montando:false,par:null,doc:null,linhas:[]};
+const REP_ZONAS={todas:['ruptura','vermelho','amarelo','verde'],
+  urgente:['ruptura','vermelho'], atencao:['ruptura','vermelho','amarelo']};
+
+async function renderReposicao(){
+  const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h7.7a2 2 0 002-1.5L21 8H6.2"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>`;
+  view.innerHTML=head(ico,'Sugestão de reposição',
+    'Gera o documento com o que pedir para cada item do Pulmão SP voltar ao alvo. É a base do pedido feito pela JIWI.','Análise','ambos')
+    +'<div id="rpBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('rpBody');
+  if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+  const [mesesDisp,p,g]=await Promise.all([
+    sb.from('vw_vendas_por_loja').select('competencia').order('competencia',{ascending:true}),
+    sb.from('parametros_pulmao').select('*').eq('id',true).maybeSingle(),
+    fetchAll('vw_grupos','rotulo')
+  ]);
+  REP.meses=uniq((mesesDisp.data||[]).map(d=>d.competencia));
+  REP.period=periodoPadrao(REP.meses);
+  REP.par=p.data||{dias_a:180,dias_b:150,dias_c:90};
+  REP.doc=null;
+  const P=REP.par;
+  body.innerHTML=`
+    <div class="tools" style="margin-bottom:10px">
+      <div id="rpPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+    </div>
+    <div class="zn-regua"><span><b>Sugestão (un)</b> = alvo − estoque no Pulmão SP − pedidos China em aberto,
+      arredondada para cima no múltiplo do <b>MOQ</b> do item. Alvo = venda/dia do período ×
+      <b>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias</b> — a mesma régua de Rupturas e excessos.</span>
+      ${ajuda('Como a sugestão é calculada', repAjuda())}</div>
+    <div class="panel" style="margin-bottom:12px"><div style="padding:14px 16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="f"><div class="pc-lbl" style="margin-bottom:4px">Curvas</div>
+        <select class="selin" id="rpCurva">
+          <option value="ABC">A, B e C</option><option value="AB">Só A e B</option><option value="A">Só A</option></select></div>
+      <div class="f"><div class="pc-lbl" style="margin-bottom:4px">Zonas</div>
+        <select class="selin" id="rpZona">
+          <option value="todas">Tudo que está abaixo do alvo</option>
+          <option value="atencao">Ruptura, vermelho e amarelo</option>
+          <option value="urgente">Só ruptura e vermelho</option></select></div>
+      <div class="f"><div class="pc-lbl" style="margin-bottom:4px">Grupo</div>
+        <select class="selin" id="rpGrupo"><option value="">Todos os grupos</option>${
+          uniq((g.data||[]).map(x=>x.rotulo)).map(v=>`<option>${v}</option>`).join('')}</select></div>
+      <div class="grow"></div>
+      <button class="btn-tool pri" id="rpGerar" style="padding:11px 22px;font-size:14.5px">Gerar sugestão de reposição</button>
+    </div></div>
+    <div id="rpDoc"><div class="panel"><div class="empty"><div class="big">Nenhuma sugestão gerada</div>
+      Escolha o período e os filtros e clique em <b>Gerar sugestão de reposição</b>.</div></div></div>`;
+  REP.montando=true;
+  wirePeriod(document.getElementById('rpPeriod'), REP.meses, (st)=>{
+    if(REP.montando) return;
+    REP.period=st;
+    // mudou o periodo: o documento na tela deixa de valer ate gerar de novo
+    if(REP.doc){ REP.doc=null; document.getElementById('rpDoc').innerHTML=`<div class="notice warn">
+      O período mudou. Clique em <b>Gerar sugestão de reposição</b> para recalcular.</div>`; }
+  }, REP.period);
+  REP.montando=false;
+  document.getElementById('rpGerar').onclick=repGerar;
+}
+
+function repAjuda(){
+  const P=REP.par||{};
+  return `<p>Para cada item com venda no período escolhido:</p>
+    <ul>
+      <li><b>Alvo (un)</b> = venda/dia da rede × dias da curva
+        (A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)}).</li>
+      <li><b>Necessidade (un)</b> = alvo − estoque no Pulmão SP − pedidos China em aberto.</li>
+      <li><b>Sugestão (un)</b> = necessidade arredondada para cima no múltiplo do <b>MOQ</b>.
+        Sem MOQ cadastrado, a sugestão é a necessidade exata.</li>
+    </ul>
+    <p class="exemplo">Alvo 360 un, estoque 120 un, nada em trânsito → necessidade 240 un.
+      Com MOQ 100, a sugestão vira <b>300 un</b> (3 lotes). Sem MOQ, fica <b>240 un</b>.</p>
+    <p>Itens já no alvo ou acima dele, e itens sem venda no período, ficam fora.
+      A ordem é por urgência: ruptura, vermelho, amarelo, verde; dentro de cada zona, curva A primeiro.</p>
+    <p>O MOQ de cada item é cadastrado em <b>Cadastros › Produtos</b>.</p>`;
+}
+
+async function repGerar(){
+  const btn=document.getElementById('rpGerar');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Gerando…';
+  const st=REP.period||{};
+  const {data,error}=await fetchRpc('sugestao_reposicao',{p_ini:st.aIni||null, p_fim:st.aFim||null});
+  btn.disabled=false; btn.textContent='Gerar sugestão de reposição';
+  if(error){ document.getElementById('rpDoc').innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
+  const curvas=valOf('rpCurva','ABC').split(''), zonas=REP_ZONAS[valOf('rpZona','todas')], grupo=valOf('rpGrupo','');
+  REP.linhas=(data||[]).filter(d=>curvas.includes(d.classe) && zonas.includes(d.zona) && (!grupo||d.grupo===grupo));
+  const agora=new Date(), pad=n=>String(n).padStart(2,'0');
+  const r0=(data||[]).find(d=>d.media_ini)||{};
+  REP.doc={
+    numero:'SR-'+agora.getFullYear()+pad(agora.getMonth()+1)+pad(agora.getDate())+'-'+pad(agora.getHours())+pad(agora.getMinutes()),
+    quando:agora, quem:(CONTA&&CONTA.nome)||'—',
+    filtro:[valOf('rpCurva')==='ABC'?'Curvas A, B e C':valOf('rpCurva')==='AB'?'Curvas A e B':'Curva A',
+            {todas:'tudo abaixo do alvo',atencao:'ruptura, vermelho e amarelo',urgente:'ruptura e vermelho'}[valOf('rpZona','todas')],
+            grupo||'todos os grupos'].join(' · '),
+    media_ini:r0.media_ini, media_fim:r0.media_fim, meses:r0.meses_periodo, estoque_em:r0.atualizado_em,
+    temChina:(data||[]).some(d=>+d.em_transito>0),
+    semMoq:REP.linhas.filter(d=>!(+d.moq>0)).length
+  };
+  logEvento('tela','reposicao_gerada');
+  repPinta();
+}
+
+function repColunas(){
+  const c=[
+    {label:'#', num:1, get:(d,i)=>i+1},
+    {label:'Código', get:d=>ref(d.sku)},
+    {label:'Descrição', key:'descricao', desc:1},
+    {label:'Curva', get:d=>d.classe},
+    {label:'Zona', get:d=>znZona(d.zona).rot},
+    {label:'Estoque SP', un:'un', num:1, get:d=>fmtInt(d.estoque)},
+    {label:'Venda/dia', un:'un', num:1, get:d=>znDec(d.venda_dia,1)},
+    {label:'Alvo', un:'un', num:1, get:d=>fmtInt(Math.round(d.alvo))}
+  ];
+  if(REP.doc&&REP.doc.temChina) c.push({label:'Em trânsito', un:'un', num:1, get:d=>fmtInt(d.em_transito)});
+  c.push(
+    {label:'Necessidade', un:'un', num:1, get:d=>fmtInt(d.necessidade)},
+    {label:'MOQ', un:'un', num:1, get:d=>+d.moq>0?fmtInt(d.moq):'—'},
+    {label:'Sugestão', un:'un', num:1, forte:1, get:d=>fmtInt(d.sugestao)},
+    {label:'Cobertura após', un:'dias', num:1, get:d=>d.cobertura_apos_dias==null?'—':fmtInt(d.cobertura_apos_dias)});
+  return c;
+}
+
+function repPinta(){
+  const el=document.getElementById('rpDoc'); if(!el||!REP.doc) return;
+  const D=REP.doc, l=REP.linhas, P=REP.par;
+  if(!l.length){ el.innerHTML=`<div class="panel"><div class="empty"><div class="big">Nada a repor neste recorte</div>
+    Todos os itens dos filtros escolhidos estão no alvo ou acima dele.</div></div>`; return; }
+  const tot=l.reduce((a,d)=>a+(+d.sugestao||0),0);
+  const porCurva=k=>l.filter(d=>d.classe===k);
+  const cols=repColunas();
+  el.innerHTML=`
+    <div class="panel">
+      <div class="panel-head" style="flex-wrap:wrap">
+        <h2>Sugestão de reposição · ${D.numero}</h2>
+        <span class="count">gerada em ${fmtDataHora(D.quando)} por ${D.quem}</span>
+        <span class="grow"></span>
+        <button class="btn-tool" id="rpCSV">Exportar CSV</button>
+        <button class="btn-tool pri" id="rpPrint">Imprimir documento</button>
+      </div>
+      <div style="padding:12px 16px 4px">
+        <div class="kv2" style="grid-template-columns:150px 1fr">
+          <b>Filtros</b><span>${D.filtro}</span>
+          <b>Venda/dia</b><span>${fmtComp(D.media_ini)} a ${fmtComp(D.media_fim)} (${D.meses} ${D.meses>1?'meses':'mês'})</span>
+          <b>Alvo</b><span>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias de venda</span>
+          <b>Estoque</b><span>Pulmão SP de ${fmtDataHora(D.estoque_em)}</span>
+        </div>
+        ${D.semMoq? `<div class="notice warn" style="margin:10px 0 0">${fmtInt(D.semMoq)} de ${fmtInt(l.length)} itens sem MOQ cadastrado:
+          a sugestão desses itens é a necessidade exata, sem arredondar em lotes.</div>`:''}
+        ${D.temChina?'':`<div class="notice info" style="margin:10px 0 0">Nenhum pedido China em aberto carregado:
+          a sugestão não desconta mercadoria em trânsito.</div>`}
+      </div>
+      <div class="statbar" style="margin:12px 16px">
+        <div class="s"><div class="n">${fmtInt(l.length)}</div><div class="l">Itens (SKUs)</div></div>
+        <div class="s"><div class="n">${fmtInt(tot)}</div><div class="l">Sugestão total (un)</div></div>
+        ${['A','B','C'].map(k=>{const x=porCurva(k); return x.length?`<div class="s"><div class="n">${fmtInt(x.reduce((a,d)=>a+(+d.sugestao||0),0))}</div>
+          <div class="l">Curva ${k} · ${fmtInt(x.length)} SKUs (un)</div></div>`:'';}).join('')}
+        <div class="s"><div class="n" style="color:#20262e">${fmtInt(l.filter(d=>d.zona==='ruptura').length)}</div><div class="l">Rompidos (SKUs)</div></div>
+      </div>
+      <div class="tbl-scroll" style="border:none;border-radius:0;border-top:1px solid var(--line)"><table class="densa zn-tab"><thead><tr>
+        ${cols.map(c=>`<th class="${c.num?'num':''}${c.desc?' wide':''}">${c.label}${c.un?` <small>(${c.un})</small>`:''}</th>`).join('')}
+      </tr></thead><tbody>${l.map((d,i)=>{const z=znZona(d.zona);
+        return `<tr${d.zona==='ruptura'?' class="rompido"':''}>${cols.map(c=>{
+          let v=c.get?c.get(d,i):(d[c.key]||'—');
+          if(c.label==='Código') v=`<span class="zn-dot" style="background:${z.cor};margin-right:7px;vertical-align:-1px"></span>${v}`;
+          if(c.label==='Curva') v=`<span class="pill ${d.classe}">${v}</span>`;
+          if(c.label==='Zona') v=`<span style="color:${z.cor};font-weight:700">${v}</span>`;
+          if(c.desc) return `<td title="${(d.descricao||'').replace(/"/g,'&quot;')}"><span class="zn-desc">${v}</span></td>`;
+          return `<td class="${c.num?'num':''}"${c.forte?' style="font-weight:800;color:var(--blue-ink)"':''}>${v}</td>`;}).join('')}</tr>`;}).join('')}
+        <tr style="font-weight:800;background:#f7f9fc"><td colspan="${cols.findIndex(c=>c.label==='Sugestão')}">TOTAL</td>
+          <td class="num" style="color:var(--blue-ink)">${fmtInt(tot)}</td><td></td></tr>
+      </tbody></table></div>
+    </div>`;
+  // CSV com numeros crus (sem separador de milhar), para abrir direto no Excel
+  document.getElementById('rpCSV').onclick=()=>exportCSV('sugestao_reposicao_'+D.numero,[
+    {label:'Codigo',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Grupo',key:'grupo'},
+    {label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Curva',key:'classe'},
+    {label:'Zona',get:d=>znZona(d.zona).rot},{label:'Estoque SP (un)',key:'estoque'},
+    {label:'Venda/dia (un)',get:d=>String(d.venda_dia).replace('.',',')},{label:'Alvo (un)',get:d=>Math.round(d.alvo)},
+    {label:'Em transito (un)',key:'em_transito'},{label:'Necessidade (un)',key:'necessidade'},
+    {label:'MOQ (un)',get:d=>+d.moq>0?d.moq:''},{label:'Sugestao (un)',key:'sugestao'},
+    {label:'Cobertura apos (dias)',key:'cobertura_apos_dias'}], l);
+  document.getElementById('rpPrint').onclick=repImprimir;
+}
+
+// Documento para a JIWI: A4 deitado, uma linha por item, descricao em no maximo 2 linhas.
+function repImprimir(){
+  const D=REP.doc, l=REP.linhas, P=REP.par; if(!D||!l.length) return;
+  const cols=repColunas(), tot=l.reduce((a,d)=>a+(+d.sugestao||0),0);
+  const th=cols.map(c=>`<th class="${c.num?'r':''}${c.desc?' dsc':''}">${c.label}${c.un?` <small>(${c.un})</small>`:''}</th>`).join('');
+  const tr=l.map((d,i)=>'<tr>'+cols.map(c=>{const v=c.get?c.get(d,i):(d[c.key]||'—');
+    if(c.desc) return `<td class="dsc"><div class="d2">${v}</div></td>`;
+    return `<td class="${c.num?'r':''}${c.forte?' f':''}">${v}</td>`;}).join('')+'</tr>').join('');
+  const iSug=cols.findIndex(c=>c.label==='Sugestão');
+  const w=window.open('','_blank');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${D.numero} · Sugestão de reposição</title>
+    <style>@page{size:A4 landscape;margin:8mm}
+    body{font-family:Arial,sans-serif;font-size:9px;color:#111;margin:0}
+    .topo{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #0f3f8f;padding-bottom:6px;margin-bottom:8px}
+    h1{font-size:16px;margin:0;color:#0f3f8f} .num{font-size:13px;font-weight:700}
+    .kv{display:grid;grid-template-columns:110px 1fr 110px 1fr;gap:2px 10px;font-size:9.5px;margin-bottom:8px}
+    .kv b{color:#444}
+    .aviso{font-size:9px;color:#8a5a06;margin:0 0 6px}
+    table{border-collapse:collapse;width:100%} thead{display:table-header-group}
+    th,td{border:1px solid #ccc;padding:2px 4px;text-align:left;vertical-align:top;white-space:nowrap;font-size:9px}
+    th{background:#eef2f8} th small{font-weight:400;color:#666;font-size:8px}
+    .r{text-align:right} .f{font-weight:700} tr{page-break-inside:avoid}
+    th.dsc,td.dsc{white-space:normal;width:99%;min-width:260px}
+    .d2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
+    .tot td{font-weight:700;background:#f3f5f9}
+    .ass{display:flex;gap:40px;margin-top:22px;font-size:9.5px}
+    .ass div{flex:1;border-top:1px solid #333;padding-top:3px}
+    </style></head><body>
+    <div class="topo"><div><h1>Sugestão de reposição · Pulmão SP</h1>Casa VIP · Metais DAX · para pedido da JIWI</div>
+      <div class="num">${D.numero}</div></div>
+    <div class="kv">
+      <b>Gerada em</b><span>${fmtDataHora(D.quando)} por ${D.quem}</span>
+      <b>Estoque</b><span>Pulmão SP de ${fmtDataHora(D.estoque_em)}</span>
+      <b>Venda/dia</b><span>${fmtComp(D.media_ini)} a ${fmtComp(D.media_fim)} (${D.meses} ${D.meses>1?'meses':'mês'})</span>
+      <b>Alvo</b><span>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias de venda</span>
+      <b>Filtros</b><span>${D.filtro}</span>
+      <b>Total</b><span><b>${fmtInt(l.length)} SKUs · ${fmtInt(tot)} un</b></span>
+    </div>
+    ${D.semMoq?`<div class="aviso">${fmtInt(D.semMoq)} itens sem MOQ cadastrado: sugestão = necessidade exata, sem arredondar em lotes.</div>`:''}
+    ${D.temChina?'':`<div class="aviso">Pedidos China em aberto não carregados: a sugestão não desconta mercadoria em trânsito.</div>`}
+    <table><thead><tr>${th}</tr></thead><tbody>${tr}
+      <tr class="tot"><td colspan="${iSug}">TOTAL</td><td class="r">${fmtInt(tot)}</td><td></td></tr></tbody></table>
+    <div class="ass"><div>Conferido por (Casa VIP)</div><div>Pedido feito por (JIWI)</div><div>Data do pedido</div></div>
+    <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
 }
 
 /* ============================================================
@@ -5558,6 +5811,8 @@ const GUIA=[
    txt:'O saldo disponível no Pulmão SP, item a item. Consulta pura: código, descrição, cor, linha e quanto tem.'},
   {rota:'zonas', rot:'Rupturas e excessos',
    txt:'A foto de hoje do Pulmão SP por curva ABC da rede: o que está rompido, o que está perto de romper e o que está sobrando, contra o alvo de cada curva (A 180, B 150, C 90 dias de venda), com a venda do período que você escolheu. Clique numa curva para ver e imprimir a lista.'},
+  {rota:'reposicao', rot:'Sugestão de reposição',
+   txt:'Gera o documento do que pedir para cada item do Pulmão SP voltar ao alvo: alvo menos estoque menos o que já está em trânsito, arredondado no MOQ do item. É a base do pedido feito pela JIWI.'},
   {rota:'ruptura', rot:'Cobertura de estoque',
    txt:'Cruza o saldo do Pulmão SP com a venda da rede: quantos dias aquele estoque cobre. Mostra o que está rompido, o que está apertado e o que está sobrando.'},
   {rota:'precomedio', rot:'Preço médio',
