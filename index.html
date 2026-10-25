@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>elo Sistemas — Casa VIP · Abastecimento</title>
+<title>Elo Sistemas — Casa VIP · Abastecimento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -172,7 +172,13 @@ th.cls{text-align:center}
 
 /* ---------- Modal ---------- */
 .scrim{position:fixed;inset:0;background:rgba(12,22,42,.5);display:grid;place-items:center;padding:20px;z-index:50}
-.modal{background:#fff;border-radius:16px;width:100%;max-width:420px;padding:26px;box-shadow:0 24px 60px rgba(12,22,42,.3)}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:420px;padding:26px;box-shadow:0 24px 60px rgba(12,22,42,.3);
+  max-height:calc(100vh - 40px);display:flex;flex-direction:column}
+.modal>.ajuda-txt{overflow-y:auto;min-height:0;flex:1 1 auto;padding-right:8px;margin-bottom:14px}
+.modal>.btn,.modal>h3{flex:0 0 auto}
+.modal{position:relative}
+.modal>h3{padding-right:28px}
+.modal>.x{position:absolute;top:18px;right:18px;float:none}
 .modal h3{margin:0 0 4px;font-size:20px;font-weight:800}
 .modal p{margin:0 0 18px;color:var(--ink-soft);font-size:14px}
 .field{margin-bottom:13px}
@@ -415,6 +421,11 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
   background:var(--blue);color:#fff;font-weight:700;font-family:inherit;cursor:pointer}
 .lp-form .btn:hover{background:#1552c9}
 .lp-form .btn:disabled{opacity:.6;cursor:default}
+.lp-versao{display:inline-flex;align-items:center;gap:8px;margin:-10px 0 22px;padding:6px 12px;
+  border-radius:999px;background:var(--blue-tint);border:1px solid var(--blue-line);color:var(--blue-ink);
+  font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.lp-versao b{font-weight:800;font-size:13.5px}
+.lp-versao i{width:8px;height:8px;border-radius:50%;background:#1f9d55;display:inline-block}
 .lp-help{text-align:center;margin-top:14px;font-size:13px;color:var(--ink-faint)}
 .lp-mini{text-align:center;margin-top:26px;font-size:12px;color:var(--ink-faint)}
 @media(max-width:900px){
@@ -795,6 +806,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   <div class="lp-right">
     <div class="lp-form">
       <img class="lp-brand" data-logo="casa_vip" alt="Casa VIP">
+      <div class="lp-versao" id="lpVersao" title="Versão do sistema publicada"></div>
       <h2 id="liTit">Entrar</h2>
       <p id="liSub">Acesse com o nome da sua loja.</p>
       <div class="field"><label>Usuário</label>
@@ -805,7 +817,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
       <button class="btn" id="liBtn" onclick="doLogin()">Entrar</button>
       <div class="lp-help">Não tem acesso? Fale com o administrador da rede.</div>
       <div class="err" id="liErr"></div>
-      <div class="lp-mini">ELO Sistemas · Abastecimento Casa VIP · <span id="lpVersao"></span></div>
+      <div class="lp-mini">ELO Sistemas · Abastecimento Casa VIP</div>
     </div>
   </div>
 </div>
@@ -821,8 +833,11 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.3.2 · 25/10/2026 · Rupturas: colunas Alvo ideal (un) e Falta / sobra (un) na lista da curva
    1.3.3 · 25/10/2026 · Percentuais com 2 casas; cinza mais escuro; menos quebras; (i) da régua;
                         Log: pódio e ranking de lojas por acesso
+   1.3.4 · 25/10/2026 · Explicações (i) com rolagem; impressão de Rupturas deitada, fonte menor, no máximo 2 linhas
+   1.3.5 · 25/10/2026 · Versão em destaque na tela de login
+   1.3.6 · 25/10/2026 · Título da aba: Elo Sistemas
    ============================================================ */
-const APP_VERSAO = '1.3.3';
+const APP_VERSAO = '1.3.6';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4678,22 +4693,25 @@ function znImprimir(){
     g, q&&`busca "${q}"`].filter(Boolean).join(' · ');
   const un=l.reduce((a,d)=>a+Number(d.estoque||0),0);
   const P=ZN.par, r0=ZN.raw.find(d=>d.media_ini)||{};
-  const th=cols.map(c=>`<th class="${c.num?'r':''}">${c.label}${c.un?`<br><small>(${c.un})</small>`:''}</th>`).join('');
+  const th=cols.map(c=>`<th class="${c.num?'r':''}${c.desc?' dsc':''}">${c.label}${c.un?` <small>(${c.un})</small>`:''}</th>`).join('');
   const tr=l.map(d=>{const z=znZona(d.zona);
     return '<tr>'+cols.map((c,i)=>{let v=c.get?c.get(d):(d[c.key]||'—');
       if(i===0) v=`<i style="background:${z.cor}"></i>${v}`;
       if(c.label==='% do alvo'&&d.pct_alvo!=null) v+='%';
-      return `<td class="${c.num?'r':''}${c.nw?' nw':''}">${v}</td>`;}).join('')+'</tr>';}).join('');
+      if(c.desc) return `<td class="dsc"><div class="d2">${v}</div></td>`;
+      return `<td class="${c.num?'r':''}">${v}</td>`;}).join('')+'</tr>';}).join('');
   const w=window.open('','_blank');
   w.document.write(`<html><head><meta charset="utf-8"><title>Rupturas e excessos</title>
-    <style>@page{size:A4 landscape;margin:10mm}
-    body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0}
+    <style>@page{size:A4 landscape;margin:7mm}
+    body{font-family:Arial,sans-serif;font-size:8.5px;color:#111;margin:0}
     h1{font-size:15px;margin:0 0 3px} .sub{color:#555;margin:0 0 3px;font-size:10.5px}
     .tot{margin:6px 0 10px;font-size:11px} .tot b{font-size:12px}
     table{border-collapse:collapse;width:100%} thead{display:table-header-group}
-    th,td{border:1px solid #ccc;padding:3px 5px;text-align:left;vertical-align:top}
-    th{background:#eef2f8;font-size:9.5px} th small{font-weight:400;color:#666}
-    .r,.nw{white-space:nowrap} .r{text-align:right} tr{page-break-inside:avoid}
+    th,td{border:1px solid #ccc;padding:2px 4px;text-align:left;vertical-align:top;white-space:nowrap}
+    th{background:#eef2f8;font-size:8px} th small{font-weight:400;color:#666}
+    .r{text-align:right} tr{page-break-inside:avoid}
+    th.dsc,td.dsc{white-space:normal;width:40%}
+    .d2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
     td i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;
       -webkit-print-color-adjust:exact;print-color-adjust:exact}
     </style></head><body>
@@ -5906,7 +5924,8 @@ function wireLogos(){
 sb.auth.onAuthStateChange(()=>{});
 (async ()=>{
   wireLogos();
-  const lv=document.getElementById('lpVersao'); if(lv) lv.textContent='v'+APP_VERSAO+' · '+APP_DATA;
+  const lv=document.getElementById('lpVersao');
+  if(lv) lv.innerHTML='<i></i>Versão <b>'+APP_VERSAO+'</b> · atualizada em '+APP_DATA;
   await refreshAuth();
   if(!session){ openLogin(); }
   else {
