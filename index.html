@@ -486,9 +486,12 @@ table.zn-tab th small{font-weight:500;color:var(--ink-faint)}
 .zn-card-head{cursor:pointer;user-select:none;flex-wrap:wrap}
 .zn-card-head:hover{background:#f2f6fd}
 .zn-seta{width:14px;color:var(--ink-faint);font-size:13px}
-.zn-sub{font-size:12px;color:var(--ink-faint)}
-.zn-chips{display:inline-flex;gap:10px;margin-left:8px}
-.zn-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.zn-card-head h2{min-width:230px;white-space:nowrap}
+.zn-sub{font-size:12px;color:var(--ink-faint);min-width:170px;white-space:nowrap}
+.zn-chips{display:inline-flex;gap:6px;margin-left:8px}
+.zn-chip{display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;width:54px;font-size:12px;font-weight:700;
+  color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.zn-chip.zero{opacity:.35}
 .zn-chip i{width:9px;height:9px;border-radius:2px;display:inline-block}
 .zn-regua{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);margin:-4px 0 12px}
 .zn-regua input{width:62px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-family:inherit;font-size:13px}
@@ -842,8 +845,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.4   · 25/10/2026 · Rupturas: gráfico semanal (foto de cada sexta-feira), por curva
    1.4.1 · 25/10/2026 · Gráfico semanal com as 3 curvas (A, B e C)
    1.4.2 · 25/10/2026 · Ícone da aba a partir da logo elo (marca branca sobre o azul do cabeçalho)
+   1.4.3 · 25/10/2026 · Rupturas por semana sem rótulos sobrepostos (tabela retirada); contadores dos cards alinhados
    ============================================================ */
-const APP_VERSAO = '1.4.2';
+const APP_VERSAO = '1.4.3';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4496,26 +4500,61 @@ async function znSemana(){
   const l=(data||[]).slice(-12);
   if(!l.length){ el.innerHTML='<div class="empty">Ainda não há histórico de estoque para montar as semanas.</div>'; return; }
   const dt=d=>{const p=String(d).split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2);};
-  const lab=l.map(x=>dt(x.sexta));
-  const grafico=lineChart(lab,[
-    {name:'Curva A (SKUs rompidos)', color:'#1552c9', values:l.map(x=>+x.rompidos_a)},
-    {name:'Curva B (SKUs rompidos)', color:'#1f9d55', values:l.map(x=>+x.rompidos_b)},
-    {name:'Curva C (SKUs rompidos)', color:'#c9871f', values:l.map(x=>+x.rompidos_c)}]);
-  const linha=(rot,k,cor)=>`<tr><td style="font-weight:700;color:${cor}">${rot}</td>${
-    l.map(x=>`<td class="num">${fmtInt(x[k])}</td>`).join('')}</tr>`;
   const fora=l.filter(x=>x.capturado_em!==x.sexta);
-  el.innerHTML=`${grafico}
-    <div class="tbl-scroll" style="margin-top:10px;max-height:none"><table class="densa"><thead><tr>
-      <th>SKUs rompidos</th>${lab.map(d=>`<th class="num">${d}</th>`).join('')}</tr></thead>
-    <tbody>${linha('Curva A','rompidos_a','#1552c9')}${linha('Curva B','rompidos_b','#1f7a3f')}${
-      linha('Curva C','rompidos_c','#a86d12')}
-      <tr style="font-weight:700;background:#f7f9fc"><td>Total</td>${l.map(x=>`<td class="num">${fmtInt(x.rompidos)}</td>`).join('')}</tr>
-      <tr><td style="color:var(--ink-faint)">% dos itens com venda</td>${l.map(x=>`<td class="num" style="color:var(--ink-faint)">${
-        fmtPct(x.itens_com_venda?100*x.rompidos/x.itens_com_venda:0)}</td>`).join('')}</tr>
-    </tbody></table></div>
-    <div style="margin-top:8px;font-size:12px;color:var(--ink-faint)">Cada coluna é a sexta-feira da semana.
+  el.innerHTML=znSemanaSVG(l,dt)+`
+    <div style="margin-top:6px;font-size:12px;color:var(--ink-faint)">Cada ponto é a sexta-feira da semana.
       Conta os itens com estoque zero no Pulmão SP entre os que tiveram venda no período escolhido,
-      pela curva do mesmo período.${fora.length?` Sem carga na sexta: ${fora.map(x=>`${dt(x.sexta)} usa ${dt(x.capturado_em)}`).join('; ')}.`:''}</div>`;
+      pela curva do mesmo período. Embaixo de cada data: total rompido (SKUs) e % dos itens com venda.${
+      fora.length?` Sem carga na sexta: ${fora.map(x=>`${dt(x.sexta)} usa ${dt(x.capturado_em)}`).join('; ')}.`:''}</div>`;
+}
+// Grafico proprio das rupturas: os rotulos de cada semana sao afastados entre si
+// para nunca ficarem um em cima do outro, e o total sai embaixo da data.
+function znSemanaSVG(l,dt){
+  const S=[{k:'rompidos_a',rot:'Curva A',cor:'#1552c9'},
+           {k:'rompidos_b',rot:'Curva B',cor:'#1f9d55'},
+           {k:'rompidos_c',rot:'Curva C',cor:'#c9871f'}];
+  const W=1400,H=330,padL=58,padR=70,padT=34,padB=62, iw=W-padL-padR, ih=H-padT-padB, N=l.length;
+  const bruto=Math.max(1,...l.flatMap(x=>S.map(s=>+x[s.k]||0)));
+  // escala redonda: 4 faixas iguais com passo 5, 10, 20, 25, 50...
+  const passo=[1,2,5,10,20,25,50,100,200,250,500,1000].find(p=>p*4>=bruto*1.12)||Math.ceil(bruto*1.12/4);
+  const max=passo*4;
+  const X=i=>padL+(N<=1?iw/2:iw*i/(N-1)), Y=v=>padT+ih*(1-v/max);
+  const grade=[0,.25,.5,.75,1].map(f=>{const yy=padT+ih*(1-f);
+    return `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${W-padR}" y2="${yy.toFixed(1)}" stroke="#eef1f6"/>
+      <text x="${padL-12}" y="${(yy+5).toFixed(1)}" font-size="14" fill="#5d6a7e" text-anchor="end">${fmtInt(Math.round(max*f))}</text>`;}).join('');
+  const linhas=S.map(s=>`<path d="M${l.map((x,i)=>X(i).toFixed(1)+' '+Y(+x[s.k]||0).toFixed(1)).join(' L')}"
+      fill="none" stroke="${s.cor}" stroke-width="2.6" stroke-linejoin="round"/>`+
+    l.map((x,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(+x[s.k]||0).toFixed(1)}" r="4" fill="${s.cor}" stroke="#fff" stroke-width="1.5"/>`).join('')).join('');
+  // rotulos: o ponto mais baixo da semana leva o numero EMBAIXO dele; os demais
+  // em cima. Se dois ficarem perto, o de cima sobe e o de baixo desce — nunca
+  // em cima do outro nem em cima da linha.
+  const GAP=18;
+  const rot=l.map((x,i)=>{
+    const r=S.map(s=>{const py=Y(+x[s.k]||0); return {v:+x[s.k]||0,cor:s.cor,py:py,y:py-12};})
+      .sort((a,b)=>a.py-b.py);                       // de cima para baixo na tela
+    const ult=r[r.length-1]; ult.y=ult.py+22; ult.baixo=true;
+    for(let k=r.length-2;k>=0;k--){                   // os de cima sobem se colarem no proximo
+      const prox=r[k+1], lim=prox.baixo? prox.py-12 : prox.y;
+      if(r[k].y>lim-GAP) r[k].y=lim-GAP;
+    }
+    if(r[0].y<padT-16){ const d=padT-16-r[0].y; r.slice(0,-1).forEach(o=>o.y+=d); }
+    let ax=i===0?'start':'middle', dx=i===0?-4:0;
+    if(i===N-1){                                      // ultima semana: numeros a direita do ponto
+      ax='start'; dx=11;
+      r.forEach(o=>o.y=o.py+5);
+      for(let k=1;k<r.length;k++) if(r[k].y<r[k-1].y+GAP) r[k].y=r[k-1].y+GAP;
+    }
+    return r.map(o=>`<text x="${(X(i)+dx).toFixed(1)}" y="${o.y.toFixed(1)}" font-size="14.5" font-weight="800"
+      fill="${o.cor}" text-anchor="${ax}" stroke="#fff" stroke-width="4" paint-order="stroke">${fmtInt(o.v)}</text>`).join('');
+  }).join('');
+  const eixo=l.map((x,i)=>{const ax=i===0?'start':(i===N-1?'end':'middle');
+    const pc=x.itens_com_venda?100*x.rompidos/x.itens_com_venda:0;
+    return `<text x="${X(i).toFixed(1)}" y="${H-36}" font-size="14" font-weight="700" fill="#384559" text-anchor="${ax}">${dt(x.sexta)}</text>
+      <text x="${X(i).toFixed(1)}" y="${H-16}" font-size="13" fill="#5d6a7e" text-anchor="${ax}">total ${fmtInt(x.rompidos)} · ${fmtPct(pc)}</text>`;}).join('');
+  const leg=S.map(s=>`<span style="display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:12.5px;color:var(--ink-soft)">
+      <span style="width:14px;height:3px;background:${s.cor};display:inline-block;border-radius:2px"></span>${s.rot} (SKUs rompidos)</span>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:320px;display:block">${grade}${linhas}${rot}${eixo}</svg>
+    <div style="margin-top:4px">${leg}</div>`;
 }
 
 // O criterio fica escrito na tela: o usuario precisa saber o que esta vendo.
@@ -4664,8 +4703,9 @@ function znCards(){
     if(!total) return '';
     const aberto=!!ZN.aberto[c.k];
     const un=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+    // as 5 zonas sempre na mesma posicao (zero esmaecido), para alinhar entre os cards
     const chips=ZN_ZONAS.map(z=>{ const n=l.filter(d=>d.zona===z.k).length;
-      return n?`<span class="zn-chip" title="${z.rot}: ${z.dica}"><i style="background:${z.cor}"></i>${fmtInt(n)}</span>`:''; }).join('');
+      return `<span class="zn-chip${n?'':' zero'}" title="${z.rot}: ${z.dica}"><i style="background:${z.cor}"></i>${fmtInt(n)}</span>`; }).join('');
     const corpo = !aberto ? '' : (!l.length
       ? `<div class="empty" style="padding:22px">Nenhum item da ${c.rot.toLowerCase()} neste recorte.</div>`
       : `<div class="tbl-scroll" style="border:none;border-radius:0;border-top:1px solid var(--line)"><table class="densa zn-tab"><thead><tr>
