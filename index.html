@@ -853,8 +853,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.4.4 · 25/10/2026 · Impressão: fonte uniforme (9) e descrição mais larga; volta o detalhamento semanal em tabela
    1.5   · 25/10/2026 · Nova tela Sugestão de reposição (botão Gerar, documento para a JIWI, arredonda no MOQ);
                         campo MOQ no cadastro de produtos
+   1.5.1 · 25/10/2026 · Reposição: período e filtros recalculam o documento na hora
    ============================================================ */
-const APP_VERSAO = '1.5';
+const APP_VERSAO = '1.5.1';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4936,12 +4937,12 @@ async function renderReposicao(){
   wirePeriod(document.getElementById('rpPeriod'), REP.meses, (st)=>{
     if(REP.montando) return;
     REP.period=st;
-    // mudou o periodo: o documento na tela deixa de valer ate gerar de novo
-    if(REP.doc){ REP.doc=null; document.getElementById('rpDoc').innerHTML=`<div class="notice warn">
-      O período mudou. Clique em <b>Gerar sugestão de reposição</b> para recalcular.</div>`; }
+    if(REP.doc) repGerar();                    // documento na tela: recalcula na hora
   }, REP.period);
   REP.montando=false;
   document.getElementById('rpGerar').onclick=repGerar;
+  ['rpCurva','rpZona','rpGrupo'].forEach(id=>{
+    document.getElementById(id).onchange=()=>{ if(REP.doc) repGerar(); }; });
 }
 
 function repAjuda(){
@@ -4964,7 +4965,9 @@ function repAjuda(){
 async function repGerar(){
   const btn=document.getElementById('rpGerar');
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Gerando…';
-  const st=REP.period||{};
+  const box=document.getElementById('rpPeriod');
+  const st=(box && box.querySelector('[data-k]')) ? readPeriod(box) : (REP.period||{});
+  REP.period=st;
   const {data,error}=await fetchRpc('sugestao_reposicao',{p_ini:st.aIni||null, p_fim:st.aFim||null});
   btn.disabled=false; btn.textContent='Gerar sugestão de reposição';
   if(error){ document.getElementById('rpDoc').innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
