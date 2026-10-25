@@ -16,7 +16,7 @@
   --blue:#1f6fe0; --blue-ink:#0f3f8f; --blue-tint:#eff4ff; --blue-line:#d8e5fb;
   --green:#1f9d55; --green-ink:#137038; --green-tint:#edfaf1; --green-line:#cdeed7;
   --amber:#b9770a;
-  --ink:#152238; --ink-soft:#4a586f; --ink-faint:#8794a7;
+  --ink:#152238; --ink-soft:#384559; --ink-faint:#5d6a7e;
   --side:#f2f4f8; --side-line:#e3e7ee; --line:#e7eaf0;
   --card-shadow:0 1px 2px rgba(18,34,62,.05);
   --r:12px;
@@ -157,7 +157,7 @@ th.cls{text-align:center}
 .delta.zero{color:var(--ink-faint) !important;font-weight:600}
 .pill.A{background:#e7f0ff;color:#1552c9}
 .pill.B{background:#eef7ef;color:#1f7a3f}
-.pill.C{background:#f2f3f6;color:#697588}
+.pill.C{background:#f2f3f6;color:#4e5a6d}
 .pill.D{background:#fdeaea;color:#c0392b}
 .pill.warn{background:#fff2df;color:var(--amber)}
 .empty{padding:44px 20px;text-align:center;color:var(--ink-faint)}
@@ -228,6 +228,13 @@ tr.lg-off td b{font-weight:600;color:var(--ink-soft)}
 .lg-tipo.ac{color:var(--blue)}
 .lg-hora{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:54px;margin-top:4px}
 .lg-hora i{display:block;background:var(--blue);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+.lg-podio{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:4px 0 14px}
+.lg-pos{width:180px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.lg-nome{font-weight:800;font-size:14px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg-num{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.lg-num small{font-size:11.5px;font-weight:600;color:var(--ink-faint)}
+.lg-deg{width:100%;border-radius:10px 10px 0 0;color:#fff;font-weight:800;font-size:22px;
+  display:flex;align-items:flex-start;justify-content:center;padding-top:10px;margin-top:4px;opacity:.92}
 .lg-hora-rot{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-faint);margin-top:3px}
 /* ---------- Oportunidades ---------- */
 .empty .resumo{margin-top:10px;max-width:560px;font-size:13px;line-height:1.55;color:var(--ink-soft);text-align:left}
@@ -442,25 +449,26 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
 .zn-leg button.on{border-color:var(--blue);background:var(--blue-tint);color:var(--blue-ink)}
 .zn-leg i,.zn-dot{display:inline-block;width:11px;height:11px;border-radius:3px;flex:0 0 auto}
 .zn-rows{padding:14px 16px 6px}
-.zn-row{display:grid;grid-template-columns:110px minmax(0,1fr) 130px;gap:12px;align-items:center;margin-bottom:12px}
-.zn-row .lb{font-weight:700;font-size:13px}
-.zn-row .lb small{display:block;font-weight:500;color:var(--ink-faint);font-size:11.5px}
+.zn-row{display:grid;grid-template-columns:210px minmax(0,1fr) 170px;gap:14px;align-items:center;margin-bottom:12px}
+.zn-row .lb{font-weight:700;font-size:13px;white-space:nowrap}
+.zn-row .lb small{display:inline;font-weight:500;color:var(--ink-faint);font-size:12px;margin-left:4px}
+.zn-row .tt{white-space:nowrap}
 .zn-row .tt{font-size:12px;color:var(--ink-faint);text-align:right;font-variant-numeric:tabular-nums}
 .zn-bar{display:flex;height:30px;border-radius:7px;overflow:hidden;background:#f2f4f8;gap:2px}
 .zn-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;cursor:pointer;
   min-width:3px;font-variant-numeric:tabular-nums;transition:filter .12s}
 .zn-seg:hover{filter:brightness(1.15)}
 .zn-seg.sel{box-shadow:inset 0 0 0 3px #ffd84d}
-.zn-escala{display:grid;grid-template-columns:110px minmax(0,1fr) 130px;gap:12px;font-size:11px;color:var(--ink-faint);margin:-4px 0 4px}
+.zn-escala{display:grid;grid-template-columns:210px minmax(0,1fr) 170px;gap:12px;font-size:11px;color:var(--ink-faint);margin:-4px 0 4px}
 .zn-escala div{display:flex;justify-content:space-between}
 table.zn-tab td.num,table.zn-tab th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 table.zn-tab th{white-space:nowrap;font-size:11.5px}
 table.zn-tab td{white-space:nowrap}
 .zn-desc{display:block;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 940px);min-width:140px}
 table.densa.zn-tab td,table.densa.zn-tab th{padding-left:6px;padding-right:6px}
-table.zn-tab th small{display:block;font-size:10.5px}
+table.zn-tab th small{display:inline;font-size:10.5px}
 table.zn-tab th small{font-weight:500;color:var(--ink-faint)}
-.zn-pct{display:inline-block;min-width:44px;text-align:right;padding:2px 7px;border-radius:6px;font-weight:700;font-size:12px;color:#fff}
+.zn-pct{display:inline-block;min-width:62px;text-align:right;padding:2px 7px;border-radius:6px;font-weight:700;font-size:12px;color:#fff}
 .zn-card-head{cursor:pointer;user-select:none;flex-wrap:wrap}
 .zn-card-head:hover{background:#f2f6fd}
 .zn-seta{width:14px;color:var(--ink-faint);font-size:13px}
@@ -489,7 +497,7 @@ table.zn-tab th small{font-weight:500;color:var(--ink-faint)}
 .cob-tbl td.tot,.cob-tbl th.tot{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
 .c-ok{background:#f4f7fb;color:var(--ink)}
 .c-ver{background:#fff2df;color:#9a6100}
-.c-conf{background:#f2f3f6;color:#697588}
+.c-conf{background:#f2f3f6;color:#4e5a6d}
 .c-pend,.c-aguard{background:#fdeaea;color:#c0392b}
 .c-fora{background:#f7f8fa;color:#aab3c0}
 .cob-leg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
@@ -608,7 +616,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   color:var(--blue);font-weight:600;padding:3px 6px;border-radius:6px;cursor:pointer}
 
 .duto-num{font-variant-numeric:tabular-nums;font-size:11.5px;font-weight:700;
-  white-space:nowrap;min-width:48px;text-align:right}
+  white-space:nowrap;min-width:62px;text-align:right}
 .duto-cel{padding:0 3px}
 .duto.semgiro{background:repeating-linear-gradient(45deg,#f1f4f8,#f1f4f8 3px,#e6eaf1 3px,#e6eaf1 6px)}
 .chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
@@ -811,8 +819,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
                       alvo A/B/C também na Cobertura de estoque; Rupturas sem paginação, por curva
    1.3.1 · 25/10/2026 · Coluna China só aparece com pedido carregado; ajuda (i) no Editar régua
    1.3.2 · 25/10/2026 · Rupturas: colunas Alvo ideal (un) e Falta / sobra (un) na lista da curva
+   1.3.3 · 25/10/2026 · Percentuais com 2 casas; cinza mais escuro; menos quebras; (i) da régua;
+                        Log: pódio e ranking de lojas por acesso
    ============================================================ */
-const APP_VERSAO = '1.3.2';
+const APP_VERSAO = '1.3.3';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -912,7 +922,7 @@ function printTabela(titulo, cols, rows){
 // e resolve qual item esta sob o cursor.
 const PARETO_ST = {};
 function paretoSVG(items, corteA, corteB, classKey){
-  const N=items.length; if(!N) return '<div style="color:#8794a7;font-size:13px">Sem itens.</div>';
+  const N=items.length; if(!N) return '<div style="color:#5d6a7e;font-size:13px">Sem itens.</div>';
   classKey=classKey||'classe';
   const COL={A:'#1552c9',B:'#1f9d55',C:'#9aa5b5',D:'#e08a8a'};
   const tot=items.reduce((s,i)=>s+(+i.metrica||0),0)||1;
@@ -935,7 +945,7 @@ function paretoSVG(items, corteA, corteB, classKey){
   const yv=v=>padT+ih*(1-v/100);
   const ticks=[0,25,50,75,100].map(t=>
     `<line x1="${padL}" y1="${yv(t).toFixed(1)}" x2="${W-padR}" y2="${yv(t).toFixed(1)}" stroke="${t===0?'#dfe4ec':'#f0f3f8'}"/>
-     <text x="${padL-12}" y="${(yv(t)+5).toFixed(1)}" font-size="15" fill="#8794a7" text-anchor="end">${t}%</text>`).join('');
+     <text x="${padL-12}" y="${(yv(t)+5).toFixed(1)}" font-size="15" fill="#5d6a7e" text-anchor="end">${t}%</text>`).join('');
   const yA=yv(corteA), yB=yv(corteB);
   const curva=lp.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L');
 
@@ -991,12 +1001,12 @@ function paretoPick(ev,id){
   const i=paretoIdx(ev,id); if(i<0) return;
   abcItemDetail(PARETO_ST[id].meta[i].sku);
 }
-const PARETO_LEG=`<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#697588;margin-top:4px">
+const PARETO_LEG=`<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#4e5a6d;margin-top:4px">
   <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1552c9;vertical-align:-1px"></span> A</span>
   <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1f9d55;vertical-align:-1px"></span> B</span>
   <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#9aa5b5;vertical-align:-1px"></span> C</span>
   <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#d98b8b;vertical-align:-1px"></span> D (sem giro)</span>
-  <span style="color:#8794a7">Clique numa barra para ver o item.</span></div>`;
+  <span style="color:#5d6a7e">Clique numa barra para ver o item.</span></div>`;
 function abcItemDetail(sku){
   const d=(ABC.data||[]).find(x=>x.sku===sku); if(!d)return;
   openModal('Item — '+ref(sku), `<div class="kv" style="grid-template-columns:auto 1fr;gap:6px 14px">
@@ -1018,9 +1028,9 @@ function lineChart(labels, series, opts){
   const x=i=> padL+(N<=1?iw/2:iw*i/(N-1)), y=v=> padT+ih*(1-v/max);
   const grid=[0,.25,.5,.75,1].map(f=>{const yy=padT+ih*(1-f);
     return `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${W-padR}" y2="${yy.toFixed(1)}" stroke="#eef1f6"/>
-    <text x="${padL-10}" y="${(yy+5).toFixed(1)}" font-size="13" fill="#8794a7" text-anchor="end">${fmtInt(Math.round(max*f))}</text>`;}).join('');
+    <text x="${padL-10}" y="${(yy+5).toFixed(1)}" font-size="13" fill="#5d6a7e" text-anchor="end">${fmtInt(Math.round(max*f))}</text>`;}).join('');
   const xlab=labels.map((l,i)=>{const ax=i===0?'start':(i===N-1?'end':'middle');
-    return `<text x="${x(i).toFixed(1)}" y="${H-10}" font-size="14" fill="#8794a7" text-anchor="${ax}">${l}</text>`;}).join('');
+    return `<text x="${x(i).toFixed(1)}" y="${H-10}" font-size="14" fill="#5d6a7e" text-anchor="${ax}">${l}</text>`;}).join('');
   // Linha de media da primeira serie: mostra num relance quais meses ficaram
   // acima ou abaixo do patamar normal da rede.
   let mediaSVG='';
@@ -1175,7 +1185,7 @@ function rankCompareHTML(rowsA,rowsB,key,topN){
   const A=aggMap(rowsA,key),B=aggMap(rowsB,key);
   const ks=[...new Set([...Object.keys(A),...Object.keys(B)])];
   const list=ks.map(k=>{const a=A[k]||0,b=B[k]||0;return {k,a,b,d:a?100*(b-a)/a:(b?100:0)};}).sort((x,y)=>y.b-x.b).slice(0,topN||8);
-  if(!list.length) return '<div style="color:#8794a7;font-size:13px">Sem dados no contexto.</div>';
+  if(!list.length) return '<div style="color:#5d6a7e;font-size:13px">Sem dados no contexto.</div>';
   return list.map((r,i)=>`<div class="rankrow cmp">
     <span class="nm" title="${(r.k+'').replace(/"/g,'&quot;')}">${i+1}. ${r.k}</span>
     <span class="ab"><span class="a">${fmtInt(r.a)}</span><span class="ar">→</span><span class="b">${fmtInt(r.b)}</span></span>
@@ -2141,7 +2151,7 @@ function indiceHTML(v){
   const n=+v||0;
   const cor = n>=1.2 ? '#1f9d55' : (n>=0.8 ? 'var(--ink-soft)' : (n>=0.4 ? 'var(--amber)' : '#c0392b'));
   return `<span style="font-weight:700;color:${cor}" title="índice ${n.toFixed(2)}">${
-    Math.round(n*100)}%</span>`;
+    fmtPct(n*100)}</span>`;
 }
 const OPO={gap:[],dest:[],porte:[],pm:[],linha:[],loja:'',aba:'gap',meses:[],period:{},montando:false};
 /* Cortes da leitura por linha. Sem eles sao 17 lojas x 14 linhas na tela, e
@@ -2904,7 +2914,7 @@ function abcRefresh(){
       : `<div class="s"><div class="n">${fmtInt(totQtd)}</div><div class="l">Peças no período</div></div>`}
     <div class="s"><div class="n" style="color:#1552c9">${cont.A||0}</div><div class="l">Classe A</div></div>
     <div class="s"><div class="n" style="color:#1f7a3f">${cont.B||0}</div><div class="l">Classe B</div></div>
-    <div class="s"><div class="n" style="color:#697588">${cont.C||0}</div><div class="l">Classe C</div></div>
+    <div class="s"><div class="n" style="color:#4e5a6d">${cont.C||0}</div><div class="l">Classe C</div></div>
     <div class="s"><div class="n" style="color:#c0392b">${cont.D||0}</div><div class="l">Sem giro (D)</div></div>
   </div>`;
 
@@ -3638,7 +3648,7 @@ function presAgg(rows,key){
 }
 function rankHTML(agg,topN,onClickKey){
   const rows=agg.list.slice(0,topN||8); const max=rows[0]?rows[0].v:1;
-  if(!rows.length) return '<div style="color:#8794a7;font-size:13px">Sem dados no contexto.</div>';
+  if(!rows.length) return '<div style="color:#5d6a7e;font-size:13px">Sem dados no contexto.</div>';
   return rows.map((r,i)=>`<div class="rankrow">
     <span class="nm" title="${(r.k+'').replace(/"/g,'&quot;')}"${onClickKey?` style="cursor:pointer;color:var(--blue)" onclick="${onClickKey}('${(r.k+'').replace(/'/g,"\\'")}')"`:''}>${i+1}. ${r.k}</span>
     <span class="vl"><span class="un">${fmtInt(r.v)}</span><span class="pc">${fmtPct(r.pct)}</span></span>
@@ -3710,7 +3720,7 @@ function presLinhaShare(ctx){
   const comLinha=ctx.filter(r=>r.linha);
   const semLinha=ctx.filter(r=>!r.linha).reduce((s,r)=>s+(+r.quantidade||0),0);
   const ag=presAgg(comLinha,'linha');
-  if(!ag.list.length){ box.innerHTML='<div style="color:#8794a7;font-size:13px">Sem linhas no recorte.</div>'; return; }
+  if(!ag.list.length){ box.innerHTML='<div style="color:#5d6a7e;font-size:13px">Sem linhas no recorte.</div>'; return; }
   const max=ag.list[0].v;
   box.innerHTML=ag.list.map(r=>`<div class="rankrow">
       <span class="nm">${r.k}</span>
@@ -4458,8 +4468,42 @@ function znRegua(){
       <b>A ${P.dias_a} d · B ${P.dias_b} d · C ${P.dias_c} d</b>.
       Venda/dia de <b>${fmtComp(r0.media_ini)} a ${fmtComp(r0.media_fim)}</b>
       (${n} ${n>1?'meses':'mês'}) — o período escolhido acima. A curva ABC é a do mesmo período.</span>
-    ${isAdmin()?'<button class="btn-tool" id="znEditar" style="padding:4px 10px">Editar régua</button>':''}`;
+    ${isAdmin()?'<button class="btn-tool" id="znEditar" style="padding:4px 10px">Editar régua</button>':''}
+    ${ajuda('Como funciona a régua', znAjudaRegua())}`;
   const ed=document.getElementById('znEditar'); if(ed) ed.onclick=znEditarRegua;
+}
+// Explicacao completa da regua: o que e, como classifica e o que muda ao editar.
+function znAjudaRegua(){
+  const P=ZN.par||{}, A=+P.dias_a, cv=+P.corte_vermelho, ca=+P.corte_amarelo;
+  const ex=2, alvo=ex*A, est=Math.round(alvo*0.5);
+  return `<p>A régua decide em que cor cada item do Pulmão SP aparece. Ela compara o
+      <b>estoque de hoje</b> com o <b>alvo ideal</b> do item.</p>
+    <p><b>Alvo ideal (un) = venda/dia da rede × dias da curva.</b> A venda/dia vem do período
+      escolhido no topo da tela. Os dias dependem da curva ABC do item no mesmo período:
+      <b>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias</b>.
+      Item sem venda no período não tem alvo.</p>
+    <p class="exemplo">Item curva A vendendo <b>${ex} un/dia</b>: alvo = ${ex} × ${fmtInt(A)} =
+      <b>${fmtInt(alvo)} un</b>. Com <b>${fmtInt(est)} un</b> no Pulmão, está em
+      <b>${fmtPct(100*est/alvo)}</b> do alvo → amarelo.</p>
+    <p><b>As cores, em % do alvo:</b></p>
+    <ul>
+      <li><b>Ruptura</b> (preto) — estoque zero.</li>
+      <li><b>Vermelho</b> — de 1% até ${fmtInt(cv)}%: perto de romper.</li>
+      <li><b>Amarelo</b> — de ${fmtInt(cv+1)}% até ${fmtInt(ca)}%: atenção.</li>
+      <li><b>Verde</b> — de ${fmtInt(ca+1)}% até 100%: no alvo.</li>
+      <li><b>Excesso</b> (azul) — acima de 100%, ou item sem venda no período com estoque.</li>
+    </ul>
+    <p><b>O que acontece ao editar</b> (só o administrador edita):</p>
+    <ul>
+      <li><b>Aumentar os dias de uma curva</b> — o alvo dos itens daquela curva sobe. Menos itens
+        ficam em excesso; mais itens caem em vermelho e amarelo.</li>
+      <li><b>Diminuir os dias</b> — o alvo cai. Mais itens viram excesso; menos ficam perto de romper.</li>
+      <li><b>Aumentar o corte do vermelho</b> — o alerta chega antes: mais itens ficam vermelhos.</li>
+      <li><b>Aumentar o corte do amarelo</b> — mais itens saem do verde e vão para o amarelo.</li>
+      <li>Ruptura (zero) e excesso (acima de 100%) <b>não mudam</b> com os cortes, só com os dias.</li>
+    </ul>
+    <p><b>O que não muda:</b> estoque, vendas e cadastro. A edição muda só a classificação. Vale na
+      hora para todos os usuários, nesta tela e na <b>Cobertura de estoque</b>, que usa a mesma régua.</p>`;
 }
 
 // Grafico: uma barra por curva, 100% = os SKUs daquela curva. Mostra a
@@ -4473,13 +4517,12 @@ function znGrafico(){
       const pc=100*n/l.length;
       const sel=ZN.zona===z.k&&ZN.aberto[c.k];
       return `<div class="zn-seg${sel?' sel':''}" style="flex:${n} 0 0;background:${z.cor}"
-        title="${c.rot} · ${z.rot} (${z.dica}): ${fmtInt(n)} SKUs · ${znDec(pc,0)}%"
+        title="${c.rot} · ${z.rot} (${z.dica}): ${fmtInt(n)} SKUs · ${znDec(pc,2)}%"
         onclick="znFiltra('${z.k}','${c.k}')">${pc>=6?fmtInt(n):''}</div>`;}).join('');
     const pecas=l.reduce((a,d)=>a+Number(d.estoque||0),0);
-    return `<div class="zn-row"><div class="lb">${c.rot}${c.sub?`<small>${c.sub}</small>`:
-        `<small>alvo ${fmtInt(znDias(c.k))} dias</small>`}</div>
+    return `<div class="zn-row"><div class="lb">${c.rot}<small>· ${c.sub?c.sub:`alvo ${fmtInt(znDias(c.k))} dias`}</small></div>
       <div class="zn-bar">${segs}</div>
-      <div class="tt">${fmtInt(l.length)} SKUs<br>${fmtInt(pecas)} un</div></div>`;
+      <div class="tt">${fmtInt(l.length)} SKUs · ${fmtInt(pecas)} un</div></div>`;
   }).join('') + `<div class="zn-escala"><span></span><div><span>0%</span><span>50%</span><span>100% dos SKUs da curva</span></div><span></span></div>`;
 }
 
@@ -4587,7 +4630,7 @@ function znCards(){
               title="${+d.diferenca<0?'faltam para chegar ao alvo':+d.diferenca>0?'acima do alvo':''}">${znSinal(d.diferenca)}</td>
             <td class="num">${+d.venda_dia>0?znDec(d.venda_dia,1):'0'}</td>
             <td class="num">${znCob(d)}</td>
-            <td class="num">${d.pct_alvo!=null?`<span class="zn-pct" style="background:${z.cor}">${znDec(d.pct_alvo,0)}%</span>`:'—'}</td>
+            <td class="num">${d.pct_alvo!=null?`<span class="zn-pct" style="background:${z.cor}">${znDec(d.pct_alvo,2)}%</span>`:'—'}</td>
             ${ZN.temChina?`<td class="num"${ch==='sem pedido'?' style="color:#d0392b;font-weight:700"':''}>${ch}</td>`:''}</tr>`;}).join('')}
         </tbody></table></div>`);
     return `<div class="panel zn-card" id="znCard${c.k}" style="margin-bottom:10px">
@@ -4614,7 +4657,7 @@ function znColunas(csv){
     {label:'Venda/dia', un:'un', num:1, get:d=>+d.venda_dia>0?znDec(d.venda_dia,1):'0'},
     {label:'Cobertura', un:'dias', num:1, get:znCob},
     {label:'Alvo ideal', un:'un', num:1, get:d=>d.alvo==null?'—':fmtInt(Math.round(d.alvo))},
-    {label:'% do alvo', un:'%', num:1, get:d=>d.pct_alvo==null?'—':znDec(d.pct_alvo,0)},
+    {label:'% do alvo', un:'%', num:1, get:d=>d.pct_alvo==null?'—':znDec(d.pct_alvo,2)},
     {label:'Falta / sobra', un:'un', num:1, get:d=>znSinal(d.diferenca)}
   ];
   if(ZN.temChina) cols.push({label:'China', nw:1, get:znChina});
@@ -4837,12 +4880,12 @@ function pulmaoResumo(){
       <td onclick="pulmaoDrill('${eixo}','${kk}','')">${eixo==='classe'?`<span class="pill ${o.k}">${o.k}</span>`:o.k}</td>
       <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','')">${fmtInt(o.itens)}</td>
       <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','rompido')"${o.rompidos?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(o.rompidos)}${
-        o.itens?` <span style="font-weight:400;color:var(--ink-faint)">(${(100*o.rompidos/o.itens).toFixed(0)}%)</span>`:''}</td>
+        o.itens?` <span style="font-weight:400;color:var(--ink-faint)">(${fmtPct(100*o.rompidos/o.itens)})</span>`:''}</td>
       <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','semgiro')">${fmtInt(o.semGiro)}</td>
       <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','')">${fmtInt(o.estoque)}</td>
       <td class="num">${o.venda.toFixed(1)}</td>
-      <td class="num" style="color:${cor(o)};font-weight:700" title="${o.alvo?Math.round(100*o.estoque/o.alvo)+'% do alvo':''}">${
-        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}${o.alvo?` <span style="font-weight:600;font-size:11.5px">· ${Math.round(100*o.estoque/o.alvo)}%</span>`:''}</td></tr>`;}).join('')}
+      <td class="num" style="color:${cor(o)};font-weight:700" title="${o.alvo?fmtPct(100*o.estoque/o.alvo)+' do alvo':''}">${
+        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}${o.alvo?` <span style="font-weight:600;font-size:11.5px">· ${fmtPct(100*o.estoque/o.alvo)}</span>`:''}</td></tr>`;}).join('')}
       <tr style="font-weight:700;background:#f7f9fc">
         <td>${['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro']
               .some(id=>valOf(id,''))?'TOTAL DO RECORTE':'TOTAL DA REDE'}</td>
@@ -4851,7 +4894,7 @@ function pulmaoResumo(){
         <td class="num">${fmtInt(base.filter(d=>Number(d.vendido_total)===0).length)}</td>
         <td class="num">${fmtInt(totE)}</td><td class="num">${totV.toFixed(1)}</td>
         <td class="num" style="color:${cor({alvo:totA,estoque:totE})}">${totD==null?'—':fmtInt(Math.round(totD))+' d'}${
-          totA?` <span style="font-size:11.5px">· ${Math.round(100*totE/totA)}%</span>`:''}</td></tr>
+          totA?` <span style="font-size:11.5px">· ${fmtPct(100*totE/totA)}</span>`:''}</td></tr>
     </tbody></table></div>`;
 }
 
@@ -4970,9 +5013,9 @@ function dutoHTML(dias, rompido, meta){
 </div>
       <div class="duto-pin" style="left:${pos.toFixed(2)}%"><i></i></div>
     </div>`;
-  return cel(barra, (alem?'+':'')+Math.round(100*f)+'%', faixa.cor,
+  return cel(barra, (alem?'+':'')+fmtPct(100*f), faixa.cor,
     `${fmtInt(Math.round(dias))} dias · ${meses} meses de venda · ${
-      Math.round(100*f)}% do alvo de ${fmtInt(meta)} dias`);
+      fmtPct(100*f)} do alvo de ${fmtInt(meta)} dias`);
 }
 
 // Cobertura em dias: mais legivel que fracao de mes para decidir reposicao.
@@ -5217,10 +5260,62 @@ function logPinta(){
         <span class="count">${fmtInt(R.total)} registros</span></div>
         <div style="padding:12px 16px">${logDiasHTML(R.por_dia||[])}</div></div>
     </div>
+    ${logRankingHTML(porU)}
     ${logContasHTML(contas, porU)}
     ${logEventosHTML()}`;
   const mais=document.getElementById('lgMais');
   if(mais) mais.onclick=()=>{ LOG.lim+=120; logPinta(); };
+}
+
+// Ranking das lojas (contas de associado) por acessos no periodo do filtro.
+// Pódio para os 3 primeiros; do 4º em diante, lista — inclusive quem nao entrou,
+// que e justamente quem precisa de atencao.
+const LOG_TROFEU=['#d9a400','#9aa4b1','#c0773a'];
+function logTrofeu(cor){
+  return `<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true">
+    <path d="M7 3h10v4a5 5 0 01-10 0V3z" fill="${cor}"/>
+    <path d="M7 4H4v2a3 3 0 003 3M17 4h3v2a3 3 0 01-3 3" fill="none" stroke="${cor}" stroke-width="1.8"/>
+    <path d="M10.5 12h3v4h-3z" fill="${cor}"/><rect x="7.5" y="16" width="9" height="2.6" rx="1" fill="${cor}"/>
+    <rect x="6" y="19" width="12" height="2.4" rx="1" fill="${cor}"/></svg>`;
+}
+function logRankingHTML(porU){
+  if(LOG.conta || (LOG.papel && LOG.papel!=='associado')) return '';
+  const g={};
+  LOG.contas.filter(c=>c.papel==='associado').forEach(c=>{
+    const k=c.loja||c.nome||c.email; const u=porU[c.id];
+    const o=g[k]=g[k]||{nome:k,acessos:0,telas:0,dias:0,ultimo:null};
+    if(u){ o.acessos+=+u.acessos||0; o.telas+=+u.telas||0; o.dias=Math.max(o.dias,+u.dias||0);
+      if(!o.ultimo || u.ultimo>o.ultimo) o.ultimo=u.ultimo; }
+  });
+  const l=Object.values(g).sort((a,b)=>b.acessos-a.acessos||b.telas-a.telas||a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!l.length) return '';
+  const pod=l.filter(x=>x.acessos>0).slice(0,3);
+  const resto=l.slice(pod.length);
+  const ordem=[1,0,2].filter(i=>pod[i]);           // 2º à esquerda, 1º no meio, 3º à direita
+  const alt=[118,92,74];
+  const podio = pod.length ? `<div class="lg-podio">${ordem.map(i=>{const x=pod[i];
+      return `<div class="lg-pos">
+        ${logTrofeu(LOG_TROFEU[i])}
+        <div class="lg-nome" title="${x.nome}">${x.nome}</div>
+        <div class="lg-num">${fmtInt(x.acessos)} <small>acessos</small></div>
+        <div class="lg-deg" style="height:${alt[i]}px;background:${LOG_TROFEU[i]}">${i+1}º</div>
+      </div>`;}).join('')}</div>`
+    : '<div style="color:var(--ink-faint);font-size:13px;padding:6px 0">Nenhuma loja acessou no período.</div>';
+  const max=Math.max(...l.map(x=>x.acessos),1);
+  const lista = resto.length ? `<table class="densa" style="margin-top:6px"><thead><tr>
+      <th class="num">#</th><th>Loja</th><th class="num">Acessos</th><th class="num">Telas</th>
+      <th class="num">Dias</th><th>Último acesso</th><th style="width:28%"></th></tr></thead>
+    <tbody>${resto.map((x,i)=>`<tr${x.acessos?'':' class="lg-off"'}>
+      <td class="num">${pod.length+i+1}º</td><td><b>${x.nome}</b></td>
+      <td class="num">${x.acessos?fmtInt(x.acessos):'—'}</td>
+      <td class="num">${x.telas?fmtInt(x.telas):'—'}</td>
+      <td class="num">${x.dias?fmtInt(x.dias):'—'}</td>
+      <td style="white-space:nowrap">${x.acessos?fmtDataHora(x.ultimo):'<span class="pill D">sem acesso no período</span>'}</td>
+      <td><span class="barrinha"><i style="width:${(100*x.acessos/max).toFixed(1)}%;background:var(--blue)"></i></span></td>
+    </tr>`).join('')}</tbody></table>` : '';
+  return `<div class="panel" style="margin-bottom:14px"><div class="panel-head">
+      <h2>Ranking de lojas por acesso</h2><span class="count">${logJanelaRot()} · ${fmtInt(l.length)} lojas</span></div>
+    <div style="padding:14px 16px">${podio}${lista}</div></div>`;
 }
 
 function logTelasHTML(l){
@@ -5374,7 +5469,7 @@ const GUIA=[
 // coluna, aqui só abriria um buraco entre o R$ e o número.
 const botMoeda=n=>'<b>R$ '+fmtNum2(n)+'</b>';
 // O indice se le de relance; duas casas decimais aqui so atrapalham.
-const pctRedondo=v=>Math.round(Number(v)||0)+'%';
+const pctRedondo=v=>fmtPct(v);
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
