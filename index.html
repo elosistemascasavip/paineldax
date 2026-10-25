@@ -854,8 +854,11 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.5   · 25/10/2026 · Nova tela Sugestão de reposição (botão Gerar, documento para a JIWI, arredonda no MOQ);
                         campo MOQ no cadastro de produtos
    1.5.1 · 25/10/2026 · Reposição: período e filtros recalculam o documento na hora
+   1.5.2 · 25/10/2026 · Revisão geral: sai "Publicar curva" (sem efeito), critério ABC só quantidade,
+                        "Sem venda no período", carga de estoque com a mesma regra do selo
+   1.5.3 · 25/10/2026 · Limpeza do banco: 16 views e 2 funções antigas sem uso removidas (nenhum dado apagado)
    ============================================================ */
-const APP_VERSAO = '1.5.1';
+const APP_VERSAO = '1.5.3';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -895,11 +898,9 @@ function fmtComp(d){ if(!d) return '—'; const [y,m]=d.split('-'); return MES_N
 const ORDEM_PADRAO={
   vw_vendas_geo:['sku','loja','competencia'],
   vw_produtos:['sku'], vw_lojas:['nome'], vw_usuarios:['email'],
-  vw_vendas_por_loja:['competencia','loja'], vw_preco_medio_loja:['loja'],
+  vw_vendas_por_loja:['competencia','loja'],
   vw_grupos:['rotulo'], vw_linhas:['rotulo'], vw_cores:['rotulo'],
-  vw_cobertura_matriz:['ano','loja','mes'], vw_lojas_sem_venda_ano:['ano','loja'],
-  vw_oportunidade_gap:['loja','sku'], vw_oportunidade_destaque:['loja','sku'],
-  vw_loja_porte:['loja']
+  vw_cobertura_matriz:['ano','loja','mes'], vw_lojas_sem_venda_ano:['ano','loja']
 };
 async function fetchAll(tabela, colunas, ordem){
   const PAGE=1000; let de=0, todos=[];
@@ -1666,7 +1667,7 @@ async function impUltimasCargas(){
   const vendas=u('vendas'), estoque=u('estoque');
   // O balão numerado é o semáforo: verde em dia, vermelho pedindo carga.
   const okVendas = !!vendas && (PERIODO_BASE.fim||'').slice(0,7) >= competenciaEsperadaVendas().slice(0,7);
-  const okEstoque = !!estoque && ehHoje(estoque.quando);
+  const okEstoque = !!estoque && idadeCarga(estoque.quando,'estoque').dias<=RITMO_CARGA.estoque.ok;
   const pinta=(id,ok)=>{ const el=document.getElementById(id); if(el) el.className='num '+(ok?'ok':'alerta'); };
   pinta('numVendas',okVendas); pinta('numEstoque',okEstoque);
   const sv=document.getElementById('stVendas');
@@ -2130,21 +2131,12 @@ function finalizarImport(res){
     <div class="chips">${rej}</div>
     ${res.linhas_rejeitadas>0?'<div class="notice warn" style="margin:0 0 14px">Linhas rejeitadas ficaram registradas para revisão (loja não mapeada ou SKU fora do catálogo).</div>':''}
     <div class="actions">
-      ${isAdmin()?'<button class="go" id="btnPublicar">Publicar curva para os associados</button>':''}
+
       <button class="cancel" onclick="route('abc')">Ver curva ABC</button>
     </div>
     <div class="log hidden" id="impLog"></div>
   </div>`;
-  if(isAdmin()) document.getElementById('btnPublicar').onclick=publicarCurva;
-  loadStatus();
-}
-async function publicarCurva(){
-  const btn=document.getElementById('btnPublicar');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Publicando…';
-  const {data,error}=await sb.rpc('gerar_snapshot_abc',{p_publicar:true,p_observacao:null});
-  if(error){ logln('✖ '+error.message); btn.disabled=false; btn.textContent='Tentar novamente'; return; }
-  logln(`✔ Curva publicada: ${data.skus} SKUs, competência ${fmtComp(data.competencia)}.`);
-  btn.textContent='Curva publicada ✓';
+
   loadStatus();
 }
 function renderQuedaAlerta(impId,periodos){
@@ -2824,8 +2816,7 @@ async function renderABC(){
       <div class="f"><label>CORTE A (%)</label><input type="number" id="cfgA" value="${P.corte_a}" min="1" max="99"></div>
       <div class="f"><label>CORTE B (%)</label><input type="number" id="cfgB" value="${P.corte_b}" min="2" max="100"></div>
       <div class="f"><label>CRITÉRIO</label>
-        <select id="cfgCrit"><option value="quantidade"${P.criterio==='quantidade'?' selected':''}>Quantidade</option>
-        <option value="valor"${P.criterio==='valor'?' selected':''}>Valor</option></select></div>
+        <select id="cfgCrit" disabled title="Por valor depende da tabela de preços por SKU"><option value="quantidade" selected>Quantidade</option></select></div>
       <button class="btn-tool pri" id="cfgSave">Salvar cortes</button>
       <div style="font-size:12px;color:var(--ink-soft);align-self:center">A curva usa o período escolhido abaixo.</div>
     </div>` : '';
@@ -3141,7 +3132,7 @@ function abcPrint(){
 }
 async function abcSalvarConfig(){
   const a=+document.getElementById('cfgA').value, b=+document.getElementById('cfgB').value;
-  const crit=document.getElementById('cfgCrit').value;
+  const crit='quantidade';   // por valor so com a tabela de precos por SKU
   const btn=document.getElementById('cfgSave'); btn.disabled=true; btn.textContent='Salvando…';
   const {error}=await sb.rpc('definir_parametros_abc',{p_corte_a:a,p_corte_b:b,p_criterio:crit,p_meses:null});
   btn.disabled=false; btn.textContent='Salvar cortes';
@@ -5158,9 +5149,9 @@ async function renderRuptura(){
         uniq(PUL.raw.map(d=>d.cor).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
       <select class="selin" id="ceFiltro">
         <option value="">Todos os itens</option>
-        <option value="rompido">Rompidos (estoque zero)</option>
+        <option value="rompido">Rompidos (estoque zero, com venda)</option>
         <option value="critico">Perto de romper (até 33% do alvo)</option>
-        <option value="semgiro">Sem giro (nunca vendeu)</option>
+        <option value="semgiro">Sem venda no período</option>
         <option value="parado">Com estoque e sem giro</option>
         <option value="excesso">Acima do alvo</option>
       </select>
@@ -5221,7 +5212,7 @@ function pulmaoResumo(){
     const o=g[k]=g[k]||{k:k,itens:0,estoque:0,venda:0,rompidos:0,semGiro:0,alvo:0};
     o.itens++; o.estoque+=Number(d.estoque||0); o.venda+=Number(d.venda_media_mes||0);
     const m=pulMeta(d); if(m) o.alvo+=(Number(d.venda_media_mes||0)/30)*m;
-    if(Number(d.estoque)===0) o.rompidos++;
+    if(Number(d.estoque)===0&&Number(d.vendido_total)>0) o.rompidos++;
     if(Number(d.vendido_total)===0) o.semGiro++;
   });
   const l=Object.values(g).map(o=>({...o, dias: o.venda>0 ? (o.estoque/o.venda)*30 : null}));
@@ -5259,7 +5250,7 @@ function pulmaoResumo(){
         <td>${['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro']
               .some(id=>valOf(id,''))?'TOTAL DO RECORTE':'TOTAL DA REDE'}</td>
         <td class="num">${fmtInt(base.length)}</td>
-        <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0).length)}</td>
+        <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0&&Number(d.vendido_total)>0).length)}</td>
         <td class="num">${fmtInt(base.filter(d=>Number(d.vendido_total)===0).length)}</td>
         <td class="num">${fmtInt(totE)}</td><td class="num">${totV.toFixed(1)}</td>
         <td class="num" style="color:${cor({alvo:totA,estoque:totE})}">${totD==null?'—':fmtInt(Math.round(totD))+' d'}${
@@ -5404,7 +5395,7 @@ function pulmaoRefresh(){
        (!q || (ref(d.sku)+' '+(d.descricao||'')).toLowerCase().includes(q))
     && (!g  || d.grupo===g) && (!li || d.linha===li) && (!co || d.cor===co)
     && (!cl || d.classe===cl));
-  if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0);
+  if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0&&Number(d.vendido_total)>0);
   const cv=(+(PUL.par||{}).corte_vermelho||33)/100;
   if(f==='critico') l=l.filter(d=>Number(d.estoque)>0 && pulPct(d)!=null && pulPct(d)<=cv);
   if(f==='semgiro') l=l.filter(d=>Number(d.vendido_total)===0);
@@ -5418,7 +5409,7 @@ function pulmaoPinta(){
   const pag=l;
   // indicadores, painel e lista usam sempre o mesmo conjunto: o que esta na tela
   const b=PUL.vis||PUL.raw;
-  const zer=b.filter(d=>Number(d.estoque)===0).length;
+  const zer=b.filter(d=>Number(d.estoque)===0&&Number(d.vendido_total)>0).length;
   const cv=(+(PUL.par||{}).corte_vermelho||33)/100;
   const crit=b.filter(d=>Number(d.estoque)>0&&pulPct(d)!=null&&pulPct(d)<=cv).length;
   const par=b.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
@@ -5464,7 +5455,7 @@ function pulmaoPinta(){
       <th>Classe</th><th class="num">Estoque</th><th class="num">Venda/mês</th>
       <th style="width:210px;min-width:210px">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
-      const dias=diasCob(d), rompido=Number(d.estoque)===0;
+      const dias=diasCob(d), rompido=Number(d.estoque)===0&&Number(d.vendido_total)>0;
       return `<tr${rompido?' class="rompido"':''}><td>${ref(d.sku)}</td>
         <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
         <td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
@@ -5813,7 +5804,7 @@ const GUIA=[
   {rota:'pulmao', rot:'Estoque Pulmão',
    txt:'O saldo disponível no Pulmão SP, item a item. Consulta pura: código, descrição, cor, linha e quanto tem.'},
   {rota:'zonas', rot:'Rupturas e excessos',
-   txt:'A foto de hoje do Pulmão SP por curva ABC da rede: o que está rompido, o que está perto de romper e o que está sobrando, contra o alvo de cada curva (A 180, B 150, C 90 dias de venda), com a venda do período que você escolheu. Clique numa curva para ver e imprimir a lista.'},
+   txt:'A foto de hoje do Pulmão SP por curva ABC da rede: o que está rompido, o que está perto de romper e o que está sobrando, contra o alvo de cada curva (dias de venda definidos na régua), com a venda do período que você escolheu. Clique numa curva para ver e imprimir a lista.'},
   {rota:'reposicao', rot:'Sugestão de reposição',
    txt:'Gera o documento do que pedir para cada item do Pulmão SP voltar ao alvo: alvo menos estoque menos o que já está em trânsito, arredondado no MOQ do item. É a base do pedido feito pela JIWI.'},
   {rota:'ruptura', rot:'Cobertura de estoque',
