@@ -809,8 +809,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.2 · 24/10/2026 · Nova tela Rupturas e excessos (zonas do pulmão por curva ABC)
    1.3 · 25/10/2026 · Uma régua só: curva ABC e venda/dia do período escolhido em todas as telas;
                       alvo A/B/C também na Cobertura de estoque; Rupturas sem paginação, por curva
+   1.3.1 · 25/10/2026 · Coluna China só aparece com pedido carregado; ajuda (i) no Editar régua
    ============================================================ */
-const APP_VERSAO = '1.3';
+const APP_VERSAO = '1.3.1';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4364,7 +4365,7 @@ const ZN_ZONAS=[
   {k:'excesso', rot:'Excesso',  titulo:'em excesso',        dica:'acima do alvo ou sem venda', cor:'#3d8ef0'}
 ];
 const ZN_CURVAS=[{k:'A',rot:'Curva A'},{k:'B',rot:'Curva B'},{k:'C',rot:'Curva C'},{k:'D',rot:'Sem venda',sub:'classe D'}];
-const ZN={raw:[],vis:[],par:null,zona:'',aberto:{},meses:[],period:{},montando:false};
+const ZN={raw:[],vis:[],par:null,zona:'',aberto:{},meses:[],period:{},montando:false,temChina:false};
 function znZona(k){ return ZN_ZONAS.find(z=>z.k===k)||ZN_ZONAS[0]; }
 function znDec(n,c){ return (n==null)?'—':Number(n).toLocaleString('pt-BR',{minimumFractionDigits:c,maximumFractionDigits:c}); }
 function znSinal(n){ if(n==null) return '—'; n=Math.round(+n); return (n>0?'+':n<0?'−':'')+fmtInt(Math.abs(n)); }
@@ -4376,6 +4377,9 @@ async function znCarregar(){
   if(error) return error.message;
   // classe D sem estoque nao e ruptura: e item que nem vende nem tem. Fica de fora.
   ZN.raw=(data||[]).filter(d=>d.zona!=='inativo');
+  // Sem nenhum pedido China carregado, a coluna nao aparece: nao da para
+  // dizer "sem pedido" sobre uma informacao que o sistema ainda nao tem.
+  ZN.temChina=ZN.raw.some(d=>d.qtd_china!=null);
   return null;
 }
 
@@ -4567,8 +4571,8 @@ function znCards(){
           <th class="num">Venda/dia <small>(un)</small></th>
           <th class="num">Cobertura <small>(dias)</small></th>
           <th class="num">% do alvo</th>
-          <th class="num">China</th></tr></thead>
-        <tbody>${l.map(d=>{const z=znZona(d.zona), ch=znChina(d);
+          ${ZN.temChina?'<th class="num">China</th>':''}</tr></thead>
+        <tbody>${l.map(d=>{const z=znZona(d.zona), ch=ZN.temChina?znChina(d):'';
           return `<tr${d.zona==='ruptura'?' class="rompido"':''}>
             <td style="white-space:nowrap"><span class="zn-dot" style="background:${z.cor};margin-right:7px;vertical-align:-1px" title="${z.rot}"></span>${ref(d.sku)}</td>
             <td title="${(d.descricao||'').replace(/"/g,'&quot;')}"><span class="zn-desc">${d.descricao||'—'}</span></td>
@@ -4576,7 +4580,7 @@ function znCards(){
             <td class="num">${+d.venda_dia>0?znDec(d.venda_dia,1):'0'}</td>
             <td class="num">${znCob(d)}</td>
             <td class="num">${d.pct_alvo!=null?`<span class="zn-pct" style="background:${z.cor}">${znDec(d.pct_alvo,0)}%</span>`:'—'}</td>
-            <td class="num"${ch==='sem pedido'?' style="color:#d0392b;font-weight:700"':''}>${ch}</td></tr>`;}).join('')}
+            ${ZN.temChina?`<td class="num"${ch==='sem pedido'?' style="color:#d0392b;font-weight:700"':''}>${ch}</td>`:''}</tr>`;}).join('')}
         </tbody></table></div>`);
     return `<div class="panel zn-card" id="znCard${c.k}" style="margin-bottom:10px">
       <div class="panel-head zn-card-head" onclick="znAlterna('${c.k}')">
@@ -4603,9 +4607,9 @@ function znColunas(csv){
     {label:'Cobertura', un:'dias', num:1, get:znCob},
     {label:'Alvo', un:'un', num:1, get:d=>d.alvo==null?'—':fmtInt(Math.round(d.alvo))},
     {label:'% do alvo', un:'%', num:1, get:d=>d.pct_alvo==null?'—':znDec(d.pct_alvo,0)},
-    {label:'Dif. p/ alvo', un:'un', num:1, get:d=>znSinal(d.diferenca)},
-    {label:'China', nw:1, get:znChina}
+    {label:'Dif. p/ alvo', un:'un', num:1, get:d=>znSinal(d.diferenca)}
   ];
+  if(ZN.temChina) cols.push({label:'China', nw:1, get:znChina});
   if(csv) cols.forEach(c=>{ if(c.un) c.label=c.label+' ('+c.un+')'; });
   return cols;
 }
@@ -4657,8 +4661,27 @@ function znImprimir(){
 function znEditarRegua(){
   const P=ZN.par, el=document.getElementById('znRegua');
   const inp=(id,v,max)=>`<input type="number" id="${id}" value="${v}" min="1" max="${max}" step="1">`;
-  el.innerHTML=`<b>Dias de alvo</b> A ${inp('zrA',P.dias_a,720)} B ${inp('zrB',P.dias_b,720)} C ${inp('zrC',P.dias_c,720)}
-    <span style="margin-left:10px"><b>Cortes (%)</b> vermelho até ${inp('zrV',P.corte_vermelho,99)} amarelo até ${inp('zrY',P.corte_amarelo,99)}</span>
+  el.innerHTML=`<b>Dias de alvo</b>${ajuda('Dias de alvo', `<p>Quantos dias de venda o Pulmão SP deveria ter de cada item, por curva.
+      É o <b>100%</b> da régua.</p>
+      <p class="exemplo">Item curva A vendendo <b>2 un/dia</b> com alvo de <b>${fmtInt(P.dias_a)} dias</b>
+      → alvo de <b>${fmtInt(2*P.dias_a)} un</b>. Com 300 un no Pulmão, ele está em
+      ${Math.round(100*300/(2*P.dias_a))}% do alvo.</p>
+      <p><b>Se aumentar</b> os dias: o alvo sobe, menos itens aparecem em excesso e mais itens
+      caem em vermelho/amarelo.</p>
+      <p><b>Se diminuir</b>: o alvo cai, mais itens aparecem em excesso e menos itens ficam
+      perto de romper.</p>
+      <p>Não muda o estoque nem a venda: muda só a classificação. Vale para todos os usuários,
+      nesta tela e na Cobertura de estoque.</p>`)}
+    A ${inp('zrA',P.dias_a,720)} B ${inp('zrB',P.dias_b,720)} C ${inp('zrC',P.dias_c,720)}
+    <span style="margin-left:10px"><b>Cortes (%)</b>${ajuda('Cortes das cores', `<p>Onde termina cada cor, em % do alvo:</p>
+      <ul><li><b>Vermelho</b> — de 1% até o 1º corte (hoje ${fmtInt(P.corte_vermelho)}%): perto de romper.</li>
+      <li><b>Amarelo</b> — do 1º até o 2º corte (hoje ${fmtInt(P.corte_amarelo)}%): atenção.</li>
+      <li><b>Verde</b> — do 2º corte até 100%: no alvo.</li></ul>
+      <p><b>Se aumentar</b> o corte do vermelho: mais itens ficam vermelhos, o alerta chega antes.</p>
+      <p><b>Se diminuir</b>: só os itens mais apertados ficam vermelhos.</p>
+      <p>Ruptura (estoque zero) e excesso (acima de 100%) não mudam com os cortes.
+      Vale para todos os usuários, nesta tela e na Cobertura de estoque.</p>`)}
+    vermelho até ${inp('zrV',P.corte_vermelho,99)} amarelo até ${inp('zrY',P.corte_amarelo,99)}</span>
     <button class="btn-tool pri" id="zrSalvar" style="padding:4px 12px">Salvar</button>
     <button class="btn-tool" id="zrCancelar" style="padding:4px 12px">Cancelar</button>
     <span id="zrErro" style="color:#c0392b;font-weight:600"></span>`;
