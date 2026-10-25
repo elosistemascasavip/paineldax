@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- elo Sistemas — Abastecimento Casa VIP · versão 1.1 · atualizado em 20/10/2026 -->
+<!-- elo Sistemas — Abastecimento Casa VIP · versão 1.2 · atualizado em 24/10/2026 -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -435,6 +435,42 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
   .panel{border:none}
   td,th{white-space:normal}
 }
+/* --- Rupturas e excessos (zonas do pulmão) --- */
+.zn-leg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.zn-leg button{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--ink-soft)}
+.zn-leg button.on{border-color:var(--blue);background:var(--blue-tint);color:var(--blue-ink)}
+.zn-leg i,.zn-dot{display:inline-block;width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.zn-rows{padding:14px 16px 6px}
+.zn-row{display:grid;grid-template-columns:110px minmax(0,1fr) 130px;gap:12px;align-items:center;margin-bottom:12px}
+.zn-row .lb{font-weight:700;font-size:13px}
+.zn-row .lb small{display:block;font-weight:500;color:var(--ink-faint);font-size:11.5px}
+.zn-row .tt{font-size:12px;color:var(--ink-faint);text-align:right;font-variant-numeric:tabular-nums}
+.zn-bar{display:flex;height:30px;border-radius:7px;overflow:hidden;background:#f2f4f8;gap:2px}
+.zn-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;cursor:pointer;
+  min-width:3px;font-variant-numeric:tabular-nums;transition:filter .12s}
+.zn-seg:hover{filter:brightness(1.15)}
+.zn-seg.sel{box-shadow:inset 0 0 0 3px #ffd84d}
+.zn-escala{display:grid;grid-template-columns:110px minmax(0,1fr) 130px;gap:12px;font-size:11px;color:var(--ink-faint);margin:-4px 0 4px}
+.zn-escala div{display:flex;justify-content:space-between}
+table.zn-tab td.num,table.zn-tab th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.zn-tab th{white-space:nowrap;font-size:11.5px}
+table.zn-tab td{white-space:nowrap}
+.zn-desc{display:block;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 940px);min-width:140px}
+table.densa.zn-tab td,table.densa.zn-tab th{padding-left:6px;padding-right:6px}
+table.zn-tab th small{display:block;font-size:10.5px}
+table.zn-tab th small{font-weight:500;color:var(--ink-faint)}
+.zn-pct{display:inline-block;min-width:44px;text-align:right;padding:2px 7px;border-radius:6px;font-weight:700;font-size:12px;color:#fff}
+.zn-card-head{cursor:pointer;user-select:none;flex-wrap:wrap}
+.zn-card-head:hover{background:#f2f6fd}
+.zn-seta{width:14px;color:var(--ink-faint);font-size:13px}
+.zn-sub{font-size:12px;color:var(--ink-faint)}
+.zn-chips{display:inline-flex;gap:10px;margin-left:8px}
+.zn-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.zn-chip i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.zn-regua{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);margin:-4px 0 12px}
+.zn-regua input{width:62px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;font-family:inherit;font-size:13px}
+@media(max-width:760px){.zn-row,.zn-escala{grid-template-columns:72px minmax(0,1fr)}.zn-row .tt,.zn-escala>span:last-child{display:none}}
 /* --- Matriz de cobertura --- */
 .cob-tbl{table-layout:auto}
 .cob-tbl th{font-size:11.5px;padding:7px 13px}
@@ -661,6 +697,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>
         Estoque Pulmão
       </div>
+      <div class="nav-item" data-route="zonas">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 4v4M14 10v4M18 16v4"/></svg>
+        Rupturas e excessos
+      </div>
       <div class="nav-item" data-route="ruptura">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
         Cobertura de estoque
@@ -766,9 +806,12 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 /* ============================================================
    Versão — atualizar a cada publicação no Vercel.
    1.1 · 20/10/2026 · JIWI deixa de ver valores financeiros (só quantidades)
+   1.2 · 24/10/2026 · Nova tela Rupturas e excessos (zonas do pulmão por curva ABC)
+   1.3 · 25/10/2026 · Uma régua só: curva ABC e venda/dia do período escolhido em todas as telas;
+                      alvo A/B/C também na Cobertura de estoque; Rupturas sem paginação, por curva
    ============================================================ */
-const APP_VERSAO = '1.1';
-const APP_DATA   = '20/10/2026';
+const APP_VERSAO = '1.3';
+const APP_DATA   = '25/10/2026';
 
 /* ============================================================
    Config — projeto Supabase (chave publicável, protegida por RLS)
@@ -1452,7 +1495,8 @@ function loginWall(msg){
 const LOGX={rota:'', quando:0, sessaoMarcada:false};
 const ROTA_LABEL={importar:'Importar planilhas', historico:'Histórico de cargas',
   cobertura:'Cobertura da base', abc:'Curva ABC', oportunidades:'Oportunidades',
-  vendas:'Vendas por loja', pulmao:'Estoque Pulmão', ruptura:'Cobertura de estoque',
+  vendas:'Vendas por loja', pulmao:'Estoque Pulmão', zonas:'Rupturas e excessos',
+  ruptura:'Cobertura de estoque',
   precomedio:'Preço médio', presenca:'Presença Casa VIP', produtos:'Produtos',
   lojas:'Lojas', usuarios:'Usuários', pendencias:'Pendências', grupos:'Grupos',
   linhas:'Linhas', cores:'Cores', sobre:'Sobre', perguntar:'Perguntar',
@@ -1510,6 +1554,7 @@ async function route(r){
   if(r==='linhas') return renderRotulos('linha','Linhas','vw_linhas');
   if(r==='cores')  return renderRotulos('cor','Cores','vw_cores');
   if(r==='pulmao')  return renderPulmaoConsulta();
+  if(r==='zonas')   return renderZonas();
   if(r==='ruptura') return renderRuptura();
   if(r==='oportunidades') return renderOportunidades();
   if(r==='perguntar') return renderPerguntar();
@@ -3697,7 +3742,10 @@ function presCompare(st){
 function presRefresh(){
   const st=PRES.period||{mode:'all'};
   if(st.mode==='compare') return presCompare(st);
-  const ctx=presCtx(); const brasilTot=PRES.geo.reduce((s,r)=>s+(+r.quantidade||0),0)||1;
+  const ctx=presCtx();
+  // o Brasil tem que estar no mesmo periodo do recorte, senao a fatia sai diluida
+  const brasilTot=PRES.geo.filter(r=>st.mode!=='single'||inPeriod(r.competencia,st.aIni,st.aFim))
+    .reduce((s,r)=>s+(+r.quantidade||0),0)||1;
   const un=ctx.reduce((s,r)=>s+(+r.quantidade||0),0);
   const skus=new Set(ctx.map(r=>r.sku)).size;
   const linhas=new Set(ctx.filter(r=>r.linha).map(r=>r.linha)).size;
@@ -4299,7 +4347,336 @@ function pulmaoConsultaPinta(){
 }
 
 /* ============================================================
-   Tela: Estoque Pulmão — saldo do CD x venda da rede
+   Tela: Rupturas e excessos — a foto de hoje do Pulmão SP
+   Inspirada no pulmão do Symphony (Goldratt). Cada SKU cai numa zona
+   pela % do seu alvo.
+   Alvo = venda/dia da rede NO PERÍODO ESCOLHIDO x dias da curva
+   (A/B/C em parametros_pulmao). A curva ABC também é a do período
+   escolhido — a mesma da tela Curva ABC. Tudo vem de uma função só
+   no banco (estoque_zonas), a mesma conta da Cobertura de estoque.
+   Tudo em quantidade: a JIWI também enxerga esta tela.
+   ============================================================ */
+const ZN_ZONAS=[
+  {k:'ruptura', rot:'Ruptura',  titulo:'rompidos',          dica:'estoque zero',          cor:'#20262e'},
+  {k:'vermelho',rot:'Vermelho', titulo:'próximo de romper', dica:'até 33% do alvo',       cor:'#d0392b'},
+  {k:'amarelo', rot:'Amarelo',  titulo:'atenção',           dica:'34 a 66% do alvo',      cor:'#e5a412'},
+  {k:'verde',   rot:'Verde',    titulo:'no alvo',           dica:'67 a 100% do alvo',     cor:'#1f9d55'},
+  {k:'excesso', rot:'Excesso',  titulo:'em excesso',        dica:'acima do alvo ou sem venda', cor:'#3d8ef0'}
+];
+const ZN_CURVAS=[{k:'A',rot:'Curva A'},{k:'B',rot:'Curva B'},{k:'C',rot:'Curva C'},{k:'D',rot:'Sem venda',sub:'classe D'}];
+const ZN={raw:[],vis:[],par:null,zona:'',aberto:{},meses:[],period:{},montando:false};
+function znZona(k){ return ZN_ZONAS.find(z=>z.k===k)||ZN_ZONAS[0]; }
+function znDec(n,c){ return (n==null)?'—':Number(n).toLocaleString('pt-BR',{minimumFractionDigits:c,maximumFractionDigits:c}); }
+function znSinal(n){ if(n==null) return '—'; n=Math.round(+n); return (n>0?'+':n<0?'−':'')+fmtInt(Math.abs(n)); }
+function znDias(k){ return ZN.par ? ZN.par['dias_'+String(k).toLowerCase()] : null; }
+
+async function znCarregar(){
+  const st=ZN.period||{};
+  const {data,error}=await fetchRpc('estoque_zonas',{p_ini:st.aIni||null, p_fim:st.aFim||null});
+  if(error) return error.message;
+  // classe D sem estoque nao e ruptura: e item que nem vende nem tem. Fica de fora.
+  ZN.raw=(data||[]).filter(d=>d.zona!=='inativo');
+  return null;
+}
+
+async function renderZonas(){
+  const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 4v4M14 10v4M18 16v4"/></svg>`;
+  view.innerHTML=head(ico,'Rupturas e excessos',
+    'Foto de hoje do Pulmão SP por curva ABC da rede: o que rompeu, o que está perto de romper e o que está sobrando.','Análise','ambos')
+    +'<div id="znBody"><div class="empty">Carregando…</div></div>';
+  const body=document.getElementById('znBody');
+  if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+  const [mesesDisp,p]=await Promise.all([
+    sb.from('vw_vendas_por_loja').select('competencia').order('competencia',{ascending:true}),
+    sb.from('parametros_pulmao').select('*').eq('id',true).maybeSingle()
+  ]);
+  ZN.meses=uniq((mesesDisp.data||[]).map(d=>d.competencia));
+  ZN.period=periodoPadrao(ZN.meses);            // o mesmo período das outras telas
+  ZN.par=p.data||{dias_a:180,dias_b:150,dias_c:90,corte_vermelho:33,corte_amarelo:66};
+  // as legendas seguem a regua gravada, nao um numero fixo no codigo
+  const cv=+ZN.par.corte_vermelho, ca=+ZN.par.corte_amarelo;
+  ZN_ZONAS[1].dica=`até ${cv}% do alvo`; ZN_ZONAS[2].dica=`${cv+1} a ${ca}% do alvo`; ZN_ZONAS[3].dica=`${ca+1} a 100% do alvo`;
+  const erro=await znCarregar();
+  if(erro){ body.innerHTML=`<div class="notice warn">${erro}</div>`; return; }
+  if(!ZN.raw.some(d=>Number(d.estoque)>0)){
+    body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Estoque não carregado</div>
+      Importe a planilha de estoque do Pulmão SP em Dados › Importar planilhas.</div></div>`;
+    return;
+  }
+  body.innerHTML=`
+    <div class="tools" style="margin-bottom:10px">
+      <div id="znPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+    </div>
+    <div id="znStats"></div>
+    <div class="zn-regua" id="znRegua"></div>
+    <div class="panel" style="margin-bottom:12px">
+      <div class="panel-head"><h2>SKUs por zona e curva</h2>
+        <span class="count">clique numa cor para ver os itens</span></div>
+      <div class="zn-rows" id="znGraf"></div>
+    </div>
+    <div class="tools">
+      <div class="zn-leg" id="znLeg" style="margin:0"></div>
+      <select class="selin" id="znGrupo"><option value="">Todos os grupos</option>${
+        uniq(ZN.raw.map(d=>d.grupo)).map(v=>`<option>${v}</option>`).join('')}</select>
+      <input type="search" id="znBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:200px">
+      <div class="grow"></div>
+      <button class="btn-tool" id="znLimpar">Limpar</button>
+      <button class="btn-tool" id="znCSV">Exportar CSV</button>
+      <button class="btn-tool pri" id="znPrint">Imprimir lista</button>
+    </div>
+    <div id="znCards"></div>`;
+  ZN.montando=true;
+  wirePeriod(document.getElementById('znPeriod'), ZN.meses, async(st)=>{
+    if(ZN.montando) return;                     // dispara uma vez ao montar
+    ZN.period=st;
+    const e=await znCarregar();
+    if(e){ toast(e); return; }
+    znTudo();
+  }, ZN.period);
+  ZN.montando=false;
+  ['znGrupo','znBusca'].forEach(id=>{ const el=document.getElementById(id);
+    el.oninput=el.onchange=znRefresh; });
+  document.getElementById('znLimpar').onclick=()=>znFiltra('',null);
+  document.getElementById('znCSV').onclick=()=>exportCSV('rupturas_excessos', znColunas(true), ZN.vis);
+  document.getElementById('znPrint').onclick=znImprimir;
+  ZN.zona=''; ZN.aberto={};
+  znTudo();
+}
+function znTudo(){ znRegua(); znStats(); znRefresh(); }
+
+// O criterio fica escrito na tela: o usuario precisa saber o que esta vendo.
+function znRegua(){
+  const el=document.getElementById('znRegua'); if(!el) return;
+  const P=ZN.par, r0=ZN.raw.find(d=>d.media_ini)||{};
+  const n=+r0.meses_periodo||0;
+  el.innerHTML=`<span><b>Alvo</b> = venda/dia da rede × dias da curva:
+      <b>A ${P.dias_a} d · B ${P.dias_b} d · C ${P.dias_c} d</b>.
+      Venda/dia de <b>${fmtComp(r0.media_ini)} a ${fmtComp(r0.media_fim)}</b>
+      (${n} ${n>1?'meses':'mês'}) — o período escolhido acima. A curva ABC é a do mesmo período.</span>
+    ${isAdmin()?'<button class="btn-tool" id="znEditar" style="padding:4px 10px">Editar régua</button>':''}`;
+  const ed=document.getElementById('znEditar'); if(ed) ed.onclick=znEditarRegua;
+}
+
+// Grafico: uma barra por curva, 100% = os SKUs daquela curva. Mostra a
+// proporcao, que e o que compara A com C (C tem muito mais itens que A).
+function znGrafico(){
+  const el=document.getElementById('znGraf'); if(!el) return;
+  el.innerHTML=ZN_CURVAS.map(c=>{
+    const l=ZN.raw.filter(d=>d.classe===c.k); if(!l.length) return '';
+    const segs=ZN_ZONAS.map(z=>{
+      const n=l.filter(d=>d.zona===z.k).length; if(!n) return '';
+      const pc=100*n/l.length;
+      const sel=ZN.zona===z.k&&ZN.aberto[c.k];
+      return `<div class="zn-seg${sel?' sel':''}" style="flex:${n} 0 0;background:${z.cor}"
+        title="${c.rot} · ${z.rot} (${z.dica}): ${fmtInt(n)} SKUs · ${znDec(pc,0)}%"
+        onclick="znFiltra('${z.k}','${c.k}')">${pc>=6?fmtInt(n):''}</div>`;}).join('');
+    const pecas=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+    return `<div class="zn-row"><div class="lb">${c.rot}${c.sub?`<small>${c.sub}</small>`:
+        `<small>alvo ${fmtInt(znDias(c.k))} dias</small>`}</div>
+      <div class="zn-bar">${segs}</div>
+      <div class="tt">${fmtInt(l.length)} SKUs<br>${fmtInt(pecas)} un</div></div>`;
+  }).join('') + `<div class="zn-escala"><span></span><div><span>0%</span><span>50%</span><span>100% dos SKUs da curva</span></div><span></span></div>`;
+}
+
+function znStats(){
+  const b=ZN.raw, conta=k=>b.filter(d=>d.zona===k).length;
+  const romA=b.filter(d=>d.zona==='ruptura'&&d.classe==='A').length;
+  // excesso de verdade e o que tem venda e passou do alvo; item sem venda fica a parte
+  const exc=b.filter(d=>d.zona==='excesso'&&d.classe!=='D');
+  const excUn=exc.reduce((a,d)=>a+Math.max(0,Number(d.diferenca||0)),0);
+  const semGiro=b.filter(d=>d.classe==='D'&&Number(d.estoque)>0);
+  const quando=b.find(d=>d.atualizado_em), a=idadeCarga(quando&&quando.atualizado_em,'estoque');
+  document.getElementById('znStats').innerHTML=`<div class="statbar">
+    <div class="s"><div class="n" style="color:#20262e">${fmtInt(conta('ruptura'))}</div><div class="l">Rompidos (SKUs)</div></div>
+    <div class="s"><div class="n" style="color:#d0392b">${fmtInt(romA)}</div><div class="l">Curva A rompidos (SKUs)</div></div>
+    <div class="s"><div class="n" style="color:#d0392b">${fmtInt(conta('vermelho'))}</div><div class="l">Perto de romper (SKUs)</div></div>
+    <div class="s"><div class="n" style="color:#3d8ef0">${fmtInt(exc.length)}</div><div class="l">Acima do alvo (SKUs)</div></div>
+    <div class="s"><div class="n" style="color:#3d8ef0">${fmtInt(Math.round(excUn))}</div><div class="l">Sobra acima do alvo (un)</div></div>
+    <div class="s"><div class="n">${fmtInt(semGiro.length)}</div><div class="l">Sem venda, com estoque (SKUs)</div></div>
+    <div class="s"><div class="n" style="font-size:15px;color:${a.cor}">${a.txt}</div><div class="l">Última carga</div></div>
+  </div>`;
+}
+
+function znLegenda(){
+  const el=document.getElementById('znLeg'); if(!el) return;
+  el.innerHTML=`<button class="${ZN.zona===''?'on':''}" onclick="znFiltra('',null)">Todas · ${fmtInt(ZN.raw.length)}</button>`
+    + ZN_ZONAS.map(z=>`<button class="${ZN.zona===z.k?'on':''}" title="${z.dica}"
+        onclick="znFiltra('${z.k}',null)"><i style="background:${z.cor}"></i>${z.rot} · ${
+        fmtInt(ZN.raw.filter(d=>d.zona===z.k).length)}</button>`).join('');
+}
+
+// zona: filtro de cor ('' = todas). curva: abre so aquela; null = mantem as abertas.
+function znFiltra(zona, curva){
+  ZN.zona=zona||'';
+  if(curva){ ZN.aberto={}; ZN.aberto[curva]=true; }
+  if(!zona && curva===null){
+    ZN.aberto={};
+    ['znGrupo','znBusca'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+  }
+  znRefresh();
+  if(curva){ const c=document.getElementById('znCard'+curva);
+    if(c) c.scrollIntoView({behavior:'smooth',block:'start'}); }
+}
+function znAlterna(k){ ZN.aberto[k]=!ZN.aberto[k]; znCards(); }
+
+// Ordem que responde a pergunta de cada zona
+const ZN_ORDEM_ZONA={ruptura:0,vermelho:1,amarelo:2,verde:3,excesso:4};
+function znOrdena(a,b){
+  const za=ZN_ORDEM_ZONA[a.zona], zb=ZN_ORDEM_ZONA[b.zona];
+  if(za!==zb) return za-zb;
+  if(a.zona==='ruptura') return (+b.venda_dia||0)-(+a.venda_dia||0);           // o que mais perde venda
+  if(a.zona==='excesso') return (+b.diferenca||0)-(+a.diferenca||0);           // maior sobra
+  return (+a.pct_alvo||0)-(+b.pct_alvo||0);                                    // o que rompe antes
+}
+function znRefresh(){
+  const q=(valOf('znBusca')||'').trim().toLowerCase(), g=valOf('znGrupo','');
+  ZN.vis=ZN.raw.filter(d=>
+       (!ZN.zona || d.zona===ZN.zona) && (!g || d.grupo===g)
+    && (!q || (ref(d.sku)+' '+(d.descricao||'')).toLowerCase().includes(q))).sort(znOrdena);
+  znLegenda(); znGrafico(); znCards();
+}
+
+function znChina(d){
+  if(d.qtd_china!=null)
+    return `chega ${d.chegada_china?new Date(d.chegada_china+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'s/ data'} · ${fmtInt(d.qtd_china)} un`;
+  return ['ruptura','vermelho'].includes(d.zona) ? 'sem pedido' : '—';
+}
+function znCob(d){
+  if(d.cobertura_dias==null) return Number(d.estoque)>0 ? 'sem giro' : '0';
+  return fmtInt(Math.round(d.cobertura_dias));
+}
+
+// Um bloco por curva, recolhido. Clicou, abre a lista. Lista continua, sem
+// paginas: rola dentro do bloco com o cabecalho travado, como nas outras telas.
+function znCards(){
+  const el=document.getElementById('znCards'); if(!el) return;
+  const titZona = ZN.zona ? znZona(ZN.zona).titulo : 'todas as zonas';
+  el.innerHTML=ZN_CURVAS.map(c=>{
+    const l=ZN.vis.filter(d=>d.classe===c.k);
+    const total=ZN.raw.filter(d=>d.classe===c.k).length;
+    if(!total) return '';
+    const aberto=!!ZN.aberto[c.k];
+    const un=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+    const chips=ZN_ZONAS.map(z=>{ const n=l.filter(d=>d.zona===z.k).length;
+      return n?`<span class="zn-chip" title="${z.rot}: ${z.dica}"><i style="background:${z.cor}"></i>${fmtInt(n)}</span>`:''; }).join('');
+    const corpo = !aberto ? '' : (!l.length
+      ? `<div class="empty" style="padding:22px">Nenhum item da ${c.rot.toLowerCase()} neste recorte.</div>`
+      : `<div class="tbl-scroll" style="border:none;border-radius:0;border-top:1px solid var(--line)"><table class="densa zn-tab"><thead><tr>
+          <th>SKU</th><th class="wide">Descrição</th>
+          <th class="num">Estoque SP <small>(un)</small></th>
+          <th class="num">Venda/dia <small>(un)</small></th>
+          <th class="num">Cobertura <small>(dias)</small></th>
+          <th class="num">% do alvo</th>
+          <th class="num">China</th></tr></thead>
+        <tbody>${l.map(d=>{const z=znZona(d.zona), ch=znChina(d);
+          return `<tr${d.zona==='ruptura'?' class="rompido"':''}>
+            <td style="white-space:nowrap"><span class="zn-dot" style="background:${z.cor};margin-right:7px;vertical-align:-1px" title="${z.rot}"></span>${ref(d.sku)}</td>
+            <td title="${(d.descricao||'').replace(/"/g,'&quot;')}"><span class="zn-desc">${d.descricao||'—'}</span></td>
+            <td class="num" style="font-weight:700">${fmtInt(d.estoque)}</td>
+            <td class="num">${+d.venda_dia>0?znDec(d.venda_dia,1):'0'}</td>
+            <td class="num">${znCob(d)}</td>
+            <td class="num">${d.pct_alvo!=null?`<span class="zn-pct" style="background:${z.cor}">${znDec(d.pct_alvo,0)}%</span>`:'—'}</td>
+            <td class="num"${ch==='sem pedido'?' style="color:#d0392b;font-weight:700"':''}>${ch}</td></tr>`;}).join('')}
+        </tbody></table></div>`);
+    return `<div class="panel zn-card" id="znCard${c.k}" style="margin-bottom:10px">
+      <div class="panel-head zn-card-head" onclick="znAlterna('${c.k}')">
+        <span class="zn-seta">${aberto?'▾':'▸'}</span>
+        <h2>${c.rot} · ${titZona}</h2>
+        <span class="zn-sub">${c.sub?c.sub:`alvo ${fmtInt(znDias(c.k))} dias de venda`}</span>
+        <span class="zn-chips">${chips}</span>
+        <span class="count">${fmtInt(l.length)} SKUs · ${fmtInt(un)} un</span>
+      </div>${corpo}</div>`;
+  }).join('') || `<div class="panel"><div class="empty"><div class="big">Nenhum item neste recorte</div>
+      <div style="margin-top:12px"><button class="btn-tool" onclick="znFiltra('',null)">Limpar filtros</button></div></div></div>`;
+}
+
+// Colunas do CSV e da impressao (lista completa). Tudo em unidades, nada em R$.
+function znColunas(csv){
+  const cols=[
+    {label:'Código', nw:1, get:d=>ref(d.sku)},
+    {label:'Descrição', key:'descricao', desc:1},
+    {label:'Grupo', key:'grupo', nw:1}, {label:'Linha', key:'linha', nw:1}, {label:'Cor', key:'cor', nw:1},
+    {label:'Curva', get:d=>d.classe==='D'?'Sem venda':d.classe},
+    {label:'Zona', nw:1, get:d=>znZona(d.zona).rot+(d.sem_giro&&Number(d.estoque)>0?' (sem giro)':'')},
+    {label:'Estoque SP', un:'un', num:1, get:d=>fmtInt(d.estoque)},
+    {label:'Venda/dia', un:'un', num:1, get:d=>+d.venda_dia>0?znDec(d.venda_dia,1):'0'},
+    {label:'Cobertura', un:'dias', num:1, get:znCob},
+    {label:'Alvo', un:'un', num:1, get:d=>d.alvo==null?'—':fmtInt(Math.round(d.alvo))},
+    {label:'% do alvo', un:'%', num:1, get:d=>d.pct_alvo==null?'—':znDec(d.pct_alvo,0)},
+    {label:'Dif. p/ alvo', un:'un', num:1, get:d=>znSinal(d.diferenca)},
+    {label:'China', nw:1, get:znChina}
+  ];
+  if(csv) cols.forEach(c=>{ if(c.un) c.label=c.label+' ('+c.un+')'; });
+  return cols;
+}
+
+// Impressao: a lista inteira do filtro atual, A4 deitado.
+function znImprimir(){
+  const abertas=ZN_CURVAS.filter(c=>ZN.aberto[c.k]).map(c=>c.k);
+  const l=abertas.length ? ZN.vis.filter(d=>abertas.includes(d.classe)) : ZN.vis;
+  if(!l.length){ toast('Nada para imprimir neste recorte.'); return; }
+  const cols=znColunas(false);
+  const quando=ZN.raw.find(d=>d.atualizado_em);
+  const g=valOf('znGrupo',''), q=(valOf('znBusca','')||'').trim();
+  const filtro=[ZN.zona?znZona(ZN.zona).rot+' ('+znZona(ZN.zona).dica+')':'Todas as zonas',
+    abertas.length?abertas.map(k=>(ZN_CURVAS.find(c=>c.k===k)||{}).rot).join(', '):'Todas as curvas',
+    g, q&&`busca "${q}"`].filter(Boolean).join(' · ');
+  const un=l.reduce((a,d)=>a+Number(d.estoque||0),0);
+  const P=ZN.par, r0=ZN.raw.find(d=>d.media_ini)||{};
+  const th=cols.map(c=>`<th class="${c.num?'r':''}">${c.label}${c.un?`<br><small>(${c.un})</small>`:''}</th>`).join('');
+  const tr=l.map(d=>{const z=znZona(d.zona);
+    return '<tr>'+cols.map((c,i)=>{let v=c.get?c.get(d):(d[c.key]||'—');
+      if(i===0) v=`<i style="background:${z.cor}"></i>${v}`;
+      if(c.label==='% do alvo'&&d.pct_alvo!=null) v+='%';
+      return `<td class="${c.num?'r':''}${c.nw?' nw':''}">${v}</td>`;}).join('')+'</tr>';}).join('');
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><meta charset="utf-8"><title>Rupturas e excessos</title>
+    <style>@page{size:A4 landscape;margin:10mm}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0}
+    h1{font-size:15px;margin:0 0 3px} .sub{color:#555;margin:0 0 3px;font-size:10.5px}
+    .tot{margin:6px 0 10px;font-size:11px} .tot b{font-size:12px}
+    table{border-collapse:collapse;width:100%} thead{display:table-header-group}
+    th,td{border:1px solid #ccc;padding:3px 5px;text-align:left;vertical-align:top}
+    th{background:#eef2f8;font-size:9.5px} th small{font-weight:400;color:#666}
+    .r,.nw{white-space:nowrap} .r{text-align:right} tr{page-break-inside:avoid}
+    td i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    </style></head><body>
+    <h1>Rupturas e excessos · Pulmão SP</h1>
+    <div class="sub">Filtro: <b>${filtro}</b></div>
+    <div class="sub">Estoque de ${fmtDataHora(quando&&quando.atualizado_em)} · Alvo: A ${P.dias_a} d · B ${P.dias_b} d · C ${P.dias_c} d de venda ·
+      venda/dia de ${fmtComp(r0.media_ini)} a ${fmtComp(r0.media_fim)} · impresso em ${new Date().toLocaleDateString('pt-BR')}</div>
+    <div class="tot">Total: <b>${fmtInt(l.length)} SKUs</b> · <b>${fmtInt(un)} un</b> em estoque</div>
+    <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>
+    <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// Regua do pulmao: so o admin muda. Vale para todos os usuarios e para a
+// tela Cobertura de estoque, que usa a mesma regua.
+function znEditarRegua(){
+  const P=ZN.par, el=document.getElementById('znRegua');
+  const inp=(id,v,max)=>`<input type="number" id="${id}" value="${v}" min="1" max="${max}" step="1">`;
+  el.innerHTML=`<b>Dias de alvo</b> A ${inp('zrA',P.dias_a,720)} B ${inp('zrB',P.dias_b,720)} C ${inp('zrC',P.dias_c,720)}
+    <span style="margin-left:10px"><b>Cortes (%)</b> vermelho até ${inp('zrV',P.corte_vermelho,99)} amarelo até ${inp('zrY',P.corte_amarelo,99)}</span>
+    <button class="btn-tool pri" id="zrSalvar" style="padding:4px 12px">Salvar</button>
+    <button class="btn-tool" id="zrCancelar" style="padding:4px 12px">Cancelar</button>
+    <span id="zrErro" style="color:#c0392b;font-weight:600"></span>`;
+  document.getElementById('zrCancelar').onclick=znRegua;
+  document.getElementById('zrSalvar').onclick=async()=>{
+    const n=id=>Math.round(+document.getElementById(id).value);
+    const v={dias_a:n('zrA'),dias_b:n('zrB'),dias_c:n('zrC'),corte_vermelho:n('zrV'),corte_amarelo:n('zrY'),atualizado_em:new Date().toISOString()};
+    const err=document.getElementById('zrErro');
+    if([v.dias_a,v.dias_b,v.dias_c].some(x=>!(x>0))) return err.textContent='Os dias precisam ser maiores que zero.';
+    if(!(v.corte_vermelho>0&&v.corte_vermelho<v.corte_amarelo&&v.corte_amarelo<100)) return err.textContent='O corte do vermelho precisa ser menor que o do amarelo, e os dois abaixo de 100.';
+    const {error}=await sb.from('parametros_pulmao').update(v).eq('id',true);
+    if(error) return err.textContent=error.message;
+    toast('Régua do pulmão atualizada.'); renderZonas();
+  };
+}
+
+/* ============================================================
+   Tela: Cobertura de estoque — saldo do Pulmão SP x venda da rede
    ============================================================ */
 async function renderRuptura(){
   const ico=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`;
@@ -4312,6 +4689,9 @@ async function renderRuptura(){
     .order('competencia',{ascending:true});
   PUL.meses=uniq((mesesDisp.data||[]).map(d=>d.competencia));
   PUL.period=periodoPadrao(PUL.meses);          // padrão: o período do usuário
+  // mesma regua da tela Rupturas e excessos: 100% = alvo da curva do item
+  const {data:par}=await sb.from('parametros_pulmao').select('*').eq('id',true).maybeSingle();
+  PUL.par=par||{dias_a:180,dias_b:150,dias_c:90,corte_vermelho:33,corte_amarelo:66};
   const ok=await pulmaoCarregar();
   if(ok!==true){ body.innerHTML=`<div class="notice warn">${ok}</div>`; return; }
   if(!PUL.raw.some(d=>Number(d.estoque)>0)){
@@ -4336,10 +4716,10 @@ async function renderRuptura(){
       <select class="selin" id="ceFiltro">
         <option value="">Todos os itens</option>
         <option value="rompido">Rompidos (estoque zero)</option>
-        <option value="critico">Cobertura abaixo de 30 dias</option>
+        <option value="critico">Perto de romper (até 33% do alvo)</option>
         <option value="semgiro">Sem giro (nunca vendeu)</option>
         <option value="parado">Com estoque e sem giro</option>
-        <option value="excesso">Cobertura acima da meta</option>
+        <option value="excesso">Acima do alvo</option>
       </select>
       <div class="grow"></div>
       <button class="btn-tool" id="ceLimpar">Limpar filtros</button>
@@ -4364,7 +4744,14 @@ async function renderRuptura(){
      {label:'Dias cobertura',get:d=>d.meses_cobertura==null?'':Math.round(diasCob(d))}], PUL.vis);
   pulmaoRefresh();
 }
-const PUL={raw:[],vis:[],eixo:'grupo',meses:[],period:{},montando:false};
+const PUL={raw:[],vis:[],eixo:'grupo',meses:[],period:{},montando:false,par:null};
+// Alvo do item em dias = dias da curva dele (A/B/C). Sem venda (D) nao tem alvo.
+function pulMeta(d){
+  const P=PUL.par; if(!P || !d) return null;
+  return {A:+P.dias_a,B:+P.dias_b,C:+P.dias_c}[d.classe]||null;
+}
+function pulPct(d){ const m=pulMeta(d), dias=diasCob(d);
+  return (m && dias!=null) ? dias/m : null; }
 // Busca a cobertura no ritmo do periodo escolhido. O estoque e sempre o de hoje;
 // o periodo muda apenas a venda usada como referencia.
 async function pulmaoCarregar(){
@@ -4388,8 +4775,9 @@ function pulmaoResumo(){
   const g={};
   base.forEach(d=>{
     const k=d[eixo]||'—';
-    const o=g[k]=g[k]||{k:k,itens:0,estoque:0,venda:0,rompidos:0,semGiro:0};
+    const o=g[k]=g[k]||{k:k,itens:0,estoque:0,venda:0,rompidos:0,semGiro:0,alvo:0};
     o.itens++; o.estoque+=Number(d.estoque||0); o.venda+=Number(d.venda_media_mes||0);
+    const m=pulMeta(d); if(m) o.alvo+=(Number(d.venda_media_mes||0)/30)*m;
     if(Number(d.estoque)===0) o.rompidos++;
     if(Number(d.vendido_total)===0) o.semGiro++;
   });
@@ -4398,8 +4786,10 @@ function pulmaoResumo(){
   if(eixo==='classe') l.sort((a,b)=>String(a.k).localeCompare(String(b.k)));
   else l.sort((a,b)=>b.estoque-a.estoque);
   const totE=l.reduce((a,o)=>a+o.estoque,0), totV=l.reduce((a,o)=>a+o.venda,0);
+  const totA=l.reduce((a,o)=>a+o.alvo,0);
   const totD=totV>0?(totE/totV)*30:null;
-  const cor=d=>d==null?'var(--ink-faint)':(d<30?'#c0392b':(d<90?'var(--amber)':'#1f9d55'));
+  // cor = % do alvo somado do grupo (mesma regua das zonas), nao um numero fixo de dias
+  const cor=o=>!o.alvo?'var(--ink-faint)':(o.estoque===0?'#20262e':dutoFaixa(o.estoque/o.alvo).cor);
   el.innerHTML=`<div class="panel" style="margin-bottom:12px"><div class="panel-head">
       <h2>Cobertura da rede</h2>
       <span style="font-size:12px;color:var(--ink-faint);margin-left:10px">ritmo de ${periodLabel(PUL.period)}${
@@ -4410,7 +4800,7 @@ function pulmaoResumo(){
       </span></div>
     <table class="densa"><thead><tr><th>${eixo==='classe'?'Classe':eixo[0].toUpperCase()+eixo.slice(1)}</th>
       <th class="num">Itens</th><th class="num">Rompidos</th><th class="num">Sem giro</th>
-      <th class="num">Estoque</th><th class="num">Venda/mês</th><th class="num">Cobertura</th></tr></thead>
+      <th class="num">Estoque <small>(un)</small></th><th class="num">Venda/mês <small>(un)</small></th><th class="num">Cobertura <small>(dias · % do alvo)</small></th></tr></thead>
     <tbody>${l.map(o=>{const kk=String(o.k).replace(/'/g,"\\'");
       return `<tr class="drill" title="Ver os itens">
       <td onclick="pulmaoDrill('${eixo}','${kk}','')">${eixo==='classe'?`<span class="pill ${o.k}">${o.k}</span>`:o.k}</td>
@@ -4420,8 +4810,8 @@ function pulmaoResumo(){
       <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','semgiro')">${fmtInt(o.semGiro)}</td>
       <td class="num" onclick="pulmaoDrill('${eixo}','${kk}','')">${fmtInt(o.estoque)}</td>
       <td class="num">${o.venda.toFixed(1)}</td>
-      <td class="num" style="color:${cor(o.dias)};font-weight:700">${
-        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}</td></tr>`;}).join('')}
+      <td class="num" style="color:${cor(o)};font-weight:700" title="${o.alvo?Math.round(100*o.estoque/o.alvo)+'% do alvo':''}">${
+        o.dias==null?'sem giro':fmtInt(Math.round(o.dias))+' d'}${o.alvo?` <span style="font-weight:600;font-size:11.5px">· ${Math.round(100*o.estoque/o.alvo)}%</span>`:''}</td></tr>`;}).join('')}
       <tr style="font-weight:700;background:#f7f9fc">
         <td>${['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro']
               .some(id=>valOf(id,''))?'TOTAL DO RECORTE':'TOTAL DA REDE'}</td>
@@ -4429,7 +4819,8 @@ function pulmaoResumo(){
         <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0).length)}</td>
         <td class="num">${fmtInt(base.filter(d=>Number(d.vendido_total)===0).length)}</td>
         <td class="num">${fmtInt(totE)}</td><td class="num">${totV.toFixed(1)}</td>
-        <td class="num" style="color:${cor(totD)}">${totD==null?'—':fmtInt(Math.round(totD))+' d'}</td></tr>
+        <td class="num" style="color:${cor({alvo:totA,estoque:totE})}">${totD==null?'—':fmtInt(Math.round(totD))+' d'}${
+          totA?` <span style="font-size:11.5px">· ${Math.round(100*totE/totA)}%</span>`:''}</td></tr>
     </tbody></table></div>`;
 }
 
@@ -4452,9 +4843,9 @@ function pulmaoDrill(eixo, valor, situacao){
 // Duto de cobertura. Escala de 0 a 180 dias (6 meses de venda), com marcas
 // em 30 e 90 dias. Nao e barra de progresso: e um nivel — a faixa mostra
 // quanto do "tanque" resta ate romper, e onde comeca o excesso.
-// Pilula de cobertura. 100% = a meta, e a meta e o PROPRIO PERIODO do filtro:
-// 6 meses -> 180 d, 3 meses -> 90 d, 1 mes -> 30 d. Ou seja, "tenho estoque
-// para atravessar de novo a janela que acabei de analisar?".
+// Pilula de cobertura. 100% = o ALVO DA CURVA do item (A 180 d, B 150 d, C 90 d
+// em parametros_pulmao) — a mesma regua da tela Rupturas e excessos. O periodo
+// do filtro muda so a venda/dia usada na conta, nunca o alvo.
 // Faixas: 0 rompido (preto) · ate 33% vermelho · ate 66% ambar · ate 100% verde
 // · acima de 100% azul (capital parado). A escala vai ate 150% da meta para o
 // excesso ter onde aparecer; passando disso, a seta marca que saiu da regua.
@@ -4506,25 +4897,25 @@ function dutoAceso(pos){
 // dois eixos: o percentual da meta (fixo) e quantos dias aquilo representa
 // no periodo escolhido (muda junto com o filtro).
 function dutoLegenda(){
-  const meta=dutoMeta(), mm=dutoMeses();
+  const P=PUL.par||{}, mm=dutoMeses();
   const stop=f=>(100*f/DUTO_ESCALA).toFixed(2)+'%';
   const rot=(f,txt,cls)=>`<div class="${cls||''}" style="position:absolute;left:${
     stop(f)};transform:translateX(-50%)">${txt}</div>`;
-  const dia=f=>fmtInt(Math.round(meta*f));
   return `<div class="duto-legenda">
     <span class="dl-tit">Cobertura</span>
     <div class="dl-regua">
       <div class="dl-pct">${rot(1/3,'33%')}${rot(2/3,'66%')}${rot(1,'<b>100%</b>')}</div>
       <div class="duto" style="height:12px">${dutoRegua(1)}${DUTO_MARCAS}</div>
-      <div class="dl-rot">${rot(0,'0')}${rot(1/3,dia(1/3))}${rot(2/3,dia(2/3))}${
-        rot(1,`<b>${dia(1)} d</b>`)}${rot(DUTO_ESCALA,'+')}</div>
+      <div class="dl-rot">${rot(0,'0')}${rot(1,'<b>alvo</b>')}${rot(DUTO_ESCALA,'+')}</div>
     </div>
-    <span class="dl-nota"><b>100% = ${fmtInt(meta)} dias</b>, que é o período do filtro
-      (${mm} ${mm>1?'meses':'mês'}). Mudou o filtro, a régua toda se move junto.</span>
+    <span class="dl-nota"><b>100% = alvo da curva do item: A ${fmtInt(P.dias_a)} d · B ${fmtInt(P.dias_b)} d · C ${fmtInt(P.dias_c)} d</b>
+      de venda. A venda/dia é a de ${periodLabel(PUL.period)} (${mm} ${mm>1?'meses':'mês'}).
+      Mesma régua da tela Rupturas e excessos.</span>
   </div>`;
 }
 
-function dutoHTML(dias, rompido){
+function dutoHTML(dias, rompido, meta){
+  meta = meta || dutoMeta();
   const cel=(barra,txt,cor,dica)=>`<div class="duto-cel" title="${dica}">${barra}
     <span class="duto-num" style="color:${cor}">${txt}</span></div>`;
 
@@ -4532,12 +4923,12 @@ function dutoHTML(dias, rompido){
     `<div class="duto-wrap">
        <div class="duto duto-pista">${dutoRegua(.18)}${DUTO_MARCAS}</div>
        <div class="duto-pin zero"><i></i></div></div>`,
-    'rompido', '#20262e', 'Sem saldo no Pulmão SP · 0% da meta');
+    'rompido', '#20262e', 'Sem saldo no Pulmão SP · 0% do alvo');
 
   if(dias==null) return cel('<div class="duto semgiro"></div>',
     'sem giro', 'var(--ink-faint)', 'Item sem venda no período');
 
-  const f = dias/dutoMeta();                    // 1,0 = uma janela inteira de venda
+  const f = dias/meta;                          // 1,0 = exatamente no alvo da curva
   const faixa = dutoFaixa(f);
   const pos = Math.min(99.2, 100*f/DUTO_ESCALA);
   const alem = f > DUTO_ESCALA;                 // saiu da regua: encosta na ponta
@@ -4550,7 +4941,7 @@ function dutoHTML(dias, rompido){
     </div>`;
   return cel(barra, (alem?'+':'')+Math.round(100*f)+'%', faixa.cor,
     `${fmtInt(Math.round(dias))} dias · ${meses} meses de venda · ${
-      Math.round(100*f)}% da meta de ${fmtInt(dutoMeta())} dias`);
+      Math.round(100*f)}% do alvo de ${fmtInt(meta)} dias`);
 }
 
 // Cobertura em dias: mais legivel que fracao de mes para decidir reposicao.
@@ -4571,10 +4962,11 @@ function pulmaoRefresh(){
     && (!g  || d.grupo===g) && (!li || d.linha===li) && (!co || d.cor===co)
     && (!cl || d.classe===cl));
   if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0);
-  if(f==='critico') l=l.filter(d=>d.meses_cobertura!=null && diasCob(d)<30);
+  const cv=(+(PUL.par||{}).corte_vermelho||33)/100;
+  if(f==='critico') l=l.filter(d=>Number(d.estoque)>0 && pulPct(d)!=null && pulPct(d)<=cv);
   if(f==='semgiro') l=l.filter(d=>Number(d.vendido_total)===0);
   if(f==='parado')  l=l.filter(d=>Number(d.estoque)>0 && Number(d.vendido_total)===0);
-  if(f==='excesso') l=l.filter(d=>d.meses_cobertura!=null && diasCob(d)>dutoMeta());
+  if(f==='excesso') l=l.filter(d=>pulPct(d)!=null && pulPct(d)>1);
   l.sort((a,b)=>Number(b.estoque)-Number(a.estoque));
   PUL.vis=l; pulmaoPinta();
 }
@@ -4584,7 +4976,8 @@ function pulmaoPinta(){
   // indicadores, painel e lista usam sempre o mesmo conjunto: o que esta na tela
   const b=PUL.vis||PUL.raw;
   const zer=b.filter(d=>Number(d.estoque)===0).length;
-  const crit=b.filter(d=>d.meses_cobertura!=null&&diasCob(d)<30&&Number(d.estoque)>0).length;
+  const cv=(+(PUL.par||{}).corte_vermelho||33)/100;
+  const crit=b.filter(d=>Number(d.estoque)>0&&pulPct(d)!=null&&pulPct(d)<=cv).length;
   const par=b.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
   // a carga e do arquivo inteiro: filtrar itens nao muda quando o estoque chegou.
   // Vinha do recorte e, num recorte vazio, aparecia "sem carga" como se nada
@@ -4595,7 +4988,7 @@ function pulmaoPinta(){
     <div class="s"><div class="n">${fmtInt(b.filter(d=>Number(d.estoque)>0).length)}</div><div class="l">Itens com saldo</div></div>
     <div class="s"><div class="n" style="color:#c0392b">${fmtInt(zer)}</div><div class="l">Itens rompidos</div></div>
     <div class="s"><div class="n" style="color:#c0392b">${fmtInt(b.filter(d=>d.classe==='A'&&Number(d.estoque)===0).length)}</div><div class="l">Classe A rompidos</div></div>
-    <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(crit)}</div><div class="l">Cobertura &lt; 30 dias</div></div>
+    <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(crit)}</div><div class="l">Perto de romper (até ${Math.round(cv*100)}% do alvo)</div></div>
     <div class="s"><div class="n">${fmtInt(par)}</div><div class="l">Parados (sem venda)</div></div>
     ${(()=>{const a=idadeCarga(quando&&quando.atualizado_em,'estoque');
       return `<div class="s"><div class="n" style="font-size:15px;color:${a.cor}">${a.txt}</div><div class="l">Última carga</div></div>`;})()}
@@ -4605,8 +4998,8 @@ function pulmaoPinta(){
   const rotulos=[busca&&`busca "${busca}"`,
     valOf('ceClasse','')&&'Classe '+valOf('ceClasse',''), valOf('ceGrupo',''),
     valOf('ceLinha',''), valOf('ceCor',''),
-    ({rompido:'Rompidos',critico:'Cobertura < 30 dias',semgiro:'Sem giro',
-      parado:'Com estoque e sem giro',excesso:'Cobertura acima da meta'})[valOf('ceFiltro','')]
+    ({rompido:'Rompidos',critico:'Perto de romper',semgiro:'Sem giro',
+      parado:'Com estoque e sem giro',excesso:'Acima do alvo'})[valOf('ceFiltro','')]
     ].filter(Boolean);
   if(!l.length){
     // tabela vazia com zeros parecia sistema quebrado. Agora diz o que houve.
@@ -4635,7 +5028,7 @@ function pulmaoPinta(){
         <td><span class="pill ${d.classe||'D'}">${d.classe||'D'}</span></td>
         <td class="num"${rompido?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(d.estoque)}</td>
         <td class="num">${(+d.venda_media_mes||0).toFixed(1)}</td>
-        <td>${dutoHTML(dias, rompido)}</td></tr>`;}).join('')}
+        <td>${dutoHTML(dias, rompido, pulMeta(d))}</td></tr>`;}).join('')}
     </tbody></table></div>
   </div>`;
 }
@@ -4924,6 +5317,8 @@ const GUIA=[
    txt:'A evolução mês a mês, da rede e de cada loja. Serve para ver tendência e comparar dois períodos.'},
   {rota:'pulmao', rot:'Estoque Pulmão',
    txt:'O saldo disponível no Pulmão SP, item a item. Consulta pura: código, descrição, cor, linha e quanto tem.'},
+  {rota:'zonas', rot:'Rupturas e excessos',
+   txt:'A foto de hoje do Pulmão SP por curva ABC da rede: o que está rompido, o que está perto de romper e o que está sobrando, contra o alvo de cada curva (A 180, B 150, C 90 dias de venda), com a venda do período que você escolheu. Clique numa curva para ver e imprimir a lista.'},
   {rota:'ruptura', rot:'Cobertura de estoque',
    txt:'Cruza o saldo do Pulmão SP com a venda da rede: quantos dias aquele estoque cobre. Mostra o que está rompido, o que está apertado e o que está sobrando.'},
   {rota:'precomedio', rot:'Preço médio',
