@@ -837,8 +837,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.3.5 · 25/10/2026 · Versão em destaque na tela de login
    1.3.6 · 25/10/2026 · Título da aba: Elo Sistemas
    1.4   · 25/10/2026 · Rupturas: gráfico semanal (foto de cada sexta-feira), por curva
+   1.4.1 · 25/10/2026 · Gráfico semanal com as 3 curvas (A, B e C)
    ============================================================ */
-const APP_VERSAO = '1.4';
+const APP_VERSAO = '1.4.1';
 const APP_DATA   = '25/10/2026';
 
 /* ============================================================
@@ -4493,8 +4494,9 @@ async function znSemana(){
   const dt=d=>{const p=String(d).split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2);};
   const lab=l.map(x=>dt(x.sexta));
   const grafico=lineChart(lab,[
-    {name:'Total rompidos (SKUs)', color:'#20262e', values:l.map(x=>+x.rompidos)},
-    {name:'Curva A rompidos (SKUs)', color:'#1552c9', values:l.map(x=>+x.rompidos_a)}]);
+    {name:'Curva A (SKUs rompidos)', color:'#1552c9', values:l.map(x=>+x.rompidos_a)},
+    {name:'Curva B (SKUs rompidos)', color:'#1f9d55', values:l.map(x=>+x.rompidos_b)},
+    {name:'Curva C (SKUs rompidos)', color:'#c9871f', values:l.map(x=>+x.rompidos_c)}]);
   const linha=(rot,k,cor)=>`<tr><td style="font-weight:700;color:${cor}">${rot}</td>${
     l.map(x=>`<td class="num">${fmtInt(x[k])}</td>`).join('')}</tr>`;
   const fora=l.filter(x=>x.capturado_em!==x.sexta);
@@ -4502,7 +4504,7 @@ async function znSemana(){
     <div class="tbl-scroll" style="margin-top:10px;max-height:none"><table class="densa"><thead><tr>
       <th>SKUs rompidos</th>${lab.map(d=>`<th class="num">${d}</th>`).join('')}</tr></thead>
     <tbody>${linha('Curva A','rompidos_a','#1552c9')}${linha('Curva B','rompidos_b','#1f7a3f')}${
-      linha('Curva C','rompidos_c','#4e5a6d')}
+      linha('Curva C','rompidos_c','#a86d12')}
       <tr style="font-weight:700;background:#f7f9fc"><td>Total</td>${l.map(x=>`<td class="num">${fmtInt(x.rompidos)}</td>`).join('')}</tr>
       <tr><td style="color:var(--ink-faint)">% dos itens com venda</td>${l.map(x=>`<td class="num" style="color:var(--ink-faint)">${
         fmtPct(x.itens_com_venda?100*x.rompidos/x.itens_com_venda:0)}</td>`).join('')}</tr>
