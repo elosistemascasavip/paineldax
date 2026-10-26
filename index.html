@@ -470,11 +470,16 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
 .zn-row .lb small{display:inline;font-weight:500;color:var(--ink-faint);font-size:12px;margin-left:4px}
 .zn-row .tt{white-space:nowrap}
 .zn-row .tt{font-size:12px;color:var(--ink-faint);text-align:right;font-variant-numeric:tabular-nums}
-.zn-bar{display:flex;height:30px;border-radius:7px;overflow:hidden;background:#f2f4f8;gap:2px}
-.zn-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;cursor:pointer;
-  min-width:3px;font-variant-numeric:tabular-nums;transition:filter .12s}
-.zn-seg:hover{filter:brightness(1.15)}
+.zn-bar{display:flex;align-items:stretch;height:32px;border-radius:16px;padding:5px 7px;box-sizing:border-box;
+  background:linear-gradient(180deg,#8f99a4 0%,#dfe4e9 26%,#ffffff 42%,#c7ced6 72%,#87909b 100%);
+  box-shadow:inset 0 0 0 1px rgba(60,70,82,.25)}
+.zn-tubo{display:flex;flex:1;border-radius:11px;overflow:hidden}
+.zn-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;cursor:pointer;
+  min-width:10px;font-variant-numeric:tabular-nums;transition:filter .12s;text-shadow:0 1px 2px rgba(0,0,0,.55)}
+.zn-seg:hover{filter:brightness(1.12)}
 .zn-seg.sel{box-shadow:inset 0 0 0 3px #ffd84d}
+.zn-anel{flex:0 0 6px;margin:-5px 0;z-index:1;border-radius:2px;
+  background:linear-gradient(90deg,#5d6570 0%,#d7dce2 50%,#5d6570 100%)}
 .zn-escala{display:grid;grid-template-columns:210px minmax(0,1fr) 170px;gap:12px;font-size:11px;color:var(--ink-faint);margin:-4px 0 4px}
 .zn-escala div{display:flex;justify-content:space-between}
 table.zn-tab td.num,table.zn-tab th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -871,8 +876,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.7.2 · 26/10/2026 · Quantidade vendida passa a se chamar "Qtd. Vendida" em todo o sistema
    1.7.3 · 26/10/2026 · Botão Editar/Ajustar na primeira coluna (Produtos e Pendências), sempre visível
    1.7.4 · 26/10/2026 · Período volta sempre para jan do ano até o último mês ao abrir o sistema (não fica mais gravado)
+   1.7.5 · 26/10/2026 · Rupturas: gráfico "SKUs por zona e curva" em forma de duto (tubo de aço, zonas coloridas, anéis nas transições)
    ============================================================ */
-const APP_VERSAO = '1.7.4';
+const APP_VERSAO = '1.7.5';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -4880,16 +4886,18 @@ function znGrafico(){
   const el=document.getElementById('znGraf'); if(!el) return;
   el.innerHTML=ZN_CURVAS.map(c=>{
     const l=ZN.raw.filter(d=>d.classe===c.k); if(!l.length) return '';
+    // tubo de aco: cada zona e um trecho colorido; o anel metalico e a junta entre uma zona e a outra
+    const brilho='linear-gradient(180deg,rgba(0,0,0,.28) 0%,rgba(255,255,255,.30) 24%,rgba(255,255,255,0) 44%,rgba(0,0,0,0) 64%,rgba(0,0,0,.25) 100%)';
     const segs=ZN_ZONAS.map(z=>{
       const n=l.filter(d=>d.zona===z.k).length; if(!n) return '';
       const pc=100*n/l.length;
       const sel=ZN.zona===z.k&&ZN.aberto[c.k];
-      return `<div class="zn-seg${sel?' sel':''}" style="flex:${n} 0 0;background:${z.cor}"
+      return `<div class="zn-seg${sel?' sel':''}" style="flex:${n} 0 0;background:${brilho},${z.cor}"
         title="${c.rot} · ${z.rot} (${z.dica}): ${fmtInt(n)} SKUs · ${znDec(pc,2)}%"
-        onclick="znFiltra('${z.k}','${c.k}')">${pc>=6?fmtInt(n):''}</div>`;}).join('');
+        onclick="znFiltra('${z.k}','${c.k}')">${pc>=6?fmtInt(n):''}</div>`;}).filter(Boolean).join('<i class="zn-anel"></i>');
     const pecas=l.reduce((a,d)=>a+Number(d.estoque||0),0);
     return `<div class="zn-row"><div class="lb">${c.rot}<small>· ${c.sub?c.sub:`alvo ${fmtInt(znDias(c.k))} dias`}</small></div>
-      <div class="zn-bar">${segs}</div>
+      <div class="zn-bar"><div class="zn-tubo">${segs}</div></div>
       <div class="tt">${fmtInt(l.length)} SKUs · ${fmtInt(pecas)} un</div></div>`;
   }).join('') + `<div class="zn-escala"><span></span><div><span>0%</span><span>50%</span><span>100% dos SKUs da curva</span></div><span></span></div>`;
 }
