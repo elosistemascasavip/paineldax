@@ -868,8 +868,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
                         "Pulmão" passa a se chamar Estoque SP em todo o sistema
    1.7.1 · 26/10/2026 · Descrição longa não empurra mais a tela (ajusta ao espaço); MOQ sugerido (venda/dia × dias da curva,
                         múltiplo de 12); tabelas de Produtos e Pendências no padrão das demais
+   1.7.2 · 26/10/2026 · Quantidade vendida passa a se chamar "Qtd. Vendida" em todo o sistema
    ============================================================ */
-const APP_VERSAO = '1.7.1';
+const APP_VERSAO = '1.7.2';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -1058,7 +1059,7 @@ function abcItemDetail(sku){
      <b>Descrição</b><span>${d.descricao||'—'}</span>
      <b>Linha</b><span>${d.linha||'—'}</span><b>Cor</b><span>${d.cor||'—'}</span>
      <b>Grupo</b><span>${d.grupo||'—'}</span>
-     <b>Qtd (janela)</b><span>${fmtInt(d.qtd_janela)}</span>
+     <b>Qtd. Vendida (un)</b><span>${fmtInt(d.qtd_janela)}</span>
      <b>Posição geral</b><span>#${d.posicao} · <span class="pill ${d.classe}">${d.classe}</span></span>
      <b>Posição no grupo</b><span>#${d.posicao_grupo||'—'} · <span class="pill ${d.classe_grupo||'D'}">${d.classe_grupo||'—'}</span></span>
    </div>`, null, 'Fechar');
@@ -2317,7 +2318,7 @@ function opoPinta(){
       <span class="onde">Oportunidades › <b>${OPO.loja}</b></span>
     </div>
     <div class="statbar">
-      <div class="s"><div class="n">${fmtInt(p.unidades)}</div><div class="l">Peças vendidas</div></div>
+      <div class="s"><div class="n">${fmtInt(p.unidades)}</div><div class="l">Qtd. Vendida (un)</div></div>
       <div class="s"><div class="n">${fmtPct(100*(p.participacao||0))}</div><div class="l">Participação na rede</div></div>
       <div class="s"><div class="n">${fmtInt(p.skus_ativos)}</div><div class="l">SKUs que vende</div></div>
       <div class="s"><div class="n" style="color:var(--amber)">${fmtInt(g.length)}</div><div class="l">Itens abaixo do porte</div></div>
@@ -2423,7 +2424,7 @@ function opoTabelaLinha(l){
     <div class="panel"><div class="panel-head"><h2>Todas as linhas</h2>
       <span class="count">${l.length} linhas</span></div>
       <div class="tbl-scroll"><table><thead><tr>
-        <th>Linha</th><th class="num">Peças</th>
+        <th>Linha</th><th class="num">Qtd. Vendida <small>(un)</small></th>
         <th class="num">Nesta loja${ajuda('Peso da linha', AJUDA_PESOS_LINHA)}</th>
         <th class="num">Na rede</th>
         <th class="num">Índice${ajuda('Índice da linha', AJUDA_INDICE_LINHA)}</th>
@@ -2471,7 +2472,7 @@ function opoTabelaGap(g){
     vende 5.212 são comparadas na mesma régua.</p>
   <p><b>Não é previsão de venda</b> e não diz a causa. Índice baixo pode ser preço,
     exposição ou demanda local — a conta aponta onde olhar, não o que houve.</p>`)}</th>
-      <th class="num">Esta loja</th><th class="num">Esperado</th>
+      <th class="num">Qtd. Vendida <small>(loja · un)</small></th><th class="num">Esperado <small>(un)</small></th>
       <th class="num">Diferença</th><th class="num">Estoque SP</th></tr></thead>
     <tbody>${g.map(x=>`<tr${x.estoque_cd===0?' class="rompido"':''}>
       <td>${ref(x.sku)}</td>
@@ -2509,7 +2510,7 @@ function opoTabelaDest(d){
     vende 5.212 são comparadas na mesma régua.</p>
   <p><b>Não é previsão de venda</b> e não diz a causa. Índice baixo pode ser preço,
     exposição ou demanda local — a conta aponta onde olhar, não o que houve.</p>`)}</th>
-      <th class="num">Rede</th><th class="num">Esta loja</th><th class="num">% do item</th></tr></thead>
+      <th class="num">Qtd. Vendida <small>(rede · un)</small></th><th class="num">Qtd. Vendida <small>(loja · un)</small></th><th class="num">% do item</th></tr></thead>
     <tbody>${d.map(x=>`<tr>
       <td>${ref(x.sku)}</td>
       <td class="desc" title="${(x.descricao||'').replace(/"/g,'&quot;')}">${x.descricao||'—'}</td>
@@ -2588,7 +2589,7 @@ function opoPreco(lojaSel){
         Subir preço pode custar giro; o número diz onde olhar, não o que fazer.</div>
     </div>
     <div class="tbl-scroll"><table class="densa"><thead><tr>
-      <th>Loja</th><th class="num">Peças</th><th class="num">Preço médio</th>
+      <th>Loja</th><th class="num">Qtd. Vendida <small>(un)</small></th><th class="num">Preço médio</th>
       <th class="num">Dif. p/ rede</th><th class="num">Oportunidade</th><th style="width:150px"></th>
     </tr></thead><tbody>${abaixo.map(d=>`<tr class="drill" onclick="OPO.loja='${
         d.loja.replace(/'/g,"\\'")}';OPO.aba='gap';
@@ -2624,7 +2625,7 @@ function opoRede(){
     <div class="panel"><div class="panel-head"><h2>Por loja</h2>
       <span class="count">ordenado por peças disponíveis</span></div>
     <div class="tbl-scroll"><table class="densa"><thead><tr>
-      <th>Loja</th><th class="num">Peças vendidas</th><th class="num">Participação</th>
+      <th>Loja</th><th class="num">Qtd. Vendida <small>(un)</small></th><th class="num">Participação</th>
       <th class="num">Itens abaixo</th><th class="num">Em classe A</th>
       <th class="num">Diferença</th><th class="num">Com estoque</th><th class="num">Destaques</th></tr></thead>
     <tbody>${linhas.map(x=>`<tr class="drill" onclick="OPO.loja='${x.loja.replace(/'/g,"\\'")}';
@@ -2656,7 +2657,7 @@ function opoLinhaRede(){
         ajudaCalculoLinha(foco[0], 'a loja'))}</h2>
       <span class="count">${fmtInt(pecas)} peças na rede</span></div>
     <div class="tbl-scroll"><table><thead><tr>
-      <th>Loja</th><th>Linha</th><th class="num">Peças na loja</th>
+      <th>Loja</th><th>Linha</th><th class="num">Qtd. Vendida <small>(loja · un)</small></th>
       <th class="num">Nesta loja${ajuda('Peso da linha', AJUDA_PESOS_LINHA)}</th>
       <th class="num">Na rede</th>
       <th class="num">Índice${ajuda('Índice da linha', AJUDA_INDICE_LINHA)}</th>
@@ -2686,13 +2687,13 @@ function opoExportar(){
   if(!OPO.loja){
     return exportCSV('oportunidades_rede',
       [{label:'Loja',key:'loja'},{label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},
-       {label:'Classe',key:'classe'},{label:'Un rede',key:'un_rede'},{label:'Un loja',key:'un_loja'},
+       {label:'Classe',key:'classe'},{label:'Qtd. Vendida rede (un)',key:'un_rede'},{label:'Qtd. Vendida loja (un)',key:'un_loja'},
        {label:'Esperado',key:'esperado'},{label:'Diferenca',key:'gap'},
        {label:'Estoque SP (un)',key:'estoque_cd'}], OPO.gap);
   }
   if(OPO.aba==='linha')
     return exportCSV('linhas_'+OPO.loja,
-      [{label:'Linha',key:'linha'},{label:'Pecas na loja',key:'un_loja'},
+      [{label:'Linha',key:'linha'},{label:'Qtd. Vendida loja (un)',key:'un_loja'},
        {label:'Peso na loja %',key:'peso_loja_pct'},{label:'Peso na rede %',key:'peso_rede_pct'},
        {label:'Indice',key:'indice'},{label:'Faltam',key:'faltam'},
        {label:'Estoque SP (un)',key:'saldo_pulmao'}],
@@ -2951,7 +2952,7 @@ function abcRefresh(){
       ? `<div class="s"><div class="n">${fmtInt(totA)}</div><div class="l">Período A</div></div>
          <div class="s"><div class="n">${fmtInt(totB)}</div><div class="l">Período B</div></div>
          <div class="s"><div class="n">${deltaHTML(dTot)}</div><div class="l">Variação</div></div>`
-      : `<div class="s"><div class="n">${fmtInt(totQtd)}</div><div class="l">Peças no período</div></div>`}
+      : `<div class="s"><div class="n">${fmtInt(totQtd)}</div><div class="l">Qtd. Vendida no período (un)</div></div>`}
     <div class="s"><div class="n" style="color:#1552c9">${cont.A||0}</div><div class="l">Classe A</div></div>
     <div class="s"><div class="n" style="color:#1f7a3f">${cont.B||0}</div><div class="l">Classe B</div></div>
     <div class="s"><div class="n" style="color:#4e5a6d">${cont.C||0}</div><div class="l">Classe C</div></div>
@@ -2990,7 +2991,7 @@ function abcRefresh(){
   const rotEscopo = lojaSel ? 'Na loja' : 'Na rede';
   const nomeEscopo = lojaSel ? lojaSel : 'rede';
   document.getElementById('abcHead').innerHTML = `<th class="num">#</th><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>`
-    + (cmp? `<th class="num">Período A</th><th class="num">Período B</th><th class="num">Variação</th>` : `<th class="num">Qtd <small>(un)</small></th>`)
+    + (cmp? `<th class="num">Período A</th><th class="num">Período B</th><th class="num">Variação</th>` : `<th class="num">Qtd. Vendida <small>(un)</small></th>`)
     + `<th class="num">Estoque SP <small>(un)</small></th>`
     + `<th class="num">% acum.${ajuda('% acumulado',
         `<p>A soma das peças, do item que mais vende até este, dentro
@@ -3096,7 +3097,7 @@ function abcEscopo(lojaSel){
     <div class="mk">${marca}</div>
     <div class="tx"><b>${titulo}</b><span>${sub}</span></div>
     <div class="fx">
-      <div><div class="n">${fmtInt(totEsc)}</div><div class="l">Peças no período</div></div>
+      <div><div class="n">${fmtInt(totEsc)}</div><div class="l">Qtd. Vendida no período (un)</div></div>
       ${lojaSel?`<div><div class="n">${fmtPct(share)}</div><div class="l">Da rede</div></div>
         <div><div class="n">${posLoja?('#'+posLoja+' de '+nLojas):'—'}</div><div class="l">Ranking de volume</div></div>`
        :`<div><div class="n">${nLojas}</div><div class="l">Associados</div></div>`}
@@ -3130,14 +3131,14 @@ function abcColsExport(){
   const cols=[
     {label:'Posicao',get:d=>g?d.posicao_grupo:d.posicao},{label:'SKU',get:d=>ref(d.sku)},
     {label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},
-    {label:'Grupo',key:'grupo'},{label:'Qtd (un)',key:'qtd_janela'},
+    {label:'Grupo',key:'grupo'},{label:'Qtd. Vendida (un)',key:'qtd_janela'},
     {label:'Estoque SP (un)',get:d=>ABC.estoque[d.sku]??''},
     {label:'% acumulado',get:d=>(g?d.pct_acum_grupo:d.pct_acumulado)},
     {label: loja?('Classe na loja ('+loja+')'):'Classe na rede', key:'classe'},
     {label:'Classe no grupo',key:'classe_grupo'}
   ];
   if(loja) cols.push(
-    {label:'Qtd rede',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
+    {label:'Qtd. Vendida rede (un)',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
     {label:'Classe rede',key:'classe_rede'},
     {label:'Delta participacao pp',get:d=>(d.gap_pp!=null?Number(d.gap_pp).toFixed(2):'')});
   return cols;
@@ -3241,7 +3242,7 @@ function vendasRefresh(){
   const maxpct=rankFull[0]?rankFull[0].pct:1;
   document.getElementById('vRankPanel').innerHTML=`<div class="panel"><div class="panel-head">
     <h2>Ranking por loja — ${periodLabel(st)}</h2><span class="count">${rank.length} de ${rankFull.length} lojas</span></div>
-    <div class="tbl-scroll"><table><thead><tr><th class="num">#</th><th>Loja</th><th class="num">Peças</th><th class="num">Participação</th><th class="num">Acumulado</th><th></th></tr></thead><tbody>
+    <div class="tbl-scroll"><table><thead><tr><th class="num">#</th><th>Loja</th><th class="num">Qtd. Vendida <small>(un)</small></th><th class="num">Participação</th><th class="num">Acumulado</th><th></th></tr></thead><tbody>
     ${rank.map(r=>`<tr${r.fora?' style="color:var(--ink-faint)"':''}><td class="num">${r.pos}</td>
       <td>${r.loja}${r.fora?' <span class="pill C">fora do escopo</span>':''}</td><td class="num">${fmtInt(r.qtd)}</td>
       <td class="num">${fmtPct(r.pct)}</td>
@@ -4042,7 +4043,7 @@ function presRefresh(){
   const lojasCtx=new Set(ctx.map(r=>r.loja)).size;
   presCrumb(st.mode==='single'? mesLabel(st.aIni)+'–'+mesLabel(st.aFim) : 'todo o histórico');
   document.getElementById('prKPI').innerHTML=`<div class="statbar">
-    <div class="s"><div class="n">${fmtInt(un)}</div><div class="l">Unidades vendidas</div></div>
+    <div class="s"><div class="n">${fmtInt(un)}</div><div class="l">Qtd. Vendida (un)</div></div>
     <div class="s"><div class="n">${skus}</div><div class="l">Produtos (SKUs)</div></div>
     <div class="s"><div class="n">${linhas}</div><div class="l">Linhas com venda</div></div>
     <div class="s"><div class="n">${lojasCtx}</div><div class="l">Lojas no contexto</div></div>
@@ -4069,7 +4070,7 @@ function presExport(){
   exportCSV('presenca_'+(PRES.loja||PRES.uf||PRES.regiao||'brasil'),
     [{label:'Regiao',key:'regiao'},{label:'UF',key:'uf'},{label:'Loja',key:'loja'},
      {label:'SKU',get:d=>ref(d.sku)},{label:'Descricao',key:'descricao'},{label:'Grupo',key:'grupo'},
-     {label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Unidades',key:'quantidade'}], ctx);
+     {label:'Linha',key:'linha'},{label:'Cor',key:'cor'},{label:'Qtd. Vendida (un)',key:'quantidade'}], ctx);
 }
 
 /* ============================================================
@@ -4108,7 +4109,7 @@ async function renderPrecoMedio(){
       <span class="count" id="pmCount"></span></div><div style="padding:14px 16px" id="pmEscala"></div></div>
     <div class="panel"><div class="panel-head"><h2>Detalhamento</h2></div>
       <div class="tbl-scroll"><table><thead><tr>
-        <th class="num">#</th><th>Loja</th><th>UF</th><th class="num">Faturamento</th><th class="num">Unidades</th>
+        <th class="num">#</th><th>Loja</th><th>UF</th><th class="num">Faturamento</th><th class="num">Qtd. Vendida <small>(un)</small></th>
         <th class="num">Preço médio</th><th class="num">vs. rede</th><th class="num">vs. maior</th>
       </tr></thead><tbody id="pmRows"></tbody></table></div></div>
     <div style="margin-top:10px;font-size:12px;color:var(--ink-faint)">
@@ -4143,7 +4144,7 @@ function pmRows(){
 }
 function pmCols(){ return [
   {label:'Loja',key:'loja'},{label:'UF',key:'uf'},{label:'Regiao',key:'regiao'},
-  {label:'Faturamento',get:d=>Number(d.valor).toFixed(2)},{label:'Unidades',key:'unidades'},
+  {label:'Faturamento',get:d=>Number(d.valor).toFixed(2)},{label:'Qtd. Vendida (un)',key:'unidades'},
   {label:'Preco medio',get:d=>Number(d.preco_medio).toFixed(2)},
   {label:'vs rede %',get:d=>Number(d.vs_rede_pct).toFixed(2)},
   {label:'vs maior %',get:d=>Number(d.vs_maior_pct).toFixed(2)}];
@@ -4158,7 +4159,7 @@ function pmRefresh(){
     <div class="s"><div class="n">${moneyHTML(pmMax,'118px')}</div><div class="l">Maior · ${maior?maior.loja:'—'}</div></div>
     <div class="s"><div class="n">${moneyHTML(pmMin,'118px')}</div><div class="l">Menor · ${menor?menor.loja:'—'}</div></div>
     <div class="s"><div class="n">${moneyHTML(r0.valor_rede,'160px')}</div><div class="l">Faturamento da rede</div></div>
-    <div class="s"><div class="n">${fmtInt(r0.unidades_rede)}</div><div class="l">Unidades da rede</div></div>
+    <div class="s"><div class="n">${fmtInt(r0.unidades_rede)}</div><div class="l">Qtd. Vendida rede (un)</div></div>
   </div>`;
   document.getElementById('pmCount').textContent=rows.length+' lojas';
   // escala visual: onde cada loja está entre o menor e o maior preço médio
@@ -4448,7 +4449,7 @@ function cobDesenhar(){
   if(next) next.onclick=()=>{ if(idx<COB.anos.length-1){ COB.ano=COB.anos[idx+1]; cobDesenhar(); } };
   document.getElementById('cbCSV').onclick=()=>exportCSV('cobertura_'+COB.ano,
     [{label:'Loja',key:'loja'},{label:'UF',key:'uf'},{label:'Mes',get:d=>MES_NOME[d.mes]},
-     {label:'Situacao',get:d=>COB_ROTULO[d.status]},{label:'Unidades',key:'unidades'}],linhas);
+     {label:'Situacao',get:d=>COB_ROTULO[d.status]},{label:'Qtd. Vendida (un)',key:'unidades'}],linhas);
   if(isAdmin()) document.querySelectorAll('#cbBody .cb.cli').forEach(td=>{
     td.onclick=()=>cobResponder(+td.dataset.lj,+td.dataset.mes,td.dataset.nome,td.dataset.st);
   });
@@ -6298,7 +6299,7 @@ async function botResumo(){
   const pos=[...tudo].sort((a,c)=>c.unidades-a.unidades).findIndex(x=>x===m)+1;
   b.innerHTML=`<p><b>${chatQuemSou()} · ${per}</b></p>
     <ul class="bot-lista">
-      <li>Peças vendidas: <b>${fmtInt(m.unidades)}</b></li>
+      <li>Qtd. Vendida: <b>${fmtInt(m.unidades)}</b></li>
       <li>Participação na rede: <b>${fmtPct(100*m.participacao)}</b></li>
       <li>SKUs diferentes: <b>${fmtInt(m.skus_ativos)}</b></li>
       <li>Posição por volume: <b>${pos}º de ${tudo.length}</b></li>
