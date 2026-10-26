@@ -869,8 +869,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.7.1 · 26/10/2026 · Descrição longa não empurra mais a tela (ajusta ao espaço); MOQ sugerido (venda/dia × dias da curva,
                         múltiplo de 12); tabelas de Produtos e Pendências no padrão das demais
    1.7.2 · 26/10/2026 · Quantidade vendida passa a se chamar "Qtd. Vendida" em todo o sistema
+   1.7.3 · 26/10/2026 · Botão Editar/Ajustar na primeira coluna (Produtos e Pendências), sempre visível
    ============================================================ */
-const APP_VERSAO = '1.7.2';
+const APP_VERSAO = '1.7.3';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -3337,7 +3338,7 @@ async function renderProdutos(){
       ${canEdit?'<button class="btn-tool pri" id="pImp">Importar cadastro</button>':''}
     </div>
     <div class="panel"><div class="panel-head"><h2>Tabela DAX</h2><span class="count" id="pCount"></span></div>
-    <div class="tbl-scroll"><table class="densa zn-tab"><thead><tr><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>
+    <div class="tbl-scroll"><table class="densa zn-tab"><thead><tr>${canEdit?'<th></th>':''}<th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>
       ${PROD_CAMPOS.map(c=>`<th class="${c.num?'num':''}">${c.rot}${c.un?` <small>(${c.un})</small>`:''}</th>`).join('')}
       <th class="num">MOQ sugerido <small>(un)</small>${ajuda('MOQ sugerido',`<p><b>Venda/dia da rede × dias da curva</b>
         (A ${fmtInt(PROD.dias.dias_a)} · B ${fmtInt(PROD.dias.dias_b)} · C ${fmtInt(PROD.dias.dias_c)} dias), arredondado
@@ -3352,7 +3353,7 @@ async function renderProdutos(){
         de <b>${PROD.curvaRot}</b> — o mesmo período que as outras telas abrem por padrão.</p>
         <p>É calculada pelo sistema, não se edita aqui. Muda sozinha a cada carga de vendas.</p>
         <p><b>D</b> = sem venda no período.</p>`)}</th>
-      ${canEdit?'<th></th>':''}</tr></thead>
+      </tr></thead>
     <tbody id="pRows"></tbody></table></div></div>`;
   ['pSearch','pGrupo','pLinha','pCor','pFalta'].forEach(id=>{const el=document.getElementById(id);el.oninput=el.onchange=prodRefresh;});
   document.getElementById('pCSV').onclick=()=>prodExportarXLSX(prodFilter());
@@ -3404,6 +3405,7 @@ function prodCols(){return [{label:'Codigo DAX',get:d=>ref(d.sku)},{label:'Descr
 function prodRefresh(){
   const rows=prodFilter(); document.getElementById('pCount').textContent=fmtInt(rows.length)+' SKUs';
   document.getElementById('pRows').innerHTML=rows.map(d=>`<tr>
+    ${PROD.canEdit?`<td><button class="iconbtn" onclick="editarProduto('${d.sku}')">Editar</button></td>`:''}
     <td style="white-space:nowrap">${ref(d.sku)}</td>
     <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
     <td>${d.linha||'—'}</td><td>${d.cor||'—'}</td><td>${d.grupo||'—'}</td>
@@ -3411,7 +3413,6 @@ function prodRefresh(){
     ${(()=>{const sg=prodMoqSug(d.sku), alto=sg&&+d.moq>2*sg;
       return `<td class="num"${alto?' style="color:#c0392b;font-weight:700" title="MOQ cadastrado acima do dobro do sugerido"':''}>${sg==null?'—':fmtInt(sg)}</td>`;})()}
     <td class="cls"><span class="pill cls ${PROD.curva[d.sku]||'D'}">${PROD.curva[d.sku]||'D'}</span></td>
-    ${PROD.canEdit?`<td class="mini-actions"><button class="iconbtn" onclick="editarProduto('${d.sku}')">Editar</button></td>`:''}
   </tr>`).join('');
 }
 // Planilha Excel da Tabela DAX: numeros como numero (peso com 0,000), codigos como texto.
@@ -4239,8 +4240,8 @@ async function renderPendencias(){
       <button class="btn-tool" id="pePrint">Imprimir</button>
     </div>
     <div class="panel"><div class="panel-head"><h2>Produtos a ajustar</h2><span class="count" id="peCount"></span></div>
-    <div class="tbl-scroll"><table class="densa zn-tab"><thead><tr><th>SKU</th><th class="wide">Descrição</th><th>Grupo</th><th>Linha</th>
-      <th class="num">Faltam <small>(campos)</small></th><th>O que falta</th>${PROD.canEdit?'<th></th>':''}</tr></thead>
+    <div class="tbl-scroll"><table class="densa zn-tab"><thead><tr>${PROD.canEdit?'<th></th>':''}<th>SKU</th><th class="wide">Descrição</th><th>Grupo</th><th>Linha</th>
+      <th class="num">Faltam <small>(campos)</small></th><th>O que falta</th></tr></thead>
     <tbody id="peRows"></tbody></table></div></div>`;
   ['peSearch','peTipo'].forEach(id=>{const el=document.getElementById(id); el.oninput=el.onchange=pendRefresh;});
   document.getElementById('peCSV').onclick=()=>exportCSV('pendencias_cadastro',
@@ -4261,12 +4262,12 @@ function pendRefresh(){
   document.getElementById('peCount').textContent=fmtInt(rows.length)+' produtos';
   document.getElementById('peRows').innerHTML=rows.map(d=>{const f=pendFaltaLista(d);
     return `<tr>
+    ${PROD.canEdit?`<td><button class="iconbtn" data-sku="${d.sku}">Ajustar</button></td>`:''}
     <td style="white-space:nowrap">${ref(d.sku)}</td><td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'<span style="color:#c0392b">—</span>'}</td>
     <td>${d.grupo||'<span style="color:#c0392b">—</span>'}</td>
     <td>${d.linha||'<span style="color:#c0392b">—</span>'}</td>
     <td class="num" style="font-weight:700">${fmtInt(f.length)}</td>
     <td>${f.map(c=>`<span class="pill D" style="margin:1px 3px 1px 0">${c.rot}</span>`).join('')}</td>
-    ${PROD.canEdit?`<td class="mini-actions"><button class="iconbtn" data-sku="${d.sku}">Ajustar</button></td>`:''}
   </tr>`;}).join('');
   if(PROD.canEdit) document.querySelectorAll('#peRows [data-sku]').forEach(b=>{
     b.onclick=()=>editarProdutoPend(b.dataset.sku);
