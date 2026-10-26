@@ -877,8 +877,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.7.3 · 26/10/2026 · Botão Editar/Ajustar na primeira coluna (Produtos e Pendências), sempre visível
    1.7.4 · 26/10/2026 · Período volta sempre para jan do ano até o último mês ao abrir o sistema (não fica mais gravado)
    1.7.5 · 26/10/2026 · Rupturas: gráfico "SKUs por zona e curva" em forma de duto (tubo de aço, zonas coloridas, anéis nas transições)
+   1.7.6 · 26/10/2026 · Rupturas: aviso de quantos SKUs ficam fora (sem venda e sem estoque) ao lado do "Todas"
+   1.7.7 · 26/10/2026 · Log: filtro por conta (ou todas) no quadro Últimos registros
    ============================================================ */
-const APP_VERSAO = '1.7.5';
+const APP_VERSAO = '1.7.7';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -4668,7 +4670,7 @@ const ZN_ZONAS=[
   {k:'excesso', rot:'Excesso',  titulo:'em excesso',        dica:'acima do alvo ou sem venda', cor:'#3d8ef0'}
 ];
 const ZN_CURVAS=[{k:'A',rot:'Curva A'},{k:'B',rot:'Curva B'},{k:'C',rot:'Curva C'},{k:'D',rot:'Sem venda',sub:'classe D'}];
-const ZN={raw:[],vis:[],par:null,zona:'',aberto:{},meses:[],period:{},montando:false,temChina:false};
+const ZN={raw:[],vis:[],par:null,zona:'',aberto:{},meses:[],period:{},montando:false,temChina:false,fora:0};
 function znZona(k){ return ZN_ZONAS.find(z=>z.k===k)||ZN_ZONAS[0]; }
 function znDec(n,c){ return (n==null)?'—':Number(n).toLocaleString('pt-BR',{minimumFractionDigits:c,maximumFractionDigits:c}); }
 function znSinal(n){ if(n==null) return '—'; n=Math.round(+n); return (n>0?'+':n<0?'−':'')+fmtInt(Math.abs(n)); }
@@ -4679,6 +4681,7 @@ async function znCarregar(){
   const {data,error}=await fetchRpc('estoque_zonas',{p_ini:st.aIni||null, p_fim:st.aFim||null});
   if(error) return error.message;
   // classe D sem estoque nao e ruptura: e item que nem vende nem tem. Fica de fora.
+  ZN.fora=(data||[]).filter(d=>d.zona==='inativo').length;
   ZN.raw=(data||[]).filter(d=>d.zona!=='inativo');
   // Sem nenhum pedido China carregado, a coluna nao aparece: nao da para
   // dizer "sem pedido" sobre uma informacao que o sistema ainda nao tem.
@@ -4923,10 +4926,12 @@ function znStats(){
 
 function znLegenda(){
   const el=document.getElementById('znLeg'); if(!el) return;
+  const fora=ZN.fora?`<span style="align-self:center;font-size:12px;color:var(--ink-faint);margin-right:4px"
+      title="Sem venda no período e com Estoque SP zero: não estão rompidos nem sobrando.">+ ${fmtInt(ZN.fora)} SKUs fora: sem venda e sem estoque</span>`:'';
   el.innerHTML=`<button class="${ZN.zona===''?'on':''}" onclick="znFiltra('',null)">Todas · ${fmtInt(ZN.raw.length)}</button>`
     + ZN_ZONAS.map(z=>`<button class="${ZN.zona===z.k?'on':''}" title="${z.dica}"
         onclick="znFiltra('${z.k}',null)"><i style="background:${z.cor}"></i>${z.rot} · ${
-        fmtInt(ZN.raw.filter(d=>d.zona===z.k).length)}</button>`).join('');
+        fmtInt(ZN.raw.filter(d=>d.zona===z.k).length)}</button>`).join('') + fora;
 }
 
 // zona: filtro de cor ('' = todas). curva: abre so aquela; null = mantem as abertas.
@@ -5738,7 +5743,7 @@ function pulmaoPinta(){
    existir.
    ============================================================ */
 const ICO_LOGSIS=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1f6fe0" stroke-width="2"><path d="M3 12h4l2.5-7 4 14 2.5-7h5"/></svg>`;
-const LOG={per:'30', de:'', ate:'', papel:'', conta:'', res:null, contas:[], ultimos:[], lim:60};
+const LOG={per:'30', de:'', ate:'', papel:'', conta:'', evConta:'', res:null, contas:[], ultimos:[], lim:60};
 const LOG_PERIODOS=[['hoje','Hoje'],['7','Últimos 7 dias'],['30','Últimos 30 dias'],
   ['90','Últimos 90 dias'],['tudo','Desde o início'],['esp','Período específico']];
 const LOG_TIPO_ROT={login:'entrou', abertura:'abriu o sistema', tela:'abriu tela'};
@@ -5797,7 +5802,7 @@ async function renderLog(){
     <div id="lgPainel"><div class="panel"><div class="empty">Carregando…</div></div></div>`;
 
   document.getElementById('lgPer').onchange=e=>{ LOG.per=e.target.value; logEspecifico(); logCarrega(); };
-  document.getElementById('lgPapel').onchange=e=>{ LOG.papel=e.target.value; logCarrega(); };
+  document.getElementById('lgPapel').onchange=e=>{ LOG.papel=e.target.value; LOG.evConta=''; logCarrega(); };
   document.getElementById('lgConta').onchange=e=>{ LOG.conta=e.target.value; logCarrega(); };
   document.getElementById('lgCSV').onclick=logCSV;
   logEspecifico();
@@ -5831,13 +5836,7 @@ async function logCarrega(){
   alvo.innerHTML='<div class="panel"><div class="empty">Carregando…</div></div>';
   const j=logJanela();
   const args={p_ini:j.ini, p_fim:j.fim, p_papel:LOG.papel||null, p_usuario:LOG.conta||null};
-  let q=sb.from('log_eventos').select('criado_em,quem,papel,tipo,rota')
-        .order('criado_em',{ascending:false}).limit(400);
-  if(j.ini) q=q.gte('criado_em',j.ini);
-  if(j.fim) q=q.lt('criado_em',j.fim);
-  if(LOG.papel) q=q.eq('papel',LOG.papel);
-  if(LOG.conta) q=q.eq('usuario',LOG.conta);
-  const [r1,r2]=await Promise.all([sb.rpc('log_resumo',args), q]);
+  const [r1,r2]=await Promise.all([sb.rpc('log_resumo',args), logEventosQuery()]);
   if(r1.error){ alvo.innerHTML=`<div class="notice warn">${r1.error.message}</div>`; return; }
   LOG.res=r1.data||{};
   LOG.ultimos=r2.data||[];
@@ -5998,10 +5997,33 @@ function logContasHTML(contas, porU){
   </div>`;
 }
 
+// Registros do periodo; o filtro do quadro (conta) busca no banco, nao so no que ja foi carregado
+function logEventosQuery(){
+  const j=logJanela(), conta=LOG.conta||LOG.evConta;
+  let q=sb.from('log_eventos').select('criado_em,quem,papel,tipo,rota')
+        .order('criado_em',{ascending:false}).limit(400);
+  if(j.ini) q=q.gte('criado_em',j.ini);
+  if(j.fim) q=q.lt('criado_em',j.fim);
+  if(LOG.papel) q=q.eq('papel',LOG.papel);
+  if(conta) q=q.eq('usuario',conta);
+  return q;
+}
+async function logEventosFiltra(v){
+  LOG.evConta=v; const {data,error}=await logEventosQuery();
+  if(error){ toast(error.message); return; }
+  LOG.ultimos=data||[]; LOG.lim=60; logPinta();
+}
 function logEventosHTML(){
   const l=LOG.ultimos.slice(0,LOG.lim);
-  if(!l.length) return '';
-  return `<div class="panel"><div class="panel-head"><h2>Últimos registros</h2>
+  const contas=LOG.contas.filter(c=>!LOG.papel||c.papel===LOG.papel);
+  const atual=LOG.conta||LOG.evConta;
+  const sel=`<select class="selin" style="margin-left:12px" ${LOG.conta?'disabled title="Conta já escolhida no filtro do topo"':''}
+      onchange="logEventosFiltra(this.value)">
+      <option value="">Todas as contas</option>
+      ${contas.map(c=>`<option value="${c.id}"${c.id===atual?' selected':''}>${c.nome||c.email}</option>`).join('')}</select>`;
+  if(!l.length) return `<div class="panel"><div class="panel-head"><h2>Últimos registros</h2>${sel}</div>
+    <div class="empty">Nenhum registro desta conta no período.</div></div>`;
+  return `<div class="panel"><div class="panel-head"><h2>Últimos registros</h2>${sel}
       <span class="count">${fmtInt(l.length)} de ${fmtInt(LOG.ultimos.length)}${LOG.ultimos.length>=400?'+':''}</span></div>
     <div class="tbl-scroll"><table><thead><tr>
       <th>Quando</th><th>Conta</th><th>Evento</th><th>Tela</th>
