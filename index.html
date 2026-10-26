@@ -615,7 +615,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 .chat-msg.bot b{color:var(--ink)}
 .chat-msg .pensando{color:var(--ink-faint)}
 .chat-msg .erro{color:#c0392b}
-.chat-dock-topo #dkMenu,.chat-dock-topo #dkLimpar{font-size:11.5px}
+.chat-dock-topo #dkMenu,.chat-dock-topo #dkVoltar{font-size:12px;font-weight:700;color:var(--ink-soft)}
 .bot-ops{display:flex;flex-direction:column;gap:5px;margin-top:9px}
 .bot-op{display:block;width:100%;text-align:left;border:1px solid #d9e2ee;background:#fff;
   border-radius:9px;padding:9px 12px;font-family:inherit;font-size:13px;font-weight:600;
@@ -686,8 +686,8 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   <div class="chat-dock-topo">
     <b>Perguntar</b>
     <span class="grow"></span>
-    <button class="chat-dock-x" id="dkMenu" title="Voltar ao menu inicial">menu</button>
-    <button class="chat-dock-x" id="dkLimpar" title="Recomeçar a conversa">limpar</button>
+    <button class="chat-dock-x" id="dkMenu" title="Ir para o menu inicial">Menu</button>
+    <button class="chat-dock-x" id="dkVoltar" title="Desfazer a última escolha e voltar ao passo anterior">Voltar</button>
     <button class="chat-dock-x" id="dkTela" title="Abrir em tela cheia">⤢</button>
     <button class="chat-dock-x" id="dkFechar" title="Fechar">✕</button>
   </div>
@@ -879,8 +879,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.7.5 · 26/10/2026 · Rupturas: gráfico "SKUs por zona e curva" em forma de duto (tubo de aço, zonas coloridas, anéis nas transições)
    1.7.6 · 26/10/2026 · Rupturas: aviso de quantos SKUs ficam fora (sem venda e sem estoque) ao lado do "Todas"
    1.7.7 · 26/10/2026 · Log: filtro por conta (ou todas) no quadro Últimos registros
+   1.7.8 · 26/10/2026 · Robô: botões "Menu" e "Voltar" (desfaz a última escolha), em negrito
    ============================================================ */
-const APP_VERSAO = '1.7.7';
+const APP_VERSAO = '1.7.8';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -1507,7 +1508,7 @@ function aplicarVisibilidade(){
 document.getElementById('chatBolha').onclick=dockToggle;
 document.getElementById('dkFechar').onclick=dockFechar;
 document.getElementById('dkMenu').onclick=()=>botMenu(false);
-document.getElementById('dkLimpar').onclick=chatRecomecar;
+document.getElementById('dkVoltar').onclick=botVoltar;
 document.getElementById('dkTela').onclick=()=>{ dockFechar(); route('perguntar'); };
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && dockAberto()) dockFechar(); });
 // Data da ultima carga de cada planilha. Depois que a pessoa sai da tela de
@@ -6137,8 +6138,20 @@ async function botDiz(html, ms){
   const fio=document.getElementById('pgFio'); if(fio) fio.scrollTop=1e9;
   return t;
 }
+// Pilha das escolhas oferecidas: o Voltar desfaz a ultima e reabre a anterior.
+const BOT_PILHA=[];
+function botVoltar(){
+  const fio=document.getElementById('pgFio'); if(!fio) return;
+  if(BOT_PILHA.length<2){ botMenu(false); return; }
+  BOT_PILHA.pop();                               // a escolha que esta aberta agora
+  const ant=BOT_PILHA.pop();                     // a anterior volta a ficar aberta
+  while(fio.children.length>ant.n) fio.lastElementChild.remove();
+  botOfereceu(ant.bolha, ant.ops, ant.aoEscolher);
+}
 function botOfereceu(bolha, ops, aoEscolher){
   if(!bolha) return;
+  const fio0=document.getElementById('pgFio');
+  BOT_PILHA.push({bolha, ops, aoEscolher, n: fio0 ? fio0.children.length : 0});
   const cx=document.createElement('div');
   cx.className='bot-ops';
   cx.innerHTML=ops.map((o,i)=>`<button class="bot-op" data-i="${i}">${o.rot}</button>`).join('');
@@ -6252,7 +6265,7 @@ function chatMarkup(){ return `<div class="chat-fio" id="pgFio"></div>`; }
 function chatRecomecar(){
   const fio=document.getElementById('pgFio');
   if(!fio) return;
-  fio.innerHTML='';
+  fio.innerHTML=''; BOT_PILHA.length=0;
   chatAbertura();
 }
 async function chatAbertura(){
@@ -6499,11 +6512,11 @@ async function renderPerguntar(){
   if(!session){ body.innerHTML=loginWall('O assistente é restrito à equipe.'); return; }
   await chatDados();
   body.innerHTML=`<div class="tools" style="justify-content:flex-end">
-      <button class="btn-tool" id="pgMenu">‹ Menu inicial</button>
-      <button class="btn-tool" id="pgRecomecar">Recomeçar</button></div>
+      <button class="btn-tool" id="pgMenu" style="font-weight:700">Menu</button>
+      <button class="btn-tool" id="pgVoltar" style="font-weight:700">Voltar</button></div>
     <div class="panel" style="margin-bottom:12px">${chatMarkup()}</div>`;
   document.getElementById('pgMenu').onclick=()=>botMenu(false);
-  document.getElementById('pgRecomecar').onclick=chatRecomecar;
+  document.getElementById('pgVoltar').onclick=botVoltar;
   chatAbertura();
 }
 
