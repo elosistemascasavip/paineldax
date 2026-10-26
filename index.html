@@ -870,8 +870,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
                         múltiplo de 12); tabelas de Produtos e Pendências no padrão das demais
    1.7.2 · 26/10/2026 · Quantidade vendida passa a se chamar "Qtd. Vendida" em todo o sistema
    1.7.3 · 26/10/2026 · Botão Editar/Ajustar na primeira coluna (Produtos e Pendências), sempre visível
+   1.7.4 · 26/10/2026 · Período volta sempre para jan do ano até o último mês ao abrir o sistema (não fica mais gravado)
    ============================================================ */
-const APP_VERSAO = '1.7.3';
+const APP_VERSAO = '1.7.4';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -1148,18 +1149,16 @@ function wirePeriod(box, meses, onChange, stInicial){
   render(stInicial||{});
   onChange(readPeriod(box));
 }
-/* Periodo do usuario: um so para todas as telas e para o robo, guardado no
-   navegador de quem esta logado. O que um associado escolhe nao muda a tela
-   de outro. Padrao de quem nunca escolheu: janeiro ate o ultimo mes enviado. */
-function perChave(){ return 'elo.periodo.'+((session&&session.user&&session.user.id)||'anon'); }
-function perUsuario(){
-  try{ const v=JSON.parse(localStorage.getItem(perChave())||'null');
-    if(v && v.aIni && v.aFim) return v; }catch(e){}
-  return null;
-}
+/* Periodo do usuario: um so para todas as telas e para o robo enquanto o sistema
+   esta aberto. O que um associado escolhe nao muda a tela de outro.
+   Ao abrir o sistema (ou entrar de novo) volta SEMPRE para janeiro do ano ate o
+   ultimo mes enviado: a escolha vale so ate fechar/recarregar, nao fica gravada. */
+let PER_SESSAO=null;
+try{ Object.keys(localStorage).filter(k=>k.startsWith('elo.periodo.')).forEach(k=>localStorage.removeItem(k)); }catch(e){}
+function perUsuario(){ return (PER_SESSAO && PER_SESSAO.aIni && PER_SESSAO.aFim) ? PER_SESSAO : null; }
 function perSalvar(st){
   if(!st || !st.aIni || !st.aFim) return;
-  try{ localStorage.setItem(perChave(), JSON.stringify({aIni:st.aIni, aFim:st.aFim})); }catch(e){}
+  PER_SESSAO={aIni:st.aIni, aFim:st.aFim};
 }
 // janeiro do ano do ultimo mes enviado ate o ultimo mes (ou o 1o mes que houver naquele ano)
 function anoAteAgora(meses){
@@ -1300,7 +1299,7 @@ async function refreshAuth(){
 }
 document.getElementById('avatar').onclick = async ()=>{
   if(session){ if(confirm('Sair da conta?')){
-    await sb.auth.signOut(); await refreshAuth();
+    PER_SESSAO=null; await sb.auth.signOut(); await refreshAuth();
     view.innerHTML='';
     document.getElementById('liEmail').value='';
     document.getElementById('liPass').value='';
@@ -1326,6 +1325,7 @@ function sessaoOcupada(){
 }
 async function sessaoEncerra(motivo){
   if(SESSAO.t){ clearInterval(SESSAO.t); SESSAO.t=null; }
+  PER_SESSAO=null;
   try{ await sb.auth.signOut(); }catch(e){}
   await refreshAuth();
   view.innerHTML='';
