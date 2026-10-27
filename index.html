@@ -966,8 +966,9 @@ td.col-rede{background:#fef7ea}
    1.10.3 · 27/10/2026 · Curva ABC: coluna DDV ao lado da classe que a define (No grupo da loja ou da rede)
    1.10.4 · 27/10/2026 · Curva ABC: colunas "Classe loja/rede" e "Classe por grupo", cor azul (loja) e âmbar (rede)
    1.10.5 · 27/10/2026 · Curva ABC: colunas Loja/ABC · Loja/Grupo · DDV · Rede/ABC · Rede/Grupo
+   1.10.6 · 27/10/2026 · Impressões: R$ em formato contábil, milhar e % com vírgula; Preço médio com unidades
    ============================================================ */
-const APP_VERSAO = '1.10.5';
+const APP_VERSAO = '1.10.6';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -1055,15 +1056,37 @@ function exportCSV(nome, cols, rows){
   setTimeout(()=>URL.revokeObjectURL(a.href),1500);
   toast('CSV exportado.');
 }
+// Impressao: formata cada celula pelo tipo da coluna. Dinheiro em formato contabil
+// (R$ a esquerda, numero a direita), % com 2 casas e numeros com separador de milhar.
+// Coluna de texto (EAN, NCM, codigos) nao e tocada.
+const PR_MONEY=/Faturamento|Pre[cç]o|Valor|Custo|Ticket|Receita|R\$/i;
+function prTipo(c){
+  if(c.fmt) return c.fmt;
+  if(PR_MONEY.test(c.label)) return 'brl';
+  if(!c.num) return null;
+  return /%/.test(c.label)?'pct':'num';
+}
+function prCel(c,v){
+  const t=prTipo(c); if(v==null||v==='') return '';
+  if(!t) return v;
+  const sv=String(v).trim().replace('%','');
+  const n= typeof v==='number'? v : Number(/,/.test(sv)? sv.replace(/\./g,'').replace(',','.') : sv);
+  if(!isFinite(n)) return v;
+  if(t==='brl') return `<span class="m"><span>R$</span><span>${fmtNum2(n)}</span></span>`;
+  if(t==='pct') return fmtPct(n);
+  const dec=(sv.split(/[.,]/)[1]||'').length;
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
 function printTabela(titulo, cols, rows){
-  const th=cols.map(c=>`<th class="${c.num?'r':''}">${c.label}</th>`).join('');
-  const tr=rows.map(r=>'<tr>'+cols.map(c=>`<td class="${c.num?'r':''}">${(c.get?c.get(r):r[c.key])??''}</td>`).join('')+'</tr>').join('');
+  const th=cols.map(c=>`<th class="${(c.num||prTipo(c))?'r':''}">${c.label}</th>`).join('');
+  const tr=rows.map(r=>'<tr>'+cols.map(c=>`<td class="${(c.num||prTipo(c))?'r':''}">${prCel(c,c.get?c.get(r):r[c.key])}</td>`).join('')+'</tr>').join('');
   const w=window.open('','_blank');
   w.document.write(`<html><head><meta charset="utf-8"><title>${titulo}</title>
     <style>body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}
     h1{font-size:16px;margin:0 0 4px} .sub{color:#666;margin:0 0 14px;font-size:11px}
     table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:4px 7px;text-align:left}
-    th{background:#eef2f8} .r{text-align:right}
+    th{background:#eef2f8} .r{text-align:right;white-space:nowrap}
+    .m{display:flex;justify-content:space-between;gap:10px;min-width:90px}
 </style></head>
     <body><h1>${titulo}</h1><div class="sub">Casa VIP · Abastecimento — ${new Date().toLocaleDateString('pt-BR')} — ${rows.length} itens</div>
     <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>
@@ -4253,7 +4276,7 @@ async function renderPrecoMedio(){
   document.getElementById('pmBusca').oninput=pmRefresh;
   document.getElementById('pmOrd').onchange=pmRefresh;
   document.getElementById('pmCSV').onclick=()=>exportCSV('preco_medio',pmCols(),pmRows());
-  document.getElementById('pmPrint').onclick=()=>printTabela('Preço médio por loja',pmCols().map(c=>({...c,num:/Fatur|Unid|Preço|vs/.test(c.label)})),pmRows());
+  document.getElementById('pmPrint').onclick=()=>printTabela('Preço médio por loja',pmCols().map(c=>({...c,num:/Fatur|Qtd|Preço|vs/.test(c.label)})),pmRows());
   PM.montando=true;
   wirePeriod(document.getElementById('pmPeriod'), PM.meses, async(st)=>{
     if(PM.montando) return;                     // dispara uma vez ao montar
@@ -4277,11 +4300,11 @@ function pmRows(){
   return ordenaLista(filtraNome(base,'loja',valOf('pmBusca')),'loja','preco_medio',valOf('pmOrd','valor_desc'));
 }
 function pmCols(){ return [
-  {label:'Loja',key:'loja'},{label:'UF',key:'uf'},{label:'Regiao',key:'regiao'},
-  {label:'Faturamento',get:d=>Number(d.valor).toFixed(2)},{label:'Qtd. Vendida (un)',key:'unidades'},
-  {label:'Preco medio',get:d=>Number(d.preco_medio).toFixed(2)},
-  {label:'vs rede %',get:d=>Number(d.vs_rede_pct).toFixed(2)},
-  {label:'vs maior %',get:d=>Number(d.vs_maior_pct).toFixed(2)}];
+  {label:'Loja',key:'loja'},{label:'UF',key:'uf'},{label:'Região',key:'regiao'},
+  {label:'Faturamento (R$)',get:d=>Number(d.valor).toFixed(2)},{label:'Qtd. Vendida (un)',key:'unidades'},
+  {label:'Preço médio (R$)',get:d=>Number(d.preco_medio).toFixed(2)},
+  {label:'vs rede (%)',get:d=>Number(d.vs_rede_pct).toFixed(2)},
+  {label:'vs maior (%)',get:d=>Number(d.vs_maior_pct).toFixed(2)}];
 }
 function pmRefresh(){
   const rows=pmRows(); if(!rows.length){ document.getElementById('pmEscala').innerHTML='<div class="empty">Sem lojas com venda no recorte.</div>'; return; }
