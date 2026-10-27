@@ -448,7 +448,38 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
 
 /* ---------- Responsivo: nunca estourar largura ---------- */
 @media(max-width:1000px){.tagline{display:none}.brand{padding-right:12px}.header-right{gap:16px}.chip.sep{padding-left:16px}.user{padding-left:14px}}
-@media(max-width:640px){aside{display:none}main{padding:18px}}
+/* ---------- Celular (até 760 px). Nada aqui vale no desktop. ---------- */
+.menu-movel,.menu-fundo{display:none}
+@media(max-width:760px){
+  header{padding:0 12px;height:58px}
+  .menu-movel{display:grid;place-items:center;width:40px;height:40px;margin-right:8px;border-radius:10px;
+    border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+  .brand{padding-right:0}
+  .brand .logo-elo{height:30px}
+  .who{display:none}
+  .header-right{gap:10px}.user{gap:8px;padding-left:0}
+  .dax img{height:22px}
+  /* menu lateral vira gaveta por cima da tela */
+  aside{display:flex;position:fixed;top:0;left:0;bottom:0;z-index:70;width:270px;max-width:84vw;
+    transform:translateX(-102%);transition:transform .2s ease}
+  body.menu-aberto aside{transform:translateX(0);box-shadow:8px 0 30px rgba(12,22,42,.25)}
+  .menu-fundo{position:fixed;inset:0;background:rgba(12,22,42,.45);z-index:69}
+  body.menu-aberto .menu-fundo{display:block}
+  main{padding:14px 12px 90px}
+  h1{font-size:20px}
+  .page-head{flex-wrap:wrap}
+  .statbar{gap:14px;padding:10px 12px}
+  .tools>*{max-width:100%}
+  .tools input[type=search]{min-width:0!important;flex:1 1 100%}
+  .panel-head{flex-wrap:wrap;padding:11px 12px}
+  .tbl-scroll{max-height:none;-webkit-overflow-scrolling:touch}
+  td.desc,table.densa td.desc{max-width:260px;width:auto}
+  th.wide{min-width:160px}
+  .scrim{padding:10px}
+  .modal{max-width:100%!important;padding:18px}
+  .modal div[style*="repeat(3,1fr)"]{grid-template-columns:1fr 1fr!important}
+}
+@media(prefers-reduced-motion:reduce){aside{transition:none}}
 
 /* ---------- Impressão ---------- */
 @media print{
@@ -655,6 +686,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
 <body>
 
 <header>
+  <button class="menu-movel" id="btnMenuMovel" aria-label="Abrir menu" title="Menu">☰</button>
   <div class="brand">
     <img class="logo-elo" data-logo="elo" alt="elo Sistemas">
     <div class="tagline"><div class="t1">Dados que conectam</div><div class="t2">melhores decisões</div></div>
@@ -693,6 +725,7 @@ table.densa tr.drill:hover td{background:#f2f7ff}
   </div>
   <div id="dkCorpo"></div>
 </div>
+<div class="menu-fundo" id="menuFundo"></div>
 <div class="shell">
   <aside>
     <div class="nav-scroll">
@@ -880,8 +913,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.7.6 · 26/10/2026 · Rupturas: aviso de quantos SKUs ficam fora (sem venda e sem estoque) ao lado do "Todas"
    1.7.7 · 26/10/2026 · Log: filtro por conta (ou todas) no quadro Últimos registros
    1.7.8 · 26/10/2026 · Robô: botões "Menu" e "Voltar" (desfaz a última escolha), em negrito
+   1.8   · 26/10/2026 · Celular: botão ☰ abre o menu como gaveta; cabeçalho, filtros, tabelas e janelas ajustados
+                        para tela pequena. Desktop sem nenhuma mudança (regras só abaixo de 760 px)
    ============================================================ */
-const APP_VERSAO = '1.7.8';
+const APP_VERSAO = '1.8';
 const APP_DATA   = '26/10/2026';
 
 /* ============================================================
@@ -1493,8 +1528,11 @@ function ehHoje(ts){
 let current='importar';
 const view = document.getElementById('view');
 document.querySelectorAll('.nav-item').forEach(el=>{
-  el.onclick=()=>{ if(el.classList.contains('disabled'))return; route(el.dataset.route); };
+  el.onclick=()=>{ if(el.classList.contains('disabled'))return; document.body.classList.remove('menu-aberto'); route(el.dataset.route); };
 });
+// celular: o menu lateral abre como gaveta (no desktop o botao nem aparece)
+document.getElementById('btnMenuMovel').onclick=()=>document.body.classList.toggle('menu-aberto');
+document.getElementById('menuFundo').onclick=()=>document.body.classList.remove('menu-aberto');
 function setActive(r){ document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.route===r)); }
 // Aberto para qualquer conta logada. Para voltar a restringir, troque por isAdmin().
 function aplicarVisibilidade(){
