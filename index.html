@@ -957,8 +957,10 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.10  · 27/10/2026 · DDV e curva das telas de estoque passam a ser os da curva DENTRO DO GRUPO de produtos
                         (Rupturas, Cobertura, Reposição, Tabela DAX, DDV da Curva ABC)
    1.10.1 · 27/10/2026 · Curva ABC: DDV segue a curva no grupo do recorte da tela (rede ou loja)
+   1.10.2 · 27/10/2026 · Curva ABC por loja: nova coluna "Grupo na rede" (curva do grupo na rede inteira)
+   1.10.3 · 27/10/2026 · Curva ABC: coluna DDV ao lado da classe que a define (No grupo da loja ou da rede)
    ============================================================ */
-const APP_VERSAO = '1.10.1';
+const APP_VERSAO = '1.10.3';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -3020,7 +3022,7 @@ function abcCalcular(){
   const curva=abcCurva(ABC.vendas.filter(r=>r.loja===loja), st);
   curva.forEach(x=>{
     const r=ABC.redeIdx[x.sku]||{};
-    x.qtd_rede=r.qtd_janela||0; x.pos_rede=r.posicao||null; x.classe_rede=r.classe||'D';
+    x.qtd_rede=r.qtd_janela||0; x.pos_rede=r.posicao||null; x.classe_rede=r.classe||'D'; x.classe_grupo_rede=r.classe_grupo||'D';
     x.share_rede=r.share||0; x.gap_pp=(x.share||0)-(r.share||0);
   });
   ABC.data=curva;
@@ -3127,13 +3129,6 @@ function abcRefresh(){
              É a comparação entre as duas que mostra onde a loja foge da rede.</p>`
           : `<p>Escolhendo uma loja no seletor acima, esta coluna passa a ser a daquela loja
              (<b>Na loja</b>) e aparece uma coluna <b>Na rede</b> ao lado, para comparar.</p>`))}</th>`
-    + `<th class="num">DDV <small>(dias)</small>${ajuda('DDV estipulado',`<p>Dias de venda que o Estoque SP deve cobrir para o item,
-         pela classe do item <b>dentro do seu grupo</b> — a coluna <b>No grupo</b> —
-         ${lojaSel?`na curva da <b>${lojaSel}</b>`:'na curva da <b>rede</b>'}:</p>
-         <ul><li><b>A</b> — ${fmtInt(abcDdv('A'))} dias</li><li><b>B</b> — ${fmtInt(abcDdv('B'))} dias</li>
-         <li><b>C</b> — ${fmtInt(abcDdv('C'))} dias</li><li><b>D</b> — sem venda no período, sem DDV</li></ul>
-         <p>Rupturas, Cobertura e Sugestão de reposição usam a curva <b>no grupo da rede</b>,
-         porque o Estoque SP abastece a rede inteira.</p>`)}</th>`
     + `<th class="cls">No grupo${ajuda('No grupo',
         `<p>A mesma classificação, mas disputada só entre os itens do <b>mesmo grupo</b>
          (Banheiro, Chuveiro, Acessórios, Complementos, Gourmet).</p>
@@ -3144,6 +3139,13 @@ function abcRefresh(){
          família, mesmo sem peso no total.</p>
          <p>Serve para não desabastecer grupos pequenos. Quem compra olhando só a coluna
          <b>${rotEscopo}</b> tende a deixar esses itens de fora.</p>`)}</th>`
+    + `<th class="num">DDV <small>(dias)</small>${ajuda('DDV estipulado',`<p>Dias de venda que o Estoque SP deve cobrir para o item,
+         pela classe do item <b>dentro do seu grupo</b> — a coluna <b>No grupo</b> —
+         ${lojaSel?`na curva da <b>${lojaSel}</b>`:'na curva da <b>rede</b>'}:</p>
+         <ul><li><b>A</b> — ${fmtInt(abcDdv('A'))} dias</li><li><b>B</b> — ${fmtInt(abcDdv('B'))} dias</li>
+         <li><b>C</b> — ${fmtInt(abcDdv('C'))} dias</li><li><b>D</b> — sem venda no período, sem DDV</li></ul>
+         <p>Rupturas, Cobertura e Sugestão de reposição usam a curva <b>no grupo da rede</b>,
+         porque o Estoque SP abastece a rede inteira.</p>`)}</th>`
     + (lojaSel? `<th class="cls">Na rede${ajuda('Classe na rede',
         `<p>A classe do mesmo item considerando as ${nLojasRede} lojas somadas.
          Aparece só quando você está olhando uma loja.</p>
@@ -3153,7 +3155,13 @@ function abcRefresh(){
            Vale olhar exposição, estoque e preço.</li>
            <li><b>C</b> na rede e <b>A</b> na loja — força local: algo que a ${lojaSel} vende
            melhor que o conjunto.</li>
-         </ul>`)}</th>` : '');
+         </ul>`)}</th><th class="cls">Grupo na rede${ajuda('Classe no grupo, na rede',
+        `<p>A classe do item <b>dentro do seu grupo</b>, considerando as ${nLojasRede} lojas somadas.</p>
+         <p>Compare com a coluna <b>No grupo</b>, que é o mesmo grupo só na ${lojaSel}:</p>
+         <ul><li><b>A</b> no grupo da rede e <b>C</b> no grupo da loja — carro-chefe da família que a
+         ${lojaSel} vende pouco.</li>
+         <li><b>C</b> no grupo da rede e <b>A</b> no grupo da loja — destaque local dentro da família.</li></ul>
+         <p>Quando você olha a <b>rede</b> (sem loja), o DDV segue esta classe.</p>`)}</th>` : '');
   document.getElementById('abcRows').innerHTML = rows.slice(0,800).map(d=>{
     const pos=grupoSel?d.posicao_grupo:d.posicao;
     const pac=grupoSel?d.pct_acum_grupo:d.pct_acumulado;
@@ -3166,9 +3174,10 @@ function abcRefresh(){
         `<td class="num"${e===0?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(e)}</td>`;})()}
       <td class="num">${(d.qtd_janela>0 && pac!=null)?fmtPct(pac):'—'}</td>
       <td class="cls"><span class="pill cls ${d.classe}">${d.classe}</span></td>
-      <td class="num">${abcDdv(abcClGrupoRede(d))?fmtInt(abcDdv(abcClGrupoRede(d))):'—'}</td>
       <td class="cls"><span class="pill cls ${d.classe_grupo||'D'}">${d.classe_grupo||'—'}</span></td>
-      ${lojaSel? `<td class="cls"><span class="pill cls ${d.classe_rede||'D'}">${d.classe_rede||'—'}</span></td>` : ''}
+      <td class="num">${abcDdv(abcClGrupoRede(d))?fmtInt(abcDdv(abcClGrupoRede(d))):'—'}</td>
+      ${lojaSel? `<td class="cls"><span class="pill cls ${d.classe_rede||'D'}">${d.classe_rede||'—'}</span></td>
+        <td class="cls"><span class="pill cls ${d.classe_grupo_rede||'D'}">${d.classe_grupo_rede||'—'}</span></td>` : ''}
     </tr>`;}).join('');
   const leg=document.getElementById('abcLegenda');
   if(leg) leg.innerHTML = lojaSel
@@ -3250,12 +3259,12 @@ function abcColsExport(){
     {label:'Estoque SP (un)',get:d=>ABC.estoque[d.sku]??''},
     {label:'% acumulado',get:d=>(d.qtd_janela>0?csvPct(g?d.pct_acum_grupo:d.pct_acumulado):'')},
     {label: loja?('Classe na loja ('+loja+')'):'Classe na rede', key:'classe'},
-    {label:'DDV estipulado (dias)',get:d=>abcDdv(abcClGrupoRede(d))||''},
-    {label:'Classe no grupo',key:'classe_grupo'}
+    {label:'Classe no grupo',key:'classe_grupo'},
+    {label:'DDV estipulado (dias)',get:d=>abcDdv(abcClGrupoRede(d))||''}
   ];
   if(loja) cols.push(
     {label:'Qtd. Vendida rede (un)',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
-    {label:'Classe rede',key:'classe_rede'},
+    {label:'Classe rede',key:'classe_rede'},{label:'Classe no grupo na rede',key:'classe_grupo_rede'},
     {label:'Delta participacao (pp)',get:d=>(d.gap_pp!=null?Number(d.gap_pp).toFixed(2).replace('.',','):'')});
   return cols;
 }
