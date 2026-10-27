@@ -493,6 +493,13 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
   .kv2{grid-template-columns:110px 1fr!important}
   .tools select,.tools .selin{max-width:100%}
   img,svg,canvas{max-width:100%}
+  /* iPhone amplia a tela sozinho ao tocar num campo com letra menor que 16px — e nao volta */
+  input,select,textarea,.selin,.field input,.lp-form .field input,.tools input[type=search]{font-size:16px!important}
+  /* larguras minimas fixas dentro das telas nao podem passar da largura do celular */
+  main [style*="min-width"]{min-width:0!important}
+  .tools .grow{min-width:0}
+  main [style*="grid-template-columns:150px 1fr 230px"]{grid-template-columns:1fr!important}
+  .money{min-width:0}
 }
 @media(prefers-reduced-motion:reduce){aside{transition:none}}
 
@@ -944,8 +951,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.9   · 27/10/2026 · Reposição: regra do lote (MOQ JIWI mínimo · Proposta mínimo · Proposta 4 múltiplos) com
                         comparativo das três; correção: regra JIWI agora é mínimo (antes arredondava em múltiplos).
                         Celular: tela não corre mais para o lado
+   1.9.1 · 27/10/2026 · Celular: tela não amplia sozinha (campos com 16px, sem foco automático, larguras mínimas liberadas)
    ============================================================ */
-const APP_VERSAO = '1.9';
+const APP_VERSAO = '1.9.1';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -962,6 +970,7 @@ const ICON_USER='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" str
 let session = null, perfil = null;
 const isGestor = () => perfil && ['admin','casavip_vendas','jiwi_estoque'].includes(perfil.papel);
 const isAdmin  = () => perfil && perfil.papel === 'admin';
+const CELULAR = () => { try{ return window.matchMedia('(max-width:760px)').matches; }catch(e){ return false; } };
 const podeVendas = () => perfil && ['admin','casavip_vendas'].includes(perfil.papel);
 // JIWI enxerga só quantidade: nada de faturamento, preço médio ou R$.
 const semValores = () => !!perfil && perfil.papel==='jiwi_estoque';
@@ -4677,7 +4686,7 @@ async function renderPulmaoConsulta(){
   const quando=PCO.raw.find(d=>d.atualizado_em);
   body.innerHTML=`
     <div class="tools">
-      <input type="search" id="pcBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:240px" autofocus>
+      <input type="search" id="pcBusca" class="selin" placeholder="Buscar código ou descrição…" style="min-width:240px" ${CELULAR()?'':'autofocus'}>
       <select class="selin" id="pcGrupo"><option value="">Todos os grupos</option>${
         uniq(PCO.raw.map(d=>d.grupo)).map(v=>`<option>${v}</option>`).join('')}</select>
       <select class="selin" id="pcLinha"><option value="">Todas as linhas</option>${
