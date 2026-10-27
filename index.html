@@ -965,8 +965,9 @@ td.col-rede{background:#fef7ea}
    1.10.2 · 27/10/2026 · Curva ABC por loja: nova coluna "Grupo na rede" (curva do grupo na rede inteira)
    1.10.3 · 27/10/2026 · Curva ABC: coluna DDV ao lado da classe que a define (No grupo da loja ou da rede)
    1.10.4 · 27/10/2026 · Curva ABC: colunas "Classe loja/rede" e "Classe por grupo", cor azul (loja) e âmbar (rede)
+   1.10.5 · 27/10/2026 · Curva ABC: colunas Loja/ABC · Loja/Grupo · DDV · Rede/ABC · Rede/Grupo
    ============================================================ */
-const APP_VERSAO = '1.10.4';
+const APP_VERSAO = '1.10.5';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -3103,7 +3104,8 @@ function abcRefresh(){
   // O rotulo da coluna de classe segue o recorte. "Classe", sozinho, nao dizia
   // classe de que — e a resposta muda conforme o filtro de loja.
   const nLojasRede=uniq(ABC.vendas.map(r=>r.loja)).length;
-  const rotEscopo = lojaSel ? `Classe loja <small>(${lojaSel})</small>` : 'Classe rede <small>(Casa Vip)</small>';
+  const rotEscopo = lojaSel ? 'Loja/ABC' : 'Rede/ABC';
+  const rotGrupo = lojaSel ? 'Loja/Grupo' : 'Rede/Grupo';
   const cEsc = lojaSel ? 'col-loja' : 'col-rede';
   const nomeEscopo = lojaSel ? lojaSel : 'rede';
   document.getElementById('abcHead').innerHTML = `<th class="num">#</th><th>SKU</th><th class="wide">Descrição</th><th>Linha</th><th>Cor</th><th>Grupo</th>`
@@ -3132,11 +3134,11 @@ function abcRefresh(){
          </ul>
          <p>Os cortes de A e B são ajustáveis no topo da tela.</p>`
         + (lojaSel
-          ? `<p>A coluna <b>Classe rede</b>, ao lado, traz a classe do mesmo item no conjunto.
+          ? `<p>A coluna <b>Rede/ABC</b>, ao lado, traz a classe do mesmo item no conjunto.
              É a comparação entre as duas que mostra onde a loja foge da rede.</p>`
           : `<p>Escolhendo uma loja no seletor acima, esta coluna passa a ser a daquela loja
-             (<b>Classe loja</b>) e aparece uma coluna <b>Classe rede</b> ao lado, para comparar.</p>`))}</th>`
-    + `<th class="cls ${cEsc}">Classe por grupo${ajuda('Classe por grupo',
+             (<b>Loja/ABC</b>) e aparece uma coluna <b>Rede/ABC</b> ao lado, para comparar.</p>`))}</th>`
+    + `<th class="cls ${cEsc}">${rotGrupo}${ajuda(rotGrupo,
         `<p>A mesma classificação, mas disputada só entre os itens do <b>mesmo grupo</b>
          (Banheiro, Chuveiro, Acessórios, Complementos, Gourmet).</p>
          <p>Vale o mesmo recorte da coluna <b>${rotEscopo}</b>: aqui é o grupo dentro
@@ -3147,24 +3149,24 @@ function abcRefresh(){
          <p>Serve para não desabastecer grupos pequenos. Quem compra olhando só a coluna
          <b>${rotEscopo}</b> tende a deixar esses itens de fora.</p>`)}</th>`
     + `<th class="num">DDV <small>(dias)</small>${ajuda('DDV estipulado',`<p>Dias de venda que o Estoque SP deve cobrir para o item,
-         pela classe do item <b>dentro do seu grupo</b> — a coluna <b>Classe por grupo</b> —
+         pela classe do item <b>dentro do seu grupo</b> — a coluna <b>${lojaSel?'Loja/Grupo':'Rede/Grupo'}</b> —
          ${lojaSel?`na curva da <b>${lojaSel}</b>`:'na curva da <b>rede</b>'}:</p>
          <ul><li><b>A</b> — ${fmtInt(abcDdv('A'))} dias</li><li><b>B</b> — ${fmtInt(abcDdv('B'))} dias</li>
          <li><b>C</b> — ${fmtInt(abcDdv('C'))} dias</li><li><b>D</b> — sem venda no período, sem DDV</li></ul>
          <p>Rupturas, Cobertura e Sugestão de reposição usam a curva <b>no grupo da rede</b>,
          porque o Estoque SP abastece a rede inteira.</p>`)}</th>`
-    + (lojaSel? `<th class="cls col-rede">Classe rede <small>(Casa Vip)</small>${ajuda('Classe na rede',
+    + (lojaSel? `<th class="cls col-rede">Rede/ABC${ajuda('Rede/ABC',
         `<p>A classe do mesmo item considerando as ${nLojasRede} lojas somadas.
          Aparece só quando você está olhando uma loja.</p>
-         <p>Está aqui para ser comparada com a coluna <b>Classe loja</b>:</p>
+         <p>Está aqui para ser comparada com a coluna <b>Loja/ABC</b>:</p>
          <ul>
            <li><b>A</b> na rede e <b>C</b> na loja — item que a rede vende e a ${lojaSel} não.
            Vale olhar exposição, estoque e preço.</li>
            <li><b>C</b> na rede e <b>A</b> na loja — força local: algo que a ${lojaSel} vende
            melhor que o conjunto.</li>
-         </ul>`)}</th><th class="cls col-rede">Classe por grupo${ajuda('Classe por grupo, na rede',
+         </ul>`)}</th><th class="cls col-rede">Rede/Grupo${ajuda('Rede/Grupo',
         `<p>A classe do item <b>dentro do seu grupo</b>, considerando as ${nLojasRede} lojas somadas.</p>
-         <p>Compare com a <b>Classe por grupo</b> da loja, que é o mesmo grupo só na ${lojaSel}:</p>
+         <p>Compare com a coluna <b>Loja/Grupo</b>, que é o mesmo grupo só na ${lojaSel}:</p>
          <ul><li><b>A</b> no grupo da rede e <b>C</b> no grupo da loja — carro-chefe da família que a
          ${lojaSel} vende pouco.</li>
          <li><b>C</b> no grupo da rede e <b>A</b> no grupo da loja — destaque local dentro da família.</li></ul>
@@ -3189,7 +3191,7 @@ function abcRefresh(){
   const leg=document.getElementById('abcLegenda');
   if(leg) leg.innerHTML = lojaSel
     ? `<div style="margin-top:10px;font-size:12px;color:var(--ink-faint);line-height:1.5">
-        <b>Na loja</b> é a classe dentro da curva da ${lojaSel}; <b>Na rede</b> é a do mesmo item
+        <b>Loja/ABC</b> é a classe dentro da curva da ${lojaSel}; <b>Rede/ABC</b> é a do mesmo item
         com as ${uniq(ABC.vendas.map(r=>r.loja)).length} lojas juntas — comparar as duas mostra onde ${lojaSel} diverge do conjunto.
         Item sem giro no período fica sem % acumulado e entra como classe D.</div>`
     : '';
@@ -3265,13 +3267,13 @@ function abcColsExport(){
     {label:'Grupo',key:'grupo'},{label:'Qtd. Vendida (un)',key:'qtd_janela'},
     {label:'Estoque SP (un)',get:d=>ABC.estoque[d.sku]??''},
     {label:'% acumulado',get:d=>(d.qtd_janela>0?csvPct(g?d.pct_acum_grupo:d.pct_acumulado):'')},
-    {label: loja?('Classe loja ('+loja+')'):'Classe rede (Casa Vip)', key:'classe'},
-    {label: loja?('Classe por grupo ('+loja+')'):'Classe por grupo (Casa Vip)',key:'classe_grupo'},
+    {label: loja?'Loja/ABC':'Rede/ABC', key:'classe'},
+    {label: loja?'Loja/Grupo':'Rede/Grupo',key:'classe_grupo'},
     {label:'DDV estipulado (dias)',get:d=>abcDdv(abcClGrupoRede(d))||''}
   ];
   if(loja) cols.push(
     {label:'Qtd. Vendida rede (un)',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
-    {label:'Classe rede (Casa Vip)',key:'classe_rede'},{label:'Classe por grupo (Casa Vip)',key:'classe_grupo_rede'},
+    {label:'Rede/ABC',key:'classe_rede'},{label:'Rede/Grupo',key:'classe_grupo_rede'},
     {label:'Delta participacao (pp)',get:d=>(d.gap_pp!=null?Number(d.gap_pp).toFixed(2).replace('.',','):'')});
   return cols;
 }
