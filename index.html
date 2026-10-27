@@ -478,6 +478,21 @@ td.num,th.num,.statbar .n{font-variant-numeric:tabular-nums}
   .scrim{padding:10px}
   .modal{max-width:100%!important;padding:18px}
   .modal div[style*="repeat(3,1fr)"]{grid-template-columns:1fr 1fr!important}
+  /* a tela nao pode correr para o lado: o que for largo rola dentro do proprio quadro */
+  html,body{overflow-x:hidden;max-width:100%}
+  .shell,main{max-width:100vw;overflow-x:hidden}
+  main>*{max-width:100%}
+  .panel{max-width:100%;overflow-x:auto}
+  .zn-card-head h2,.zn-sub{min-width:0;white-space:normal}
+  .zn-chips{flex-wrap:wrap;margin-left:0}
+  .zn-chip{width:auto}
+  .zn-row,.zn-escala{grid-template-columns:72px minmax(0,1fr)!important}
+  .zn-row .lb{white-space:normal}
+  .lg-podio{gap:6px}.lg-pos{width:auto;flex:1;min-width:0}.lg-nome{max-width:100%;font-size:12.5px}
+  .rp-regras{flex-direction:column}
+  .kv2{grid-template-columns:110px 1fr!important}
+  .tools select,.tools .selin{max-width:100%}
+  img,svg,canvas{max-width:100%}
 }
 @media(prefers-reduced-motion:reduce){aside{transition:none}}
 
@@ -521,6 +536,16 @@ table.densa.zn-tab td,table.densa.zn-tab th{padding-left:6px;padding-right:6px}
 table.zn-tab th small{display:inline;font-size:10.5px}
 table.zn-tab th small{font-weight:500;color:var(--ink-faint)}
 .zn-pct{display:inline-block;min-width:62px;text-align:right;padding:2px 7px;border-radius:6px;font-weight:700;font-size:12px;color:#fff}
+.rp-regras{display:flex;gap:6px;flex-wrap:wrap}
+.rp-regra{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:9px;padding:6px 10px;cursor:pointer;background:#fff}
+.rp-regra:has(input:checked){border-color:var(--blue);background:var(--blue-tint)}
+.rp-regra span{display:flex;flex-direction:column;line-height:1.2}
+.rp-regra b{font-size:13px}.rp-regra small{font-size:11px;color:var(--ink-faint)}
+.rp-comp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 16px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:10px}
+.rp-comp-t{font-size:12px;font-weight:700;color:var(--ink-soft);margin-right:4px}
+.rp-c{display:flex;align-items:baseline;gap:6px;padding:4px 10px;border-radius:8px;background:#f4f6f9;font-variant-numeric:tabular-nums}
+.rp-c small{font-size:11.5px;color:var(--ink-faint)}.rp-c b{font-size:14px}.rp-c em{font-style:normal;font-size:11px;color:var(--ink-faint)}
+.rp-c.on{background:var(--blue-tint);box-shadow:inset 0 0 0 1.5px var(--blue)}.rp-c.on b{color:var(--blue-ink)}
 .zn-card-head{cursor:pointer;user-select:none;flex-wrap:wrap}
 .zn-card-head:hover{background:#f2f6fd}
 .zn-seta{width:14px;color:var(--ink-faint);font-size:13px}
@@ -915,9 +940,13 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.7.8 · 26/10/2026 · Robô: botões "Menu" e "Voltar" (desfaz a última escolha), em negrito
    1.8   · 26/10/2026 · Celular: botão ☰ abre o menu como gaveta; cabeçalho, filtros, tabelas e janelas ajustados
                         para tela pequena. Desktop sem nenhuma mudança (regras só abaixo de 760 px)
+   1.8.1 · 26/10/2026 · Sugestão de reposição restrita ao administrador e à JIWI (tela, menu, robô e banco)
+   1.9   · 27/10/2026 · Reposição: regra do lote (MOQ JIWI mínimo · Proposta mínimo · Proposta 4 múltiplos) com
+                        comparativo das três; correção: regra JIWI agora é mínimo (antes arredondava em múltiplos).
+                        Celular: tela não corre mais para o lado
    ============================================================ */
-const APP_VERSAO = '1.8';
-const APP_DATA   = '26/10/2026';
+const APP_VERSAO = '1.9';
+const APP_DATA   = '27/10/2026';
 
 /* ============================================================
    Config — projeto Supabase (chave publicável, protegida por RLS)
@@ -937,6 +966,9 @@ const podeVendas = () => perfil && ['admin','casavip_vendas'].includes(perfil.pa
 // JIWI enxerga só quantidade: nada de faturamento, preço médio ou R$.
 const semValores = () => !!perfil && perfil.papel==='jiwi_estoque';
 const ROTAS_FINANCEIRAS = ['precomedio'];
+// Sugestao de reposicao e da rede inteira (a JIWI atende todos): so admin e JIWI.
+const podeReposicao = () => !!perfil && ['admin','jiwi_estoque'].includes(perfil.papel);
+const ROTAS_REPOSICAO = ['reposicao'];
 
 /* ---------- normalização (espelha as funções do banco) ---------- */
 // A referencia como ela aparece na planilha, no pedido e na nota.
@@ -1541,6 +1573,8 @@ function aplicarVisibilidade(){
   document.querySelectorAll('.so-adm').forEach(el=>el.classList.toggle('esconde', !(pode && isAdmin())));
   ROTAS_FINANCEIRAS.forEach(r=>{ const el=document.querySelector(`.nav-item[data-route="${r}"]`);
     if(el) el.classList.toggle('esconde', semValores()); });
+  ROTAS_REPOSICAO.forEach(r=>{ const el=document.querySelector(`.nav-item[data-route="${r}"]`);
+    if(el) el.classList.toggle('esconde', !podeReposicao()); });
   if(!pode) dockFechar();
 }
 document.getElementById('chatBolha').onclick=dockToggle;
@@ -1645,6 +1679,7 @@ function logEvento(tipo, rota){
 }
 async function route(r){
   if(semValores() && ROTAS_FINANCEIRAS.includes(r)) r='abc';
+  if(ROTAS_REPOSICAO.includes(r) && !podeReposicao()) r='zonas';
   current=r; setActive(r); aplicarVisibilidade(); view.scrollTop=0;
   historiaMarca(r);
   logEvento('tela', r);
@@ -5194,6 +5229,8 @@ async function renderReposicao(){
     +'<div id="rpBody"><div class="empty">Carregando…</div></div>';
   const body=document.getElementById('rpBody');
   if(!session){ body.innerHTML=loginWall('Restrito à equipe.'); return; }
+  if(!podeReposicao()){ body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Acesso restrito</div>
+    A sugestão de reposição é da rede inteira e é feita pelo administrador e pela JIWI.</div></div>`; return; }
   const [mesesDisp,p,g]=await Promise.all([
     sb.from('vw_vendas_por_loja').select('competencia').order('competencia',{ascending:true}),
     sb.from('parametros_pulmao').select('*').eq('id',true).maybeSingle(),
@@ -5209,10 +5246,13 @@ async function renderReposicao(){
       <div id="rpPeriod" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
     </div>
     <div class="zn-regua"><span><b>Sugestão (un)</b> = alvo − Estoque SP − pedidos China em aberto,
-      arredondada para cima no múltiplo do <b>MOQ</b> do item. Alvo = venda/dia do período ×
+      ajustada pela <b>regra do lote</b> escolhida abaixo. Alvo = venda/dia do período ×
       <b>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias</b> — a mesma régua de Rupturas e excessos.</span>
       ${ajuda('Como a sugestão é calculada', repAjuda())}</div>
     <div class="panel" style="margin-bottom:12px"><div style="padding:14px 16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="f"><div class="pc-lbl" style="margin-bottom:4px">Regra do lote${ajuda('Regra do lote', repAjudaRegra())}</div>
+        <div class="rp-regras" id="rpRegra">${REP_REGRAS.map((r,i)=>`<label class="rp-regra"><input type="radio" name="rpRegra" value="${r.k}"${i===0?' checked':''}>
+          <span><b>${r.rot}</b><small>${r.sub}</small></span></label>`).join('')}</div></div>
       <div class="f"><div class="pc-lbl" style="margin-bottom:4px">Curvas</div>
         <select class="selin" id="rpCurva">
           <option value="ABC">A, B e C</option><option value="AB">Só A e B</option><option value="A">Só A</option></select></div>
@@ -5239,6 +5279,31 @@ async function renderReposicao(){
   document.getElementById('rpGerar').onclick=repGerar;
   ['rpCurva','rpZona','rpGrupo'].forEach(id=>{
     document.getElementById(id).onchange=()=>{ if(REP.doc) repGerar(); }; });
+  document.querySelectorAll('input[name=rpRegra]').forEach(el=>el.onchange=()=>{ if(REP.doc) repGerar(); });
+}
+// Regras do lote. A conta de cada uma esta no banco (sugestao_reposicao, p_regra).
+const REP_REGRAS=[
+  {k:'jiwi',      rot:'MOQ JIWI',          sub:'regra de hoje · mínimo do cadastro'},
+  {k:'prop_min',  rot:'Proposta',          sub:'A 100 · B 50 · C 10 · mínimo'},
+  {k:'prop_mult', rot:'Proposta 4',        sub:'A 100 · B 50 · C 10 · múltiplos'}
+];
+function repRegra(){ const el=document.querySelector('input[name=rpRegra]:checked'); return el?el.value:'jiwi'; }
+function repRegraRot(k){ const r=REP_REGRAS.find(x=>x.k===k)||REP_REGRAS[0]; return r.rot+' ('+r.sub+')'; }
+function repAjudaRegra(){
+  return `<p>A <b>necessidade</b> do item é sempre a mesma: alvo − Estoque SP − pedidos China em aberto.
+    O que muda entre as regras é como o <b>lote</b> entra na conta:</p>
+    <ul>
+      <li><b>MOQ JIWI</b> — regra de hoje. Usa o MOQ cadastrado de cada item na Tabela DAX, como <b>mínimo</b>:
+        compra o maior entre a necessidade e o MOQ.</li>
+      <li><b>Proposta</b> — lote pela curva ABC do item (A 100 · B 50 · C 10 un), como <b>mínimo</b>.</li>
+      <li><b>Proposta 4</b> — o mesmo lote por curva, mas sempre em <b>múltiplos</b> do lote.</li>
+    </ul>
+    <p class="exemplo">Item curva A que precisa de <b>102 un</b>, com MOQ cadastrado de 500:<br>
+      MOQ JIWI → <b>500 un</b> · Proposta → <b>102 un</b> · Proposta 4 → <b>200 un</b> (2 lotes de 100).</p>
+    <p class="exemplo">Item curva C que precisa de <b>1 un</b>, com MOQ cadastrado de 500:<br>
+      MOQ JIWI → <b>500 un</b> · Proposta → <b>10 un</b> · Proposta 4 → <b>10 un</b>.</p>
+    <p>Sem MOQ cadastrado (regra MOQ JIWI), a sugestão é a necessidade exata.
+      O documento gerado mostra a regra usada e o total das três regras para comparar.</p>`;
 }
 
 function repAjuda(){
@@ -5248,14 +5313,14 @@ function repAjuda(){
       <li><b>Alvo (un)</b> = venda/dia da rede × dias da curva
         (A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)}).</li>
       <li><b>Necessidade (un)</b> = alvo − Estoque SP − pedidos China em aberto.</li>
-      <li><b>Sugestão (un)</b> = necessidade arredondada para cima no múltiplo do <b>MOQ</b>.
-        Sem MOQ cadastrado, a sugestão é a necessidade exata.</li>
+      <li><b>Sugestão (un)</b> = necessidade ajustada pela <b>regra do lote</b> escolhida
+        (MOQ JIWI, Proposta ou Proposta 4 — veja o "i" ao lado de Regra do lote).</li>
     </ul>
     <p class="exemplo">Alvo 360 un, estoque 120 un, nada em trânsito → necessidade 240 un.
-      Com MOQ 100, a sugestão vira <b>300 un</b> (3 lotes). Sem MOQ, fica <b>240 un</b>.</p>
+      MOQ JIWI de 500 → <b>500 un</b>. Proposta (curva A, lote 100) → <b>240 un</b>. Proposta 4 → <b>300 un</b>.</p>
     <p>Itens já no alvo ou acima dele, e itens sem venda no período, ficam fora.
       A ordem é por urgência: ruptura, vermelho, amarelo, verde; dentro de cada zona, curva A primeiro.</p>
-    <p>O MOQ de cada item vem da <b>Tabela DAX</b> em Cadastros › Produtos.</p>`;
+    <p>O MOQ da regra JIWI vem da <b>Tabela DAX</b> em Cadastros › Produtos.</p>`;
 }
 
 async function repGerar(){
@@ -5264,7 +5329,10 @@ async function repGerar(){
   const box=document.getElementById('rpPeriod');
   const st=(box && box.querySelector('[data-k]')) ? readPeriod(box) : (REP.period||{});
   REP.period=st;
-  const {data,error}=await fetchRpc('sugestao_reposicao',{p_ini:st.aIni||null, p_fim:st.aFim||null});
+  const regra=repRegra(), arg=r=>({p_ini:st.aIni||null, p_fim:st.aFim||null, p_regra:r});
+  // a regra escolhida + as outras duas, para o comparativo do documento
+  const res=await Promise.all(REP_REGRAS.map(r=>fetchRpc('sugestao_reposicao',arg(r.k))));
+  const {data,error}=res[REP_REGRAS.findIndex(r=>r.k===regra)];
   btn.disabled=false; btn.textContent='Gerar sugestão de reposição';
   if(error){ document.getElementById('rpDoc').innerHTML=`<div class="notice warn">${error.message}</div>`; return; }
   const curvas=valOf('rpCurva','ABC').split(''), zonas=REP_ZONAS[valOf('rpZona','todas')], grupo=valOf('rpGrupo','');
@@ -5279,7 +5347,12 @@ async function repGerar(){
             grupo||'todos os grupos'].join(' · '),
     media_ini:r0.media_ini, media_fim:r0.media_fim, meses:r0.meses_periodo, estoque_em:r0.atualizado_em,
     temChina:(data||[]).some(d=>+d.em_transito>0),
-    semMoq:REP.linhas.filter(d=>!(+d.moq>0)).length
+    semMoq:regra==='jiwi'?REP.linhas.filter(d=>!(+d.moq>0)).length:0,
+    regra:regra,
+    // mesmos filtros de curva/zona/grupo aplicados as tres regras
+    comp:REP_REGRAS.map((r,i)=>({k:r.k, rot:r.rot, un:(res[i].data||[]).filter(d=>curvas.includes(d.classe)&&zonas.includes(d.zona)&&(!grupo||d.grupo===grupo))
+      .reduce((a,d)=>a+(+d.sugestao||0),0)})),
+    nec:REP.linhas.reduce((a,d)=>a+(+d.necessidade||0),0)
   };
   logEvento('tela','reposicao_gerada');
   repPinta();
@@ -5299,7 +5372,7 @@ function repColunas(){
   if(REP.doc&&REP.doc.temChina) c.push({label:'Em trânsito', un:'un', num:1, get:d=>fmtInt(d.em_transito)});
   c.push(
     {label:'Necessidade', un:'un', num:1, get:d=>fmtInt(d.necessidade)},
-    {label:'MOQ', un:'un', num:1, get:d=>+d.moq>0?fmtInt(d.moq):'—'},
+    {label:(REP.doc&&REP.doc.regra!=='jiwi')?'Lote':'MOQ', un:'un', num:1, get:d=>+d.moq>0?fmtInt(d.moq):'—'},
     {label:'Sugestão', un:'un', num:1, forte:1, get:d=>fmtInt(d.sugestao)},
     {label:'Cobertura após', un:'dias', num:1, get:d=>d.cobertura_apos_dias==null?'—':fmtInt(d.cobertura_apos_dias)});
   return c;
@@ -5324,6 +5397,7 @@ function repPinta(){
       </div>
       <div style="padding:12px 16px 4px">
         <div class="kv2" style="grid-template-columns:150px 1fr">
+          <b>Regra do lote</b><span><b>${repRegraRot(D.regra)}</b></span>
           <b>Filtros</b><span>${D.filtro}</span>
           <b>Venda/dia</b><span>${fmtComp(D.media_ini)} a ${fmtComp(D.media_fim)} (${D.meses} ${D.meses>1?'meses':'mês'})</span>
           <b>Alvo</b><span>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias de venda</span>
@@ -5333,6 +5407,11 @@ function repPinta(){
           a sugestão desses itens é a necessidade exata, sem arredondar em lotes.</div>`:''}
         ${D.temChina?'':`<div class="notice info" style="margin:10px 0 0">Nenhum pedido China em aberto carregado:
           a sugestão não desconta mercadoria em trânsito.</div>`}
+      </div>
+      <div class="rp-comp"><span class="rp-comp-t">Comparativo das regras (un)${ajuda('Regra do lote', repAjudaRegra())}</span>
+        <span class="rp-c"><small>Sem MOQ</small><b>${fmtInt(D.nec)}</b></span>
+        ${D.comp.map(c=>`<span class="rp-c${c.k===D.regra?' on':''}"><small>${c.rot}</small><b>${fmtInt(c.un)}</b>
+          <em>${D.nec?'+'+fmtPct(100*(c.un-D.nec)/D.nec):''}</em></span>`).join('')}
       </div>
       <div class="statbar" style="margin:12px 16px">
         <div class="s"><div class="n">${fmtInt(l.length)}</div><div class="l">Itens (SKUs)</div></div>
@@ -5402,6 +5481,7 @@ function repImprimir(){
       <b>Estoque</b><span>Estoque SP de ${fmtDataHora(D.estoque_em)}</span>
       <b>Venda/dia</b><span>${fmtComp(D.media_ini)} a ${fmtComp(D.media_fim)} (${D.meses} ${D.meses>1?'meses':'mês'})</span>
       <b>Alvo</b><span>A ${fmtInt(P.dias_a)} · B ${fmtInt(P.dias_b)} · C ${fmtInt(P.dias_c)} dias de venda</span>
+      <b>Regra do lote</b><span>${repRegraRot(D.regra)}</span>
       <b>Filtros</b><span>${D.filtro}</span>
       <b>Total</b><span><b>${fmtInt(l.length)} SKUs · ${fmtInt(tot)} un</b></span>
     </div>
@@ -6515,7 +6595,8 @@ async function botRuptura(){
 
 /* ---------- guia de telas ---------- */
 async function botTelasMenu(){
-  const lista=GUIA.filter(g=>(!g.adm || isAdmin()) && !(semValores() && ROTAS_FINANCEIRAS.includes(g.rota)));
+  const lista=GUIA.filter(g=>(!g.adm || isAdmin()) && !(semValores() && ROTAS_FINANCEIRAS.includes(g.rota))
+    && !(ROTAS_REPOSICAO.includes(g.rota) && !podeReposicao()));
   const b=await botDiz('<p>Sobre qual tela você quer saber?</p>', 320);
   botOfereceu(b, lista.map(g=>({rot:g.rot, g:g})).concat([{rot:'‹ Voltar ao menu', menu:1}]),
     o=>{ if(o.menu) return botMenu(false); botTela(o.g); });
