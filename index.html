@@ -953,8 +953,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
                         Celular: tela não corre mais para o lado
    1.9.1 · 27/10/2026 · Celular: tela não amplia sozinha (campos com 16px, sem foco automático, larguras mínimas liberadas)
    1.9.2 · 27/10/2026 · Exportações: % acumulado sai em percentual (8,65%) e todo decimal com vírgula, legível no Excel
+   1.9.3 · 27/10/2026 · Curva ABC: coluna DDV estipulado (A 180 · B 150 · C 90 dias) na tela e na exportação
    ============================================================ */
-const APP_VERSAO = '1.9.2';
+const APP_VERSAO = '1.9.3';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -2912,17 +2913,20 @@ async function renderABC(){
   view.innerHTML=head(ICO_ABC,'Curva ABC','Classificação por quantidade no período escolhido. Geral e por grupo, em paralelo.','Análise','vendas')+'<div id="abcBody"></div>';
   const body=document.getElementById('abcBody');
   body.innerHTML='<div class="panel"><div class="empty">Carregando vendas…</div></div>';
-  const [vg, prod, par, est] = await Promise.all([
+  const [vg, prod, par, est, ddv] = await Promise.all([
     fetchAll('vw_vendas_geo','sku,grupo,linha,cor,descricao,loja,uf,regiao,competencia,quantidade'),
     fetchAll('vw_produtos','sku,descricao,linha,cor,grupo'),
     sb.from('parametros_abc').select('*').maybeSingle(),
-    fetchAll('vw_estoque_pulmao','sku,estoque','sku')
+    fetchAll('vw_estoque_pulmao','sku,estoque','sku'),
+    sb.from('parametros_pulmao').select('dias_a,dias_b,dias_c').eq('id',true).maybeSingle()
   ]);
   if(vg.error){ body.innerHTML=`<div class="notice warn">${vg.error.message}</div>`; return; }
   if(!vg.data || !vg.data.length){
     body.innerHTML=`<div class="panel"><div class="empty"><div class="big">Sem curva ainda</div>Importe a planilha de vendas.</div></div>`; return; }
   ABC.vendas=vg.data; ABC.catalogo=prod.data||[];
   ABC.estoque={}; (est&&est.data||[]).forEach(e=>{ ABC.estoque[e.sku]=+e.estoque||0; });
+  // DDV estipulado por curva (mesma regua do Estoque SP): A 180 · B 150 · C 90 dias
+  ABC.ddv=(ddv&&ddv.data)||{dias_a:180,dias_b:150,dias_c:90};
   ABC.meses=uniq(ABC.vendas.map(r=>r.competencia));
   ABC.par = par.data || {corte_a:80,corte_b:90,criterio:'quantidade'};
   const P=ABC.par;
@@ -3120,6 +3124,11 @@ function abcRefresh(){
              É a comparação entre as duas que mostra onde a loja foge da rede.</p>`
           : `<p>Escolhendo uma loja no seletor acima, esta coluna passa a ser a daquela loja
              (<b>Na loja</b>) e aparece uma coluna <b>Na rede</b> ao lado, para comparar.</p>`))}</th>`
+    + `<th class="num">DDV <small>(dias)</small>${ajuda('DDV estipulado',`<p>Dias de venda que o Estoque SP deve cobrir para o item,
+         pela classe da coluna <b>${rotEscopo}</b>:</p>
+         <ul><li><b>A</b> — ${fmtInt(abcDdv('A'))} dias</li><li><b>B</b> — ${fmtInt(abcDdv('B'))} dias</li>
+         <li><b>C</b> — ${fmtInt(abcDdv('C'))} dias</li><li><b>D</b> — sem venda no período, sem DDV</li></ul>
+         <p>É a mesma régua usada em Rupturas e excessos e na Sugestão de reposição.</p>`)}</th>`
     + `<th class="cls">No grupo${ajuda('No grupo',
         `<p>A mesma classificação, mas disputada só entre os itens do <b>mesmo grupo</b>
          (Banheiro, Chuveiro, Acessórios, Complementos, Gourmet).</p>
@@ -3152,6 +3161,7 @@ function abcRefresh(){
         `<td class="num"${e===0?' style="color:#c0392b;font-weight:700"':''}>${fmtInt(e)}</td>`;})()}
       <td class="num">${(d.qtd_janela>0 && pac!=null)?fmtPct(pac):'—'}</td>
       <td class="cls"><span class="pill cls ${d.classe}">${d.classe}</span></td>
+      <td class="num">${abcDdv(d.classe)?fmtInt(abcDdv(d.classe)):'—'}</td>
       <td class="cls"><span class="pill cls ${d.classe_grupo||'D'}">${d.classe_grupo||'—'}</span></td>
       ${lojaSel? `<td class="cls"><span class="pill cls ${d.classe_rede||'D'}">${d.classe_rede||'—'}</span></td>` : ''}
     </tr>`;}).join('');
@@ -3235,6 +3245,7 @@ function abcColsExport(){
     {label:'Estoque SP (un)',get:d=>ABC.estoque[d.sku]??''},
     {label:'% acumulado',get:d=>(d.qtd_janela>0?csvPct(g?d.pct_acum_grupo:d.pct_acumulado):'')},
     {label: loja?('Classe na loja ('+loja+')'):'Classe na rede', key:'classe'},
+    {label:'DDV estipulado (dias)',get:d=>abcDdv(d.classe)||''},
     {label:'Classe no grupo',key:'classe_grupo'}
   ];
   if(loja) cols.push(
@@ -3247,7 +3258,7 @@ function abcExport(){ exportCSV('curva_abc', abcColsExport(), ABC.filtered); }
 function abcPrint(){
   const loja=document.getElementById('fLojaAbc')?document.getElementById('fLojaAbc').value:'';
   const tit='Curva ABC — '+(loja||'rede inteira')+' · '+periodLabel(ABC.period);
-  printTabela(tit, abcColsExport().map(c=>({...c,num:/Posicao|Qtd|%|Delta/.test(c.label)})), ABC.filtered);
+  printTabela(tit, abcColsExport().map(c=>({...c,num:/Posicao|Qtd|%|Delta|DDV|Estoque/.test(c.label)})), ABC.filtered);
 }
 async function abcSalvarConfig(){
   const a=+document.getElementById('cfgA').value, b=+document.getElementById('cfgB').value;
@@ -6251,6 +6262,7 @@ const GUIA=[
 const botMoeda=n=>'<b>R$ '+fmtNum2(n)+'</b>';
 // O indice se le de relance; duas casas decimais aqui so atrapalham.
 const pctRedondo=v=>fmtPct(v);
+function abcDdv(cl){ const D=ABC.ddv||{}; return {A:+D.dias_a,B:+D.dias_b,C:+D.dias_c}[cl]||null; }
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
