@@ -952,8 +952,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
                         comparativo das três; correção: regra JIWI agora é mínimo (antes arredondava em múltiplos).
                         Celular: tela não corre mais para o lado
    1.9.1 · 27/10/2026 · Celular: tela não amplia sozinha (campos com 16px, sem foco automático, larguras mínimas liberadas)
+   1.9.2 · 27/10/2026 · Exportações: % acumulado sai em percentual (8,65%) e todo decimal com vírgula, legível no Excel
    ============================================================ */
-const APP_VERSAO = '1.9.1';
+const APP_VERSAO = '1.9.2';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -1025,7 +1026,14 @@ function toast(msg){
   clearTimeout(_toastT); _toastT=setTimeout(()=>el.classList.remove('show'),3600);
 }
 function uniq(arr){ return [...new Set(arr.filter(x=>x!=null&&x!==''))].sort((a,b)=>String(a).localeCompare(String(b),'pt-BR')); }
-function csvEsc(v){ v=(v==null?'':String(v)); return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+// Excel em portugues le "8.65" como 865 (ponto = milhar). Todo decimal sai com virgula.
+function csvEsc(v){
+  if(typeof v==='number' && !Number.isInteger(v)) v=String(v).replace('.',',');
+  v=(v==null?'':String(v));
+  if(/^-?\d+\.\d+$/.test(v)) v=v.replace('.',',');
+  return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+// percentual para planilha: 2 casas, virgula e o sinal de %
+function csvPct(v){ return (v==null||v==='')?'':Number(v).toFixed(2).replace('.',',')+'%'; }
 function exportCSV(nome, cols, rows){
   const head=cols.map(c=>csvEsc(c.label)).join(';');
   const body=rows.map(r=>cols.map(c=>csvEsc(c.get?c.get(r):r[c.key])).join(';')).join('\n');
@@ -3225,14 +3233,14 @@ function abcColsExport(){
     {label:'Descricao',key:'descricao'},{label:'Linha',key:'linha'},{label:'Cor',key:'cor'},
     {label:'Grupo',key:'grupo'},{label:'Qtd. Vendida (un)',key:'qtd_janela'},
     {label:'Estoque SP (un)',get:d=>ABC.estoque[d.sku]??''},
-    {label:'% acumulado',get:d=>(g?d.pct_acum_grupo:d.pct_acumulado)},
+    {label:'% acumulado',get:d=>(d.qtd_janela>0?csvPct(g?d.pct_acum_grupo:d.pct_acumulado):'')},
     {label: loja?('Classe na loja ('+loja+')'):'Classe na rede', key:'classe'},
     {label:'Classe no grupo',key:'classe_grupo'}
   ];
   if(loja) cols.push(
     {label:'Qtd. Vendida rede (un)',key:'qtd_rede'},{label:'Posicao rede',key:'pos_rede'},
     {label:'Classe rede',key:'classe_rede'},
-    {label:'Delta participacao pp',get:d=>(d.gap_pp!=null?Number(d.gap_pp).toFixed(2):'')});
+    {label:'Delta participacao (pp)',get:d=>(d.gap_pp!=null?Number(d.gap_pp).toFixed(2).replace('.',','):'')});
   return cols;
 }
 function abcExport(){ exportCSV('curva_abc', abcColsExport(), ABC.filtered); }
