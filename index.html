@@ -956,8 +956,9 @@ table.densa tr.drill:hover td{background:#f2f7ff}
    1.9.3 · 27/10/2026 · Curva ABC: coluna DDV estipulado (A 180 · B 150 · C 90 dias) na tela e na exportação
    1.10  · 27/10/2026 · DDV e curva das telas de estoque passam a ser os da curva DENTRO DO GRUPO de produtos
                         (Rupturas, Cobertura, Reposição, Tabela DAX, DDV da Curva ABC)
+   1.10.1 · 27/10/2026 · Curva ABC: DDV segue a curva no grupo do recorte da tela (rede ou loja)
    ============================================================ */
-const APP_VERSAO = '1.10';
+const APP_VERSAO = '1.10.1';
 const APP_DATA   = '27/10/2026';
 
 /* ============================================================
@@ -3127,10 +3128,12 @@ function abcRefresh(){
           : `<p>Escolhendo uma loja no seletor acima, esta coluna passa a ser a daquela loja
              (<b>Na loja</b>) e aparece uma coluna <b>Na rede</b> ao lado, para comparar.</p>`))}</th>`
     + `<th class="num">DDV <small>(dias)</small>${ajuda('DDV estipulado',`<p>Dias de venda que o Estoque SP deve cobrir para o item,
-         pela classe do item <b>dentro do grupo, na rede</b> (coluna No grupo, visão da rede):</p>
+         pela classe do item <b>dentro do seu grupo</b> — a coluna <b>No grupo</b> —
+         ${lojaSel?`na curva da <b>${lojaSel}</b>`:'na curva da <b>rede</b>'}:</p>
          <ul><li><b>A</b> — ${fmtInt(abcDdv('A'))} dias</li><li><b>B</b> — ${fmtInt(abcDdv('B'))} dias</li>
          <li><b>C</b> — ${fmtInt(abcDdv('C'))} dias</li><li><b>D</b> — sem venda no período, sem DDV</li></ul>
-         <p>É a mesma régua usada em Rupturas e excessos e na Sugestão de reposição.</p>`)}</th>`
+         <p>Rupturas, Cobertura e Sugestão de reposição usam a curva <b>no grupo da rede</b>,
+         porque o Estoque SP abastece a rede inteira.</p>`)}</th>`
     + `<th class="cls">No grupo${ajuda('No grupo',
         `<p>A mesma classificação, mas disputada só entre os itens do <b>mesmo grupo</b>
          (Banheiro, Chuveiro, Acessórios, Complementos, Gourmet).</p>
@@ -6265,8 +6268,8 @@ const botMoeda=n=>'<b>R$ '+fmtNum2(n)+'</b>';
 // O indice se le de relance; duas casas decimais aqui so atrapalham.
 const pctRedondo=v=>fmtPct(v);
 function abcDdv(cl){ const D=ABC.ddv||{}; return {A:+D.dias_a,B:+D.dias_b,C:+D.dias_c}[cl]||null; }
-// DDV usa a curva do item dentro do grupo, na rede (mesma regra das telas de estoque)
-function abcClGrupoRede(d){ const r=ABC.redeIdx&&ABC.redeIdx[d.sku]; return (r&&r.classe_grupo)||d.classe_grupo||'D'; }
+// DDV = curva do item DENTRO DO GRUPO, no recorte da tela: rede -> grupo na rede; loja -> grupo na loja
+function abcClGrupoRede(d){ return d.classe_grupo||'D'; }
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 function chatBolha(quem, html){
   const fio=document.getElementById('pgFio'); if(!fio) return null;
