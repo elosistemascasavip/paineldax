@@ -967,9 +967,10 @@ td.col-rede{background:#fef7ea}
    1.10.4 · 27/10/2026 · Curva ABC: colunas "Classe loja/rede" e "Classe por grupo", cor azul (loja) e âmbar (rede)
    1.10.5 · 27/10/2026 · Curva ABC: colunas Loja/ABC · Loja/Grupo · DDV · Rede/ABC · Rede/Grupo
    1.10.6 · 27/10/2026 · Impressões: R$ em formato contábil, milhar e % com vírgula; Preço médio com unidades
+   1.10.7 · 12/11/2026 · Ruptura conta todo o mix com Estoque SP zero, inclusive classe D (sem venda)
    ============================================================ */
-const APP_VERSAO = '1.10.6';
-const APP_DATA   = '27/10/2026';
+const APP_VERSAO = '1.10.7';
+const APP_DATA   = '12/11/2026';
 
 /* ============================================================
    Config — projeto Supabase (chave publicável, protegida por RLS)
@@ -4828,7 +4829,7 @@ async function znCarregar(){
   const st=ZN.period||{};
   const {data,error}=await fetchRpc('estoque_zonas',{p_ini:st.aIni||null, p_fim:st.aFim||null});
   if(error) return error.message;
-  // classe D sem estoque nao e ruptura: e item que nem vende nem tem. Fica de fora.
+  // Todo item do mix com estoque zero e ruptura, inclusive classe D (sem venda no periodo).
   ZN.fora=(data||[]).filter(d=>d.zona==='inativo').length;
   ZN.raw=(data||[]).filter(d=>d.zona!=='inativo');
   // Sem nenhum pedido China carregado, a coluna nao aparece: nao da para
@@ -4909,7 +4910,7 @@ function znTudo(){ znRegua(); znStats(); znRefresh(); znSemana(); }
 
 // Uma foto por semana, sempre na sexta-feira. Se a sexta nao teve carga, vale o
 // ultimo dia util da semana com carga — e o rodape avisa. Rompido = estoque zero
-// entre os itens com venda no periodo escolhido (mesma regra da tela).
+// entre todos os itens do mix, inclusive classe D (mesma regra da tela).
 async function znSemana(){
   const el=document.getElementById('znSemana'); if(!el) return;
   const st=ZN.period||{};
@@ -4926,14 +4927,14 @@ async function znSemana(){
     <div class="tbl-scroll" style="margin-top:12px;max-height:none"><table class="densa"><thead><tr>
       <th>SKUs rompidos <small>(un de SKU)</small></th>${lab.map(d=>`<th class="num">${d}</th>`).join('')}</tr></thead>
     <tbody>${linha('Curva A','rompidos_a','#1552c9')}${linha('Curva B','rompidos_b','#1f7a3f')}${
-      linha('Curva C','rompidos_c','#a86d12')}
+      linha('Curva C','rompidos_c','#a86d12')}${linha('Sem venda (D)','rompidos_d','#6b7686')}
       <tr style="font-weight:700;background:#f7f9fc"><td>Total</td>${l.map(x=>`<td class="num">${fmtInt(x.rompidos)}</td>`).join('')}</tr>
-      <tr><td style="color:var(--ink-faint)">% dos itens com venda</td>${l.map(x=>`<td class="num" style="color:var(--ink-faint)">${
+      <tr><td style="color:var(--ink-faint)">% do mix</td>${l.map(x=>`<td class="num" style="color:var(--ink-faint)">${
         fmtPct(x.itens_com_venda?100*x.rompidos/x.itens_com_venda:0)}</td>`).join('')}</tr>
     </tbody></table></div>
     <div style="margin-top:6px;font-size:12px;color:var(--ink-faint)">Cada coluna é a sexta-feira da semana.
-      Conta os itens com Estoque SP zero entre os que tiveram venda no período escolhido,
-      pela curva do mesmo período.${
+      Conta todos os itens do mix com Estoque SP zero, pela curva do período escolhido.
+      Item sem venda no período entra como <b>Sem venda (D)</b>.${
       fora.length?` Sem carga na sexta: ${fora.map(x=>`${dt(x.sexta)} usa ${dt(x.capturado_em)}`).join('; ')}.`:''}</div>`;
 }
 // Grafico proprio das rupturas: os rotulos de cada semana sao afastados entre si
@@ -4941,7 +4942,8 @@ async function znSemana(){
 function znSemanaSVG(l,dt){
   const S=[{k:'rompidos_a',rot:'Curva A',cor:'#1552c9'},
            {k:'rompidos_b',rot:'Curva B',cor:'#1f9d55'},
-           {k:'rompidos_c',rot:'Curva C',cor:'#c9871f'}];
+           {k:'rompidos_c',rot:'Curva C',cor:'#c9871f'},
+           {k:'rompidos_d',rot:'Sem venda (D)',cor:'#6b7686'}];
   const W=1400,H=310,padL=58,padR=70,padT=34,padB=44, iw=W-padL-padR, ih=H-padT-padB, N=l.length;
   const bruto=Math.max(1,...l.flatMap(x=>S.map(s=>+x[s.k]||0)));
   // escala redonda: 4 faixas iguais com passo 5, 10, 20, 25, 50...
@@ -5608,7 +5610,7 @@ async function renderRuptura(){
         uniq(PUL.raw.map(d=>d.cor).filter(Boolean)).sort().map(v=>`<option>${v}</option>`).join('')}</select>
       <select class="selin" id="ceFiltro">
         <option value="">Todos os itens</option>
-        <option value="rompido">Rompidos (estoque zero, com venda)</option>
+        <option value="rompido">Rompidos (estoque zero)</option>
         <option value="critico">Perto de romper (até 33% do alvo)</option>
         <option value="semgiro">Sem venda no período</option>
         <option value="parado">Com estoque e sem giro</option>
@@ -5671,7 +5673,7 @@ function pulmaoResumo(){
     const o=g[k]=g[k]||{k:k,itens:0,estoque:0,venda:0,rompidos:0,semGiro:0,alvo:0};
     o.itens++; o.estoque+=Number(d.estoque||0); o.venda+=Number(d.venda_media_mes||0);
     const m=pulMeta(d); if(m) o.alvo+=(Number(d.venda_media_mes||0)/30)*m;
-    if(Number(d.estoque)===0&&Number(d.vendido_total)>0) o.rompidos++;
+    if(Number(d.estoque)===0) o.rompidos++;
     if(Number(d.vendido_total)===0) o.semGiro++;
   });
   const l=Object.values(g).map(o=>({...o, dias: o.venda>0 ? (o.estoque/o.venda)*30 : null}));
@@ -5709,7 +5711,7 @@ function pulmaoResumo(){
         <td>${['ceBusca','ceGrupo','ceLinha','ceCor','ceClasse','ceFiltro']
               .some(id=>valOf(id,''))?'TOTAL DO RECORTE':'TOTAL DA REDE'}</td>
         <td class="num">${fmtInt(base.length)}</td>
-        <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0&&Number(d.vendido_total)>0).length)}</td>
+        <td class="num">${fmtInt(base.filter(d=>Number(d.estoque)===0).length)}</td>
         <td class="num">${fmtInt(base.filter(d=>Number(d.vendido_total)===0).length)}</td>
         <td class="num">${fmtInt(totE)}</td><td class="num">${totV.toFixed(1)}</td>
         <td class="num" style="color:${cor({alvo:totA,estoque:totE})}">${totD==null?'—':fmtInt(Math.round(totD))+' d'}${
@@ -5854,7 +5856,7 @@ function pulmaoRefresh(){
        (!q || (ref(d.sku)+' '+(d.descricao||'')).toLowerCase().includes(q))
     && (!g  || d.grupo===g) && (!li || d.linha===li) && (!co || d.cor===co)
     && (!cl || d.classe===cl));
-  if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0&&Number(d.vendido_total)>0);
+  if(f==='rompido') l=l.filter(d=>Number(d.estoque)===0);
   const cv=(+(PUL.par||{}).corte_vermelho||33)/100;
   if(f==='critico') l=l.filter(d=>Number(d.estoque)>0 && pulPct(d)!=null && pulPct(d)<=cv);
   if(f==='semgiro') l=l.filter(d=>Number(d.vendido_total)===0);
@@ -5868,7 +5870,7 @@ function pulmaoPinta(){
   const pag=l;
   // indicadores, painel e lista usam sempre o mesmo conjunto: o que esta na tela
   const b=PUL.vis||PUL.raw;
-  const zer=b.filter(d=>Number(d.estoque)===0&&Number(d.vendido_total)>0).length;
+  const zer=b.filter(d=>Number(d.estoque)===0).length;
   const cv=(+(PUL.par||{}).corte_vermelho||33)/100;
   const crit=b.filter(d=>Number(d.estoque)>0&&pulPct(d)!=null&&pulPct(d)<=cv).length;
   const par=b.filter(d=>Number(d.estoque)>0&&Number(d.vendido_total)===0).length;
@@ -5914,7 +5916,7 @@ function pulmaoPinta(){
       <th>Classe</th><th class="num">Estoque</th><th class="num">Venda/mês</th>
       <th style="width:210px;min-width:210px">Cobertura</th></tr></thead>
     <tbody>${pag.map(d=>{
-      const dias=diasCob(d), rompido=Number(d.estoque)===0&&Number(d.vendido_total)>0;
+      const dias=diasCob(d), rompido=Number(d.estoque)===0;
       return `<tr${rompido?' class="rompido"':''}><td>${ref(d.sku)}</td>
         <td class="desc" title="${(d.descricao||'').replace(/"/g,'&quot;')}">${d.descricao||'—'}</td>
         <td>${rotuloLinha(d)}</td><td>${d.cor||'—'}</td>
@@ -6655,12 +6657,12 @@ async function botRuptura(){
   const l=data||[];
   if(!l.length){ b.innerHTML='<p>Não há carga de Estoque SP para cruzar.</p>';
                  return botDepois(b,'ruptura',botRuptura); }
-  const rompidos=l.filter(x=>Number(x.estoque)===0 && Number(x.vendido_total)>0);
+  const rompidos=l.filter(x=>Number(x.estoque)===0);
   const rompA=rompidos.filter(x=>x.classe==='A');
   const quando=l[0] && l[0].atualizado_em;
   b.innerHTML=`<p><b>Estoque SP</b> · saldo de ${fmtDataHora(quando)}</p>
     <ul class="bot-lista">
-      <li><b>${fmtInt(rompidos.length)}</b> itens rompidos que tiveram venda no período</li>
+      <li><b>${fmtInt(rompidos.length)}</b> itens do mix rompidos (Estoque SP zero)</li>
       <li><b style="color:#c0392b">${fmtInt(rompA.length)}</b> deles são classe A</li>
     </ul>
     ${rompA.length? `<p><b>Classe A rompida — os 5 de maior giro</b></p>
